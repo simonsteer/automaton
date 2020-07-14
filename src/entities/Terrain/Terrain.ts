@@ -2,9 +2,10 @@ import Base from '../Base'
 
 export default class Terrain extends Base {
   cost = (unit: Unit) => 1
+  cache = new Map<Symbol, number>()
 
-  constructor(cost: (unit: Unit) => number) {
-    super()
+  constructor(game: Game, cost: (unit: Unit) => number) {
+    super(game)
     this.cost = cost
   }
 }

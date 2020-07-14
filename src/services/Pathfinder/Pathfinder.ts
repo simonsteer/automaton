@@ -1,6 +1,5 @@
 import Coords from '../Coords'
 import Graph from '../Dijkstra/Graph'
-import { mapGraph } from '../../utils'
 import { GraphNodeNeighbour } from '../Dijkstra/types'
 
 export default class Pathfinder {
@@ -18,7 +17,7 @@ export default class Pathfinder {
 
   private buildGraph() {
     const graph = new Graph()
-    mapGraph(this.grid.graph, tile => {
+    this.grid.mapTiles(tile => {
       const neighbours: GraphNodeNeighbour = {}
       this.unit.directionalConstraint
         .adjacent(tile.coords)

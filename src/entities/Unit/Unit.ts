@@ -14,8 +14,8 @@ export default class Unit extends Base {
     DEFAULT_DIRECTIONAL_CONSTRAINT
   )
 
-  constructor(stats: Partial<UnitStats>) {
-    super()
+  constructor(game: Game, stats: Partial<UnitStats>) {
+    super(game)
     for (const stat in stats) {
       this[stat as keyof UnitStats] = stats[stat as keyof UnitStats] as number
     }
