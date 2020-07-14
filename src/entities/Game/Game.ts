@@ -3,7 +3,7 @@ import { GameEntities } from './types'
 
 export default class Game {
   private battle?: BattleManager
-  entities = {
+  private entities = {
     units: new Map<Symbol, Unit>(),
     grids: new Map<Symbol, Grid>(),
     terrain: new Map<Symbol, Terrain>(),
