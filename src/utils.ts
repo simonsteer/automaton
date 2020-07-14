@@ -51,10 +51,3 @@ export function mapGraph<T, R>(
 ) {
   return graph.map((row, y) => row.map((item, x) => callback(item, { x, y })))
 }
-
-export function range(start: number, end: number) {
-  return Array(end + 1)
-    .fill(0)
-    .map((_, i) => i)
-    .slice(start)
-}

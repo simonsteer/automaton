@@ -7,11 +7,6 @@ export default class Coords {
     this.y = y
   }
 
-  static parseHash(hash: string) {
-    const [x, y] = hash.split(',').map(Number)
-    return new Coords({ x, y })
-  }
-
   static hash({ x, y }: RawCoords) {
     return `${x},${y}`
   }
@@ -20,7 +15,7 @@ export default class Coords {
     return Coords.hash(this)
   }
 
-  delta(coordinates: RawCoords) {
+  deltas(coordinates: RawCoords) {
     return new Coords({
       x: this.x - coordinates.x,
       y: this.y - coordinates.y,

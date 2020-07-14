@@ -1,4 +1,5 @@
-import { DeepMap } from './types'
+import { DeepMap, GraphNodeMap, GraphNodeNeighbour } from './types'
+import { Terrain } from '../../entities'
 
 /**
  * Validates a cost for a node
@@ -7,40 +8,30 @@ import { DeepMap } from './types'
  * @param {number} val - Cost to validate
  * @return {bool}
  */
-function isValidNode(val: any) {
-  const cost = Number(val)
-
-  if (isNaN(cost) || cost <= 0) {
-    return false
-  }
-
-  return true
-}
-
 /**
  * Creates a deep `Map` from the passed object.
  *
  * @param  {Object} source - Object to populate the map with
  * @return {Map} New map with the passed object data
  */
-export default function toDeepMap<D extends {}>(source: D) {
+export default function toDeepMap(source: GraphNodeMap | GraphNodeNeighbour) {
   const map = new Map() as DeepMap
   const keys = Object.keys(source)
 
   keys.forEach(key => {
-    const val = source[key as keyof D]
+    const val = source[key as keyof typeof source]
 
-    if (val !== null && typeof val === 'object' && !Array.isArray(val)) {
-      return map.set(key, toDeepMap(val))
+    if (val instanceof Terrain) {
+      return map.set(key, val)
     }
 
-    if (!isValidNode(val)) {
+    if (!(val instanceof Terrain)) {
       throw new Error(
         `Could not add node at key "${key}", make sure it's a valid node`
       )
     }
 
-    return map.set(key, Number(val))
+    return map.set(key, toDeepMap(val))
   })
 
   return map

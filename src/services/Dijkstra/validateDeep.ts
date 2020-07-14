@@ -1,3 +1,5 @@
+import { Terrain } from '../../entities'
+
 /**
  * Validate a map to ensure all it's values are either a number or a map
  *
@@ -14,9 +16,9 @@ export default function validateDeep<K, V>(map: Map<K, V>) {
       return
     }
 
-    if (typeof value !== 'number' || value <= 0) {
+    if (!(value instanceof Terrain)) {
       throw new Error(
-        `Values must be numbers greater than 0. Found value ${value} at ${key}`
+        `Values must be Terrain instances. Found value ${value} at ${key}`
       )
     }
   })
