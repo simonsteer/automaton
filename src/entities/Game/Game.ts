@@ -1,9 +1,8 @@
-import { BattleManager } from '../../services'
+import { BattleManager, GridManager } from '../../services'
 import { GameEntities } from './types'
 
 export default class Game {
-  private battle?: BattleManager
-  private entities = {
+  entities = {
     units: new Map<Symbol, Unit>(),
     grids: new Map<Symbol, Grid>(),
     terrain: new Map<Symbol, Terrain>(),
@@ -30,13 +29,15 @@ export default class Game {
     })
   }
 
-  private addTerrain(terrain: Terrain) {
-    this.entities.terrain.set(terrain.id, terrain)
-  }
-
-  private *loop() {
-    while (this.battle) {
+  *startBattle(grid: Grid, units: [Unit, RawCoords][]) {
+    const managedGrid = new GridManager(grid, units)
+    const battle = new BattleManager(managedGrid)
+    while (true) {
       yield
     }
+  }
+
+  private addTerrain(terrain: Terrain) {
+    this.entities.terrain.set(terrain.id, terrain)
   }
 }
