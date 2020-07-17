@@ -1,19 +1,10 @@
 import Base from '../Base'
-
-type AllegianceOpts = {
-  hostile?: Allegiance[]
-  friendly?: Allegiance[]
-  parent?: Allegiance
-}
-
-type AllegianceFaction = {
-  numFactions: number
-  subFactions: AllegianceFaction[]
-}
+import { FactionConfig, AllegianceOpts } from './types'
 
 export default class Allegiance extends Base {
   private hostile = new Set<Allegiance>()
   private friendly = new Set<Allegiance>()
+  factions: Allegiance[] = []
   parent?: Allegiance
 
   constructor(
@@ -21,68 +12,116 @@ export default class Allegiance extends Base {
     { parent, hostile = [], friendly = [] } = {} as AllegianceOpts
   ) {
     super(game)
-    this.makeFriendly(this)
+    this.convert.friendly(this)
     if (parent) {
       this.parent = parent
-      this.makeFriendly(parent)
+      this.convert.friendly(parent)
     }
-    hostile.forEach(this.makeHostile)
-    friendly.forEach(this.makeFriendly)
+    hostile.forEach(this.convert.hostile)
+    friendly.forEach(this.convert.friendly)
   }
 
-  createFactions = (numFactions: number) => {
-    const factions: Allegiance[] = []
+  createFactions = (config: FactionConfig) =>
+    this.recursivelyCreateFactions(config)
 
-    for (let i = 0; i < numFactions; i++) {
-      const faction = new Allegiance(this.game, { parent: this })
-      if (i > 0) {
-        factions[i - 1].makeHostile(faction)
+  createFaction = () => this.clone({ parent: this })
+
+  convert = {
+    hostile: (allegiance: Allegiance) => {
+      this.convert.neutral(allegiance)
+      this.hostile.add(allegiance)
+      allegiance.hostile.add(this)
+      return this
+    },
+    friendly: (allegiance: Allegiance) => {
+      this.convert.neutral(allegiance)
+      this.friendly.add(allegiance)
+      allegiance.friendly.add(this)
+      return this
+    },
+    neutral: (allegiance: Allegiance) => {
+      this.hostile.delete(allegiance)
+      this.friendly.delete(allegiance)
+      allegiance.hostile.delete(this)
+      allegiance.friendly.delete(this)
+      return this
+    },
+    wildcard: (allegiance: Allegiance) => {
+      this.hostile.add(allegiance)
+      this.friendly.add(allegiance)
+      allegiance.hostile.add(this)
+      allegiance.friendly.add(this)
+      return this
+    },
+  }
+
+  is = {
+    friendly: (allegiance: Allegiance): boolean =>
+      this.friendly.has(allegiance) || !!this.parent?.is.friendly(allegiance),
+    hostile: (allegiance: Allegiance): boolean =>
+      this.hostile.has(allegiance) || !!this.parent?.is.hostile(allegiance),
+    neutral: (allegiance: Allegiance) =>
+      !this.is.friendly(allegiance) && !this.is.hostile(allegiance),
+    wildcard: (allegiance: Allegiance) =>
+      this.is.friendly(allegiance) && this.is.hostile(allegiance),
+  }
+
+  private clone = (overrides = {} as AllegianceOpts) => {
+    return new Allegiance(this.game, {
+      parent: this.parent,
+      hostile: [...this.hostile],
+      friendly: [...this.friendly],
+      ...overrides,
+    })
+  }
+
+  private recursivelyCreateFactions = ({
+    branches,
+    parentRelationship,
+    siblingRelationship,
+  }: FactionConfig) => {
+    const newFactions: Allegiance[] = []
+
+    if (typeof branches === 'number') {
+      if (branches < 1)
+        throw new Error(
+          `Factions must have at least a single branch. Received value: ${branches}`
+        )
+
+      for (let i = 0; i < branches; i++) {
+        const newFaction = this.clone({ parent: this }).convert[
+          parentRelationship
+        ](this)
+
+        if (i === branches - 1)
+          newFactions.forEach(faction =>
+            faction.convert[siblingRelationship](newFaction)
+          )
+
+        newFactions.push(newFaction)
       }
-      factions.push(faction)
+    } else {
+      if (branches.length < 1)
+        throw new Error(
+          `Factions must have at least a single branch. Received ${branches.length} branches.`
+        )
+
+      branches.forEach((config, i) => {
+        const newFaction = this.clone({ parent: this })
+          .convert[parentRelationship](this)
+          .recursivelyCreateFactions(config)
+
+        if (i === branches.length - 1)
+          newFactions.forEach(faction =>
+            faction.convert[siblingRelationship](newFaction)
+          )
+
+        newFactions.push(newFaction)
+      })
     }
 
-    return factions
-  }
+    this.factions.push(...newFactions)
 
-  makeHostile = (allegiance: Allegiance) => {
-    this.makeNeutral(allegiance)
-    this.hostile.add(allegiance)
-    allegiance.hostile.add(this)
     return this
   }
-
-  makeFriendly = (allegiance: Allegiance) => {
-    this.makeNeutral(allegiance)
-    this.friendly.add(allegiance)
-    allegiance.friendly.add(this)
-    return this
-  }
-
-  makeNeutral = (allegiance: Allegiance) => {
-    this.hostile.delete(allegiance)
-    this.friendly.delete(allegiance)
-    allegiance.hostile.delete(this)
-    allegiance.friendly.delete(this)
-    return this
-  }
-
-  makeWildcard = (allegiance: Allegiance) => {
-    this.hostile.add(allegiance)
-    this.friendly.add(allegiance)
-    allegiance.hostile.add(this)
-    allegiance.friendly.add(this)
-    return this
-  }
-
-  isFriendly = (allegiance: Allegiance): boolean =>
-    this.friendly.has(allegiance) || !!this.parent?.isFriendly(allegiance)
-
-  isHostile = (allegiance: Allegiance): boolean =>
-    this.hostile.has(allegiance) || !!this.parent?.isHostile(allegiance)
-
-  isWildcard = (allegiance: Allegiance) =>
-    this.isFriendly(allegiance) && this.isHostile(allegiance)
-
-  isNeutral = (allegiance: Allegiance) =>
-    !this.isFriendly(allegiance) && !this.isHostile(allegiance)
 }
