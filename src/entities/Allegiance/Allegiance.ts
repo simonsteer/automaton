@@ -77,8 +77,8 @@ export default class Allegiance extends Base {
 
   private recursivelyCreateFactions = ({
     branches,
-    parentRelationship,
-    siblingRelationship,
+    parentRelationship = 'friendly',
+    siblingRelationship = 'friendly',
   }: FactionConfig) => {
     const newFactions: Allegiance[] = []
 

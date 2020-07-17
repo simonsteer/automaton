@@ -31,8 +31,6 @@ describe('Allegiance', () => {
       allegiance_1.factions = []
       allegiance_1.createFactions({
         branches: 2,
-        parentRelationship: 'friendly',
-        siblingRelationship: 'friendly',
       })
       expect(allegiance_1.factions.length).toBe(2)
     })
@@ -42,7 +40,6 @@ describe('Allegiance', () => {
       allegiance_1.createFactions({
         branches: 2,
         parentRelationship: 'wildcard',
-        siblingRelationship: 'friendly',
       })
 
       expect(allegiance_1.factions[0].is.wildcard(allegiance_1)).toBe(true)
@@ -54,7 +51,6 @@ describe('Allegiance', () => {
       allegiance_1.createFactions({
         branches: 2,
         siblingRelationship: 'hostile',
-        parentRelationship: 'friendly',
       })
 
       const [faction_1, faction_2] = allegiance_1.factions
@@ -74,12 +70,10 @@ describe('Allegiance', () => {
           },
           {
             branches: 2,
-            parentRelationship: 'friendly',
             siblingRelationship: 'hostile',
           },
         ],
         parentRelationship: 'hostile',
-        siblingRelationship: 'friendly',
       })
 
       const faction_1 = allegiance_1.factions[0]

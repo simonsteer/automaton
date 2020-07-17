@@ -12,6 +12,6 @@ export type AllegianceRelationshipType = ValueInObject<
 
 export type FactionConfig = {
   branches: number | FactionConfig[]
-  parentRelationship: AllegianceRelationshipType
-  siblingRelationship: AllegianceRelationshipType
+  parentRelationship?: AllegianceRelationshipType
+  siblingRelationship?: AllegianceRelationshipType
 }
