@@ -12,17 +12,17 @@ describe('Allegiance', () => {
   })
 
   it("let's you define hostile relationships between other Allegiances", () => {
-    allegiance_2.convert.hostile(allegiance_1)
+    allegiance_2.make.hostile(allegiance_1)
     expect(allegiance_1.is.hostile(allegiance_2)).toBe(true)
   })
 
   it("let's you define friendly relationships between other Allegiances", () => {
-    allegiance_2.convert.friendly(allegiance_1)
+    allegiance_2.make.friendly(allegiance_1)
     expect(allegiance_1.is.friendly(allegiance_2)).toBe(true)
   })
 
   it("let's you define wildcard relationships between other Allegiances", () => {
-    allegiance_2.convert.wildcard(allegiance_1)
+    allegiance_2.make.wildcard(allegiance_1)
     expect(allegiance_1.is.wildcard(allegiance_2)).toBe(true)
   })
 

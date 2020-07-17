@@ -4,37 +4,36 @@ import { FactionConfig, AllegianceOpts } from './types'
 export default class Allegiance extends Base {
   private hostile = new Set<Allegiance>()
   private friendly = new Set<Allegiance>()
+  private parent?: Allegiance
+
   factions: Allegiance[] = []
-  parent?: Allegiance
 
   constructor(
     game: Game,
     { parent, hostile = [], friendly = [] } = {} as AllegianceOpts
   ) {
     super(game)
-    this.convert.friendly(this)
+    this.make.friendly(this)
     if (parent) {
       this.parent = parent
-      this.convert.friendly(parent)
+      this.make.friendly(parent)
     }
-    hostile.forEach(this.convert.hostile)
-    friendly.forEach(this.convert.friendly)
+    hostile.forEach(this.make.hostile)
+    friendly.forEach(this.make.friendly)
   }
 
   createFactions = (config: FactionConfig) =>
     this.recursivelyCreateFactions(config)
 
-  createFaction = () => this.clone({ parent: this })
-
-  convert = {
+  make = {
     hostile: (allegiance: Allegiance) => {
-      this.convert.neutral(allegiance)
+      this.make.neutral(allegiance)
       this.hostile.add(allegiance)
       allegiance.hostile.add(this)
       return this
     },
     friendly: (allegiance: Allegiance) => {
-      this.convert.neutral(allegiance)
+      this.make.neutral(allegiance)
       this.friendly.add(allegiance)
       allegiance.friendly.add(this)
       return this
@@ -89,13 +88,13 @@ export default class Allegiance extends Base {
         )
 
       for (let i = 0; i < branches; i++) {
-        const newFaction = this.clone({ parent: this }).convert[
+        const newFaction = this.clone({ parent: this }).make[
           parentRelationship
         ](this)
 
         if (i === branches - 1)
           newFactions.forEach(faction =>
-            faction.convert[siblingRelationship](newFaction)
+            faction.make[siblingRelationship](newFaction)
           )
 
         newFactions.push(newFaction)
@@ -108,12 +107,12 @@ export default class Allegiance extends Base {
 
       branches.forEach((config, i) => {
         const newFaction = this.clone({ parent: this })
-          .convert[parentRelationship](this)
+          .make[parentRelationship](this)
           .recursivelyCreateFactions(config)
 
         if (i === branches.length - 1)
           newFactions.forEach(faction =>
-            faction.convert[siblingRelationship](newFaction)
+            faction.make[siblingRelationship](newFaction)
           )
 
         newFactions.push(newFaction)
