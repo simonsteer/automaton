@@ -11,6 +11,7 @@ export default class Grid extends Base {
       coords: new Coords({ x, y }),
       tile,
     }))
+    this.game.entities.grids.set(this.id, this)
   }
 
   mapTiles<R>(callback: (item: GraphData, coordinates: RawCoords) => R) {

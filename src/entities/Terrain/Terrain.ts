@@ -7,5 +7,6 @@ export default class Terrain extends Base {
   constructor(game: Game, cost: (unit: Unit) => number) {
     super(game)
     this.cost = cost
+    this.game.entities.terrain.set(this.id, this)
   }
 }

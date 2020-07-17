@@ -19,10 +19,15 @@ export default class Unit extends Base {
 
   constructor(
     game: Game,
-    { allegiance, stats }: { stats: Partial<UnitStats>; allegiance: Allegiance }
+    {
+      allegiance,
+      stats,
+    }: { stats?: Partial<UnitStats>; allegiance: Allegiance }
   ) {
     super(game)
     this.allegiance = allegiance
     this.stats = { ...this.stats, ...stats }
+
+    this.game.entities.units.set(this.id, this)
   }
 }

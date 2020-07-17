@@ -22,6 +22,14 @@ export default class Allegiance extends Base {
     friendly.forEach(this.make.friendly)
   }
 
+  getUnits = () => {
+    const units: Unit[] = []
+    for (const [_, unit] of this.game.entities.units) {
+      if (unit.allegiance.id === this.id) units.push(unit)
+    }
+    return units
+  }
+
   createFactions = (config: FactionConfig) =>
     this.recursivelyCreateFactions(config)
 
