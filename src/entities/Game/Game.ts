@@ -7,9 +7,8 @@ export default class Game {
     terrain: new Map<Symbol, Terrain>(),
     allegiance: new Map<Symbol, Allegiance>(),
   } as const
-  mappings = {
-    allegianceToUnits: new Map<Symbol, Set<Symbol>>(),
-  };
+
+  getUnit = (unitId: Symbol) => this.entities.unit.get(unitId);
 
   *startBattle(grid: Grid, units: [Unit, RawCoords][]) {
     const managedGrid = new GridManager(grid, units)

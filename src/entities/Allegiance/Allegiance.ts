@@ -5,6 +5,7 @@ export default class Allegiance extends Base {
   private hostile = new Set<Allegiance>()
   private friendly = new Set<Allegiance>()
   private parent?: Allegiance
+  units = new Set<Symbol>()
 
   factions: Allegiance[] = []
 
@@ -13,7 +14,6 @@ export default class Allegiance extends Base {
     { parent, hostile = [], friendly = [] } = {} as AllegianceOpts
   ) {
     super(game, 'allegiance')
-    this.game.mappings.allegianceToUnits.set(this.id, new Set())
     this.make.friendly(this)
     if (parent) {
       this.parent = parent
@@ -23,8 +23,18 @@ export default class Allegiance extends Base {
     friendly.forEach(this.make.friendly)
   }
 
+  getUnits = () =>
+    this.getUnitIds().map(this.game.getUnit).filter(Boolean) as Unit[]
+
   createFactions = (config: FactionConfig) =>
     this.recursivelyCreateFactions(config)
+
+  createFaction = (
+    { parentRelationship = 'friendly' } = {} as Pick<
+      FactionConfig,
+      'parentRelationship'
+    >
+  ) => this.clone({ parent: this }).make[parentRelationship](this)
 
   make = {
     hostile: (allegiance: Allegiance) => {
@@ -64,6 +74,14 @@ export default class Allegiance extends Base {
       !this.is.friendly(allegiance) && !this.is.hostile(allegiance),
     wildcard: (allegiance: Allegiance) =>
       this.is.friendly(allegiance) && this.is.hostile(allegiance),
+  }
+
+  private getUnitIds = () => {
+    const unitIds = [...this.units]
+    this.factions.forEach(faction => {
+      unitIds.push(...faction.getUnitIds())
+    })
+    return unitIds
   }
 
   private clone = (overrides = {} as AllegianceOpts) => {
