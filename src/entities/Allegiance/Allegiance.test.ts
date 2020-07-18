@@ -166,12 +166,37 @@ describe('Allegiance', () => {
           faction_1_sub_faction_1_unit.id,
         ])
 
-        expect(faction_1_sub_faction_1.getUnits().length).toBe(1)
-        expect(faction_1_sub_faction_1.getUnits()).toEqual([
-          faction_1_sub_faction_1_unit,
+        const faction_1_sub_faction_1_ids = faction_1_sub_faction_1
+          .getUnits()
+          .map(u => u.id)
+        expect(faction_1_sub_faction_1_ids.length).toBe(1)
+        expect(faction_1_sub_faction_1_ids).toEqual([
+          faction_1_sub_faction_1_unit.id,
         ])
 
-        expect(faction_2.getUnits().length).toBe(3)
+        const faction_2_ids = faction_2.getUnits().map(u => u.id)
+        expect(faction_2_ids.length).toBe(3)
+        expect(faction_2_ids).toEqual([
+          faction_2_unit.id,
+          faction_2_sub_faction_1_unit.id,
+          faction_2_sub_faction_2_unit.id,
+        ])
+
+        const faction_2_sub_faction_1_ids = faction_2_sub_faction_1
+          .getUnits()
+          .map(u => u.id)
+        expect(faction_2_sub_faction_1_ids.length).toBe(1)
+        expect(faction_2_sub_faction_1_ids).toEqual([
+          faction_2_sub_faction_1_unit.id,
+        ])
+
+        const faction_2_sub_faction_2_ids = faction_2_sub_faction_2
+          .getUnits()
+          .map(u => u.id)
+        expect(faction_2_sub_faction_2_ids.length).toBe(1)
+        expect(faction_2_sub_faction_2_ids).toEqual([
+          faction_2_sub_faction_2_unit.id,
+        ])
       })
     })
   })
