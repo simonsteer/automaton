@@ -5,8 +5,7 @@ export default class Terrain extends Base {
   cache = new Map<Symbol, number>()
 
   constructor(game: Game, cost: (unit: Unit) => number) {
-    super(game)
+    super(game, 'terrain')
     this.cost = cost
-    this.game.entities.terrain.set(this.id, this)
   }
 }

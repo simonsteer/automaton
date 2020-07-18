@@ -6,12 +6,11 @@ import { Coords } from '../../services'
 export default class Grid extends Base {
   graph: GridGraph
   constructor(game: Game, graph: Tile[][]) {
-    super(game)
+    super(game, 'grid')
     this.graph = mapGraph(graph, (tile, { x, y }) => ({
       coords: new Coords({ x, y }),
       tile,
     }))
-    this.game.entities.grids.set(this.id, this)
   }
 
   mapTiles<R>(callback: (item: GraphData, coordinates: RawCoords) => R) {

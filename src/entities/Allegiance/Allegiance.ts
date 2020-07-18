@@ -12,7 +12,8 @@ export default class Allegiance extends Base {
     game: Game,
     { parent, hostile = [], friendly = [] } = {} as AllegianceOpts
   ) {
-    super(game)
+    super(game, 'allegiance')
+    this.game.mappings.allegianceToUnits.set(this.id, new Set())
     this.make.friendly(this)
     if (parent) {
       this.parent = parent
@@ -20,14 +21,6 @@ export default class Allegiance extends Base {
     }
     hostile.forEach(this.make.hostile)
     friendly.forEach(this.make.friendly)
-  }
-
-  getUnits = () => {
-    const units: Unit[] = []
-    for (const [_, unit] of this.game.entities.units) {
-      if (unit.allegiance.id === this.id) units.push(unit)
-    }
-    return units
   }
 
   createFactions = (config: FactionConfig) =>

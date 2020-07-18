@@ -8,12 +8,6 @@ describe('Allegiance', () => {
   const allegiance_1 = new Allegiance(game)
   const allegiance_2 = new Allegiance(game)
 
-  it('can retrieve units associated with the allegiance', () => {
-    const unit = new Unit(game, { allegiance: allegiance_1 })
-    const allegiance_1_units = allegiance_1.getUnits()
-    expect(allegiance_1_units[0]).toEqual(unit)
-  })
-
   it('by default is neutral to other allegiances', () => {
     expect(allegiance_1.is.neutral(allegiance_2)).toBe(true)
   })

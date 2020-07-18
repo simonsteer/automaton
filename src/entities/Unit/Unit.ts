@@ -15,7 +15,7 @@ export default class Unit extends Base {
   directionalConstraint = new DirectionalConstraint(
     DEFAULT_DIRECTIONAL_CONSTRAINT
   )
-  allegiance: Allegiance
+  allegiance!: Allegiance
 
   constructor(
     game: Game,
@@ -24,10 +24,8 @@ export default class Unit extends Base {
       stats,
     }: { stats?: Partial<UnitStats>; allegiance: Allegiance }
   ) {
-    super(game)
+    super(game, 'unit')
     this.allegiance = allegiance
     this.stats = { ...this.stats, ...stats }
-
-    this.game.entities.units.set(this.id, this)
   }
 }
