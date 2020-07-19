@@ -12,20 +12,17 @@ export default class Unit extends Base {
     maxHealth: 1,
     numActions: 1,
   }
-  private allegiance!: Allegiance
+  private team!: Team
   directionalConstraint = new DirectionalConstraint(
     DEFAULT_DIRECTIONAL_CONSTRAINT
   )
 
   constructor(
     game: Game,
-    {
-      allegiance,
-      stats = {},
-    }: { stats?: Partial<UnitStats>; allegiance: Allegiance }
+    { team, stats = {} }: { stats?: Partial<UnitStats>; team: Team }
   ) {
     super(game, 'unit')
-    this.setAllegiance(allegiance).setStats(stats)
+    this.setTeam(team).setStats(stats)
   }
 
   getStats = () => this.stats
@@ -35,12 +32,12 @@ export default class Unit extends Base {
     return this
   }
 
-  getAllegiance = () => this.allegiance
+  getTeam = () => this.team
 
-  setAllegiance = (allegiance: Allegiance) => {
-    this.allegiance?.units.delete(this.id)
-    this.allegiance = allegiance
-    this.allegiance.units.add(this.id)
+  setTeam = (team: Team) => {
+    this.team?.units.delete(this.id)
+    this.team = team
+    this.team.units.add(this.id)
     return this
   }
 }

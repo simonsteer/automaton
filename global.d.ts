@@ -7,7 +7,7 @@ type Grid = import('./src/entities/Grid').default
 type Game = import('./src/entities/Game').default
 type Terrain = import('./src/entities/Terrain').default
 type Tile = import('./src/entities/Tile').default
-type Allegiance = import('./src/entities/Allegiance').default
+type Team = import('./src/entities/Team').default
 
 type Coords = import('./src/services/Coords').default
 type GridManager = import('./src/services/GridManager').default

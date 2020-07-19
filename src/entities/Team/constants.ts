@@ -1,4 +1,4 @@
-export const ALLEGIANCE_RELATIONSHIP_TYPES = {
+export const TEAM_RELATIONSHIP_TYPES = {
   NEUTRAL: 'neutral',
   HOSTILE: 'hostile',
   FRIENDLY: 'friendly',

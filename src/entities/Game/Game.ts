@@ -5,7 +5,7 @@ export default class Game {
     unit: new Map<Symbol, Unit>(),
     grid: new Map<Symbol, Grid>(),
     terrain: new Map<Symbol, Terrain>(),
-    allegiance: new Map<Symbol, Allegiance>(),
+    team: new Map<Symbol, Team>(),
   } as const
 
   getUnit = (unitId: Symbol) => this.entities.unit.get(unitId);
