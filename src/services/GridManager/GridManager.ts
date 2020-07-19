@@ -1,19 +1,32 @@
 import Coords from '../Coords'
 
 export default class GridManager {
-  grid: Grid
-  units: GridManagedUnit[] = []
-  constructor(grid: Grid, units: [Unit, RawCoords][]) {
+  private game: Game
+  readonly grid: Grid
+  private units = new Map<Symbol, Coords>()
+  constructor({
+    game,
+    units,
+    grid,
+  }: {
+    game: Game
+    grid: Grid
+    units: [Unit, RawCoords][]
+  }) {
     this.grid = grid
-    this.addUnits(...units)
+    this.game = game
+    this.add.units(...units)
   }
 
-  addUnits(...units: [Unit, RawCoords][]) {
-    units.forEach(([unit, { x, y }]) =>
-      this.units.push({
-        unit,
-        coordinates: new Coords({ x, y }),
-      })
-    )
+  get = {
+    units: () => [...this.units.keys()].map(this.game.get.unit),
+  }
+
+  add = {
+    units: (...units: [Unit, RawCoords][]) => {
+      units.forEach(([{ id }, { x, y }]) =>
+        this.units.set(id, new Coords({ x, y }))
+      )
+    },
   }
 }

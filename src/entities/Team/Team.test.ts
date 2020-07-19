@@ -10,7 +10,7 @@ describe('Team', () => {
   const team_1_unit = new Unit(game, { team: team_1 })
 
   it('can retrieve units associated with the team', () => {
-    const units = team_1.getUnits()
+    const units = team_1.get.units()
 
     expect(units.length).toBe(1)
     expect(units[0]).toEqual(team_1_unit)
@@ -122,7 +122,7 @@ describe('Team', () => {
           team: faction_2_sub_faction_2,
         })
 
-        const team_3_unit_ids = team_3.getUnits().map(u => u.id)
+        const team_3_unit_ids = team_3.get.units().map(u => u.id)
         expect(team_3_unit_ids.length).toBe(6)
         expect(team_3_unit_ids).toEqual([
           team_3_unit.id,
@@ -133,22 +133,22 @@ describe('Team', () => {
           faction_2_sub_faction_2_unit.id,
         ])
 
-        const faction_1_unit_ids = faction_1.getUnits().map(u => u.id)
+        const faction_1_unit_ids = faction_1.get.units().map(u => u.id)
         expect(faction_1_unit_ids.length).toBe(2)
         expect(faction_1_unit_ids).toEqual([
           faction_1_unit.id,
           faction_1_sub_faction_1_unit.id,
         ])
 
-        const faction_1_sub_faction_1_ids = faction_1_sub_faction_1
-          .getUnits()
+        const faction_1_sub_faction_1_ids = faction_1_sub_faction_1.get
+          .units()
           .map(u => u.id)
         expect(faction_1_sub_faction_1_ids.length).toBe(1)
         expect(faction_1_sub_faction_1_ids).toEqual([
           faction_1_sub_faction_1_unit.id,
         ])
 
-        const faction_2_ids = faction_2.getUnits().map(u => u.id)
+        const faction_2_ids = faction_2.get.units().map(u => u.id)
         expect(faction_2_ids.length).toBe(3)
         expect(faction_2_ids).toEqual([
           faction_2_unit.id,
@@ -156,16 +156,16 @@ describe('Team', () => {
           faction_2_sub_faction_2_unit.id,
         ])
 
-        const faction_2_sub_faction_1_ids = faction_2_sub_faction_1
-          .getUnits()
+        const faction_2_sub_faction_1_ids = faction_2_sub_faction_1.get
+          .units()
           .map(u => u.id)
         expect(faction_2_sub_faction_1_ids.length).toBe(1)
         expect(faction_2_sub_faction_1_ids).toEqual([
           faction_2_sub_faction_1_unit.id,
         ])
 
-        const faction_2_sub_faction_2_ids = faction_2_sub_faction_2
-          .getUnits()
+        const faction_2_sub_faction_2_ids = faction_2_sub_faction_2.get
+          .units()
           .map(u => u.id)
         expect(faction_2_sub_faction_2_ids.length).toBe(1)
         expect(faction_2_sub_faction_2_ids).toEqual([

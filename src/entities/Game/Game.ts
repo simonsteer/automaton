@@ -26,7 +26,7 @@ export default class Game {
   };
 
   *startBattle(grid: Grid, units: [Unit, RawCoords][]) {
-    const managedGrid = new GridManager(grid, units)
+    const managedGrid = new GridManager({ game: this, grid, units })
     const battle = new BattleManager(managedGrid)
     while (true) {
       yield

@@ -1,5 +1,3 @@
-import groupBy from 'lodash/groupBy'
-
 export default class BattleManager {
   active = false
   grid: GridManager
@@ -7,11 +5,7 @@ export default class BattleManager {
     this.grid = grid
   }
 
-  get units() {
-    return this.grid.units
+  get = {
+    teams: () => [],
   }
-}
-
-const obj = {
-  [Symbol()]: 'hi',
 }

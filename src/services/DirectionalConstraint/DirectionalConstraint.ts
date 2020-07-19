@@ -4,14 +4,14 @@ import Coords from '../Coords'
 
 export default class DirectionalConstraint {
   constraint: Constraint
-  rangeSets: {
+  offsets: {
     x: Set<number>
     y: Set<number>
   }
 
   constructor(constraint: Constraint) {
     this.constraint = constraint
-    this.rangeSets = this.buildRangeSets()
+    this.offsets = this.buildRangeSets()
   }
   /**
    * determines whether the distance between two coordinates matches the constraint
@@ -25,8 +25,8 @@ export default class DirectionalConstraint {
    */
   adjacent(coordsA: Coords) {
     const adjacentCoords: RawCoords[] = []
-    for (const xOffset of this.rangeSets.x) {
-      for (const yOffset of this.rangeSets.y) {
+    for (const xOffset of this.offsets.x) {
+      for (const yOffset of this.offsets.y) {
         const coordsB = {
           x: coordsA.x + xOffset,
           y: coordsA.y + yOffset,
@@ -43,24 +43,22 @@ export default class DirectionalConstraint {
    */
   private validations = {
     offsets: (deltas: Coords) =>
-      this.rangeSets.x.has(deltas.x) && this.rangeSets.y.has(deltas.y),
+      this.offsets.x.has(deltas.x) && this.offsets.y.has(deltas.y),
     exceptions: (deltas: Coords) =>
       this.constraint.exceptions?.every(e => e(deltas)) ?? true,
   }
 
   private buildRangeSets() {
-    return Object.keys(this.constraint.offsets).reduce(
+    return (['x', 'y'] as const).reduce(
       (acc, key) => {
-        this.constraint.offsets[key as keyof Constraint['offsets']].forEach(
-          offset => {
-            const offsetRange = Array.isArray(offset)
-              ? range(offset[0], offset[1] + 1)
-              : [offset]
-            offsetRange.forEach(value =>
-              acc[key as keyof Constraint['offsets']].add(value)
-            )
-          }
-        )
+        this.constraint.offsets[key].forEach(offset => {
+          const offsetRange = Array.isArray(offset)
+            ? range(offset[0], offset[1] + 1)
+            : [offset]
+          offsetRange.forEach(value =>
+            acc[key as keyof Constraint['offsets']].add(value)
+          )
+        })
         return acc
       },
       { x: new Set<number>(), y: new Set<number>() }

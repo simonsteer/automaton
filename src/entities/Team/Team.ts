@@ -100,16 +100,15 @@ export default class Team extends Base {
     return this
   }
 
-  getUnitIds = () => {
-    const unitIds = [...this.units]
-    this.factions.forEach(faction => {
-      unitIds.push(...faction.getUnitIds())
-    })
-    return unitIds
+  get = {
+    units: () =>
+      this.factions
+        .reduce((acc, faction) => {
+          acc.push(...faction.get.units())
+          return acc
+        }, [...this.units].map(this.game.get.unit))
+        .filter(Boolean) as Unit[],
   }
-
-  getUnits = () =>
-    this.getUnitIds().map(this.game.getUnit).filter(Boolean) as Unit[]
 
   make = {
     hostile: (team: Team) => {
