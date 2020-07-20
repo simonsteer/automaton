@@ -4,5 +4,5 @@ export type UnitStats = {
   speed: number
   movement: number
   maxHealth: number
-  numActions: number
+  maxActions: number
 }

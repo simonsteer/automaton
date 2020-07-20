@@ -1,5 +1,6 @@
+import compact from 'lodash/compact'
 import Base from '../Base'
-import { TeamSplitConfig, TeamConfig, TeamRelationshipType } from './types'
+import { TeamSplitConfig, TeamConfig } from './types'
 
 export default class Team extends Base {
   private hostile = new Set<Team>()
@@ -102,12 +103,12 @@ export default class Team extends Base {
 
   get = {
     units: () =>
-      this.factions
-        .reduce((acc, faction) => {
+      compact(
+        this.factions.reduce((acc, faction) => {
           acc.push(...faction.get.units())
           return acc
         }, [...this.units].map(this.game.get.unit))
-        .filter(Boolean) as Unit[],
+      ),
   }
 
   make = {

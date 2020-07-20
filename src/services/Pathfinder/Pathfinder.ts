@@ -1,18 +1,30 @@
 import Coords from '../Coords'
-import Graph from '../Dijkstra/Graph'
-import { GraphNodeNeighbour } from '../Dijkstra/types'
+import Graph from './Dijkstra/Graph'
+import { GraphNodeNeighbour } from './Dijkstra/types'
 
 export default class Pathfinder {
-  grid: Grid
-  unit: Unit
-  coordinates: Coords
-  graph: Graph
+  readonly grid: Grid
+  readonly unit: Unit
+  readonly graph: Graph
+  private _coordinates: Coords
 
-  constructor(grid: Grid, unit: Unit, coordinates: RawCoords) {
+  constructor({
+    grid,
+    unit,
+    coordinates,
+  }: {
+    grid: Grid
+    unit: Unit
+    coordinates: RawCoords
+  }) {
     this.grid = grid
     this.unit = unit
-    this.coordinates = new Coords(coordinates)
+    this._coordinates = new Coords(coordinates)
     this.graph = this.buildGraph()
+  }
+
+  get coordinates() {
+    return this._coordinates
   }
 
   private buildGraph() {

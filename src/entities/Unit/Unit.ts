@@ -3,41 +3,69 @@ import { UnitStats } from './types'
 import DirectionalConstraint from '../../services/DirectionalConstraint'
 import { DEFAULT_DIRECTIONAL_CONSTRAINT } from '../../services/DirectionalConstraint/constants'
 
-export default class Unit extends Base {
+type UnitConstructorOptions<
+  CustomActions extends { [key: string]: (...args: any[]) => any }
+> = {
+  team: Team
+  stats?: Partial<UnitStats>
+  customActions?: CustomActions
+}
+
+type BaseUnitActions = {
+  move: (coordsA: Coords, coordsB: Coords) => void
+}
+
+export default class Unit<
+  CustomActions extends {
+    [key: string]: (...args: any[]) => void
+  } = {}
+> extends Base {
   private stats = {
     offense: 1,
     defense: 0,
     speed: 1,
     movement: 1,
     maxHealth: 1,
-    numActions: 1,
+    maxActions: 1,
   }
   private team!: Team
   directionalConstraint = new DirectionalConstraint(
     DEFAULT_DIRECTIONAL_CONSTRAINT
   )
+  actions: BaseUnitActions & CustomActions
 
   constructor(
     game: Game,
-    { team, stats = {} }: { stats?: Partial<UnitStats>; team: Team }
+    {
+      team,
+      stats = {},
+      customActions = {} as CustomActions,
+    }: UnitConstructorOptions<CustomActions>
   ) {
     super(game, 'unit')
-    this.setTeam(team).setStats(stats)
+    this.set.team(team)
+    this.set.stats(stats)
+    this.actions = {
+      ...customActions,
+      move: (coordsA: Coords, coordsB: Coords) => {},
+    }
   }
 
-  getStats = () => this.stats
-
-  setStats = (updates: Partial<Unit['stats']>) => {
-    this.stats = { ...this.stats, ...updates }
-    return this
+  get = {
+    stats: () => this.stats,
+    team: () => this.team,
   }
 
-  getTeam = () => this.team
-
-  setTeam = (team: Team) => {
-    this.team?.units.delete(this.id)
-    this.team = team
-    this.team.units.add(this.id)
-    return this
+  set = {
+    stats: (updates: Partial<Unit<CustomActions>['stats']>) => {
+      this.stats = { ...this.stats, ...updates }
+      return this
+    },
+    team: (team: Team) => {
+      this.team?.units.delete(this.id)
+      this.team = team
+      this.team.units.add(this.id)
+      return this
+    },
   }
 }

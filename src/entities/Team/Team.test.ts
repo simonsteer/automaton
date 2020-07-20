@@ -109,7 +109,9 @@ describe('Team', () => {
       })
 
       it('can recursively retreive units from sub-factions', () => {
-        const team_3_unit = new Unit(game, { team: team_3 })
+        const team_3_unit = new Unit(game, {
+          team: team_3,
+        })
         const faction_1_unit = new Unit(game, { team: faction_1 })
         const faction_1_sub_faction_1_unit = new Unit(game, {
           team: faction_1_sub_faction_1,
