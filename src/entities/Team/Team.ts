@@ -92,6 +92,7 @@ export default class Team extends Base {
         break
       }
     }
+
     newTeams.forEach(this.add.child)
     return this
   }
@@ -179,6 +180,10 @@ export default class Team extends Base {
   }
 
   is = {
+    child: (team: Team, recursive = false) =>
+      this.get.children(recursive).some(child => child.id === team.id),
+    parent: (team: Team, recursive = false) =>
+      team.get.parent(recursive).id === this.id,
     friendly: (team: Team): boolean =>
       this.friendly.has(team) || !!this.parent?.is.friendly(team),
     hostile: (team: Team): boolean =>
