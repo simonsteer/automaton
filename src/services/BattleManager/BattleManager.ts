@@ -1,5 +1,6 @@
 export default class BattleManager {
   private state = {
+    inProgress: false,
     turn: -1,
   }
   grid: GridManager
@@ -15,21 +16,14 @@ export default class BattleManager {
 
   *start() {}
 
-  private advanceTurn() {
-    this.state.turn++
-
-    return this.state
-  }
-
   get = {
-    teams: () => [
-      ...this.grid.get.units().reduce((acc, unit) => {
-        const team = unit.get.team()
-        if (!acc.has(team)) {
-          acc.add(team)
-        }
-        return acc
-      }, new Set<Team>()),
-    ],
+    pathfinder: (unit: Unit) => this.grid.get.pathfinder(unit.id),
+    pathfinders: () => this.grid.get.pathfinders(),
+    teams: () => this.grid.get.teams(),
+    teamToMove: () => {
+      const { turn } = this.state
+      const teams = this.get.teams()
+      return teams[turn % teams.length]
+    },
   }
 }

@@ -15,7 +15,4 @@ type BattleManager = import('./src/services/BattleManager').default
 
 type RawCoords = { x: Coords['x']; y: Coords['y'] }
 
-type GridManagedUnit = {
-  unit: Unit
-  coordinates: Coords
-}
+type FunctionMap = { [key: string]: (...args: any[]) => any }

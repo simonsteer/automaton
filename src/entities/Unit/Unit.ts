@@ -3,9 +3,7 @@ import { UnitStats } from './types'
 import DirectionalConstraint from '../../services/DirectionalConstraint'
 import { DEFAULT_DIRECTIONAL_CONSTRAINT } from '../../services/DirectionalConstraint/constants'
 
-type UnitConstructorOptions<
-  CustomActions extends { [key: string]: (...args: any[]) => any }
-> = {
+type UnitConstructorOptions<CustomActions extends FunctionMap> = {
   team: Team
   stats?: Partial<UnitStats>
   customActions?: CustomActions
@@ -62,10 +60,14 @@ export default class Unit<
       return this
     },
     team: (team: Team) => {
-      this.team?.units.delete(this.id)
+      this.team?.remove.unit(this)
       this.team = team
-      this.team.units.add(this.id)
+      this.team.add.unit(this)
       return this
+    },
+    actions: <Actions extends FunctionMap>(actions: Actions) => {
+      this.actions = { ...this.actions, ...actions }
+      return this as Unit<CustomActions & Actions>
     },
   }
 }

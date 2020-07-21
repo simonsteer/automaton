@@ -6,9 +6,8 @@ export default class Team extends Base {
   private hostile = new Set<Team>()
   private friendly = new Set<Team>()
   private parent?: Team
-  units = new Set<Symbol>()
-
-  factions: Team[] = []
+  private units = new Set<Symbol>()
+  private children = new Set<Symbol>()
 
   constructor(
     game: Game,
@@ -25,28 +24,29 @@ export default class Team extends Base {
   }
 
   split = (params = 1 as TeamSplitConfig) => {
-    const newFactions: Team[] = []
+    const newTeams: Team[] = []
 
     switch (typeof params) {
       case 'number': {
         if (params < 1)
           throw new Error(
-            `Factions must have at least a single branch. Received value: ${params}`
+            `Team Splits must have at least a single branch. Received value: ${params}`
           )
         for (let i = 0; i < params; i++) {
-          const newFaction = this.clone({
+          const newTeam = this.clone({
             parent: this,
           }).make.friendly(this)
           if (i === params - 1)
-            newFactions.forEach(faction => faction.make.friendly(newFaction))
+            newTeams.forEach(team => team.make.friendly(newTeam))
 
-          newFactions.push(newFaction)
+          newTeams.push(newTeam)
+          this.children.add(newTeam.id)
         }
         break
       }
       case 'string': {
-        const newFaction = this.clone({ parent: this }).make[params](this)
-        newFactions.push(newFaction)
+        const newTeam = this.clone({ parent: this }).make[params](this)
+        newTeams.push(newTeam)
         break
       }
       default: {
@@ -59,56 +59,94 @@ export default class Team extends Base {
         if (typeof branches === 'number') {
           if (branches < 1)
             throw new Error(
-              `Factions must have at least a single branch. Received value: ${branches}`
+              `Team Splits must have at least a single branch. Received value: ${branches}`
             )
 
           for (let i = 0; i < branches; i++) {
-            const newFaction = this.clone({ parent: this }).make[
+            const newTeam = this.clone({ parent: this }).make[
               parentRelationship
             ](this)
 
             if (i === branches - 1)
-              newFactions.forEach(faction =>
-                faction.make[siblingRelationship](newFaction)
-              )
+              newTeams.forEach(team => team.make[siblingRelationship](newTeam))
 
-            newFactions.push(newFaction)
+            newTeams.push(newTeam)
           }
         } else {
           if (branches.length < 1)
             throw new Error(
-              `Factions must have at least a single branch. Received ${branches.length} branches.`
+              `Team Splits must have at least a single branch. Received ${branches.length} branches.`
             )
 
           branches.forEach((config, i) => {
-            const newFaction = this.clone({ parent: this })
+            const newTeam = this.clone({ parent: this })
               .make[parentRelationship](this)
               .split(config)
 
             if (i === branches.length - 1)
-              newFactions.forEach(faction =>
-                faction.make[siblingRelationship](newFaction)
-              )
+              newTeams.forEach(team => team.make[siblingRelationship](newTeam))
 
-            newFactions.push(newFaction)
+            newTeams.push(newTeam)
           })
         }
         break
       }
     }
-
-    this.factions.push(...newFactions)
+    newTeams.forEach(this.add.child)
     return this
   }
 
+  add = {
+    unit: (unit: Unit) => {
+      this.units.add(unit.id)
+      return this
+    },
+    child: (team: Team) => {
+      this.children.add(team.id)
+      return this
+    },
+  }
+
+  remove = {
+    unit: (unit: Unit) => {
+      this.units.delete(unit.id)
+      return this
+    },
+    child: (team: Team) => {
+      this.children.delete(team.id)
+      return this
+    },
+    children: () => {
+      this.get.children().forEach(this.remove.child)
+      return this
+    },
+  }
+
   get = {
-    units: () =>
-      compact(
-        this.factions.reduce((acc, faction) => {
-          acc.push(...faction.get.units())
-          return acc
-        }, [...this.units].map(this.game.get.unit))
-      ),
+    parent: (recursive = false): Team =>
+      recursive ? this.parent?.get.parent(true) || this : this.parent || this,
+    children: (recursive = false) =>
+      [...this.children].reduce((acc, teamId) => {
+        const team = this.game.get.team(teamId)
+        if (team) {
+          recursive
+            ? acc.push(team, ...team.get.children(true))
+            : acc.push(team)
+        }
+        return acc
+      }, [] as Team[]),
+    units: (recursive = false) => {
+      const thisUnits = [...this.units].map(this.game.get.unit)
+
+      return compact(
+        recursive
+          ? [...this.get.children(true)].reduce((units, team) => {
+              units.push(...team.get.units())
+              return units
+            }, thisUnits)
+          : thisUnits
+      )
+    },
   }
 
   make = {

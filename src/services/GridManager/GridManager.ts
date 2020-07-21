@@ -1,11 +1,9 @@
-import Coords from '../Coords'
-import compact from 'lodash/compact'
 import Pathfinder from '../Pathfinder'
 
 export default class GridManager {
-  private game: Game
+  game: Game
   readonly grid: Grid
-  private units = new Map<Symbol, Pathfinder>()
+  private pathfinders = new Map<Symbol, Pathfinder>()
   constructor({
     game,
     units,
@@ -21,13 +19,23 @@ export default class GridManager {
   }
 
   get = {
-    units: () => compact([...this.units.keys()].map(this.game.get.unit)),
+    pathfinder: (id: Symbol) => this.pathfinders.get(id),
+    pathfinders: () => [...this.pathfinders.values()],
+    teams: () => [
+      ...this.get.pathfinders().reduce((acc, pathfinder) => {
+        const team = pathfinder.unit.get.team()
+        if (!acc.has(team)) {
+          acc.add(team)
+        }
+        return acc
+      }, new Set<Team>()),
+    ],
   }
 
   add = {
     units: (...units: [Unit, RawCoords][]) => {
       units.forEach(([unit, coordinates]) =>
-        this.units.set(
+        this.pathfinders.set(
           unit.id,
           new Pathfinder({ grid: this.grid, unit, coordinates })
         )
