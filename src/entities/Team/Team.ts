@@ -106,6 +106,10 @@ export default class Team extends Base {
       this.children.add(team.id)
       return this
     },
+    children: (teams: Team[]) => {
+      teams.forEach(this.add.child)
+      return this
+    },
   }
 
   remove = {
@@ -117,8 +121,12 @@ export default class Team extends Base {
       this.children.delete(team.id)
       return this
     },
-    children: () => {
-      this.get.children().forEach(this.remove.child)
+    children: (teams?: Team[]) => {
+      const teamIds = teams?.map(team => team.id)
+      this.get
+        .children()
+        .filter(team => !teamIds || teamIds.includes(team.id))
+        .forEach(this.remove.child)
       return this
     },
   }
