@@ -24,15 +24,16 @@ export default class DirectionalConstraint {
    * get coordinates considered adjacent to the coordinates passed in
    */
   adjacent(coordsA: Coords) {
-    const adjacentCoords: RawCoords[] = []
+    const adjacentCoords: Coords[] = []
     for (const xOffset of this.offsets.x) {
       for (const yOffset of this.offsets.y) {
         const coordsB = {
           x: coordsA.x + xOffset,
           y: coordsA.y + yOffset,
         }
-        if (this.validations.exceptions(coordsA.deltas(coordsB))) {
-          adjacentCoords.push(coordsB)
+        const deltas = coordsA.deltas(coordsB)
+        if (this.validations.exceptions(deltas)) {
+          adjacentCoords.push(new Coords(coordsB))
         }
       }
     }
@@ -55,6 +56,7 @@ export default class DirectionalConstraint {
           const offsetRange = Array.isArray(offset)
             ? range(offset[0], offset[1] + 1)
             : [offset]
+
           offsetRange.forEach(value =>
             acc[key as keyof Constraint['offsets']].add(value)
           )

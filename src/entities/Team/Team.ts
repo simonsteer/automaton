@@ -117,6 +117,10 @@ export default class Team extends Base {
       this.units.delete(unit.id)
       return this
     },
+    units: (units: Unit[]) => {
+      units.forEach(this.remove.unit)
+      return this
+    },
     child: (team: Team) => {
       this.children.delete(team.id)
       return this
@@ -155,6 +159,28 @@ export default class Team extends Base {
             }, thisUnits)
           : thisUnits
       )
+    },
+    pathfinders: (grid: Grid, recursive = false) => {
+      let units = [...this.units]
+      if (recursive) {
+        units = [...this.get.children(true)].reduce((acc, team) => {
+          acc.push(...team.units)
+          return acc
+        }, units)
+      }
+      const pathfinders = units.map(unitId => grid.get.pathfinder(unitId))
+      return compact(pathfinders)
+    },
+    size: (recursive = false) => {
+      let size = this.units.size
+      if (recursive) {
+        size =
+          size +
+          this.get
+            .children(true)
+            .reduce((acc, child) => acc + child.units.size, 0)
+      }
+      return size
     },
   }
 

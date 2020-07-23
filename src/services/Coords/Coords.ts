@@ -11,6 +11,11 @@ export default class Coords {
     return `${x},${y}`
   }
 
+  static parse(hash: string): Coords {
+    const [x, y] = hash.split(',').map(Number)
+    return new Coords({ x, y })
+  }
+
   get hash() {
     return Coords.hash(this)
   }
@@ -21,4 +26,9 @@ export default class Coords {
       y: this.y - coordinates.y,
     })
   }
+
+  outOfBounds = (grid: Grid) =>
+    this.x < 0 || this.x >= grid.size.x || this.y < 0 || this.y >= grid.size.y
+
+  withinBounds = (grid: Grid) => !this.outOfBounds(grid)
 }

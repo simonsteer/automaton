@@ -1,3 +1,5 @@
+import { Terrain, Tile, Grid } from './entities'
+
 export function patchObjectFunctionCalls<
   F extends { [key: string]: (...args: any[]) => any }
 >(obj: F, { pre = () => {}, post = () => {} } = {}) {
@@ -11,4 +13,15 @@ export function patchObjectFunctionCalls<
     }
   }
   return result as F
+}
+
+export function createSimpleGrid(game: Game, size: number) {
+  const terrain = new Terrain(game)
+  const tile = new Tile(terrain)
+
+  return new Grid(game, {
+    graph: Array(size)
+      .fill(tile)
+      .map(t => Array(size).fill(t)) as Tile[][],
+  })
 }

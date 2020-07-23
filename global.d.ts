@@ -10,7 +10,7 @@ type Tile = import('./src/entities/Tile').default
 type Team = import('./src/entities/Team').default
 
 type Coords = import('./src/services/Coords').default
-type GridManager = import('./src/services/GridManager').default
+type Pathfinder = import('./src/services/Pathfinder').default
 type BattleManager = import('./src/services/BattleManager').default
 
 type RawCoords = { x: Coords['x']; y: Coords['y'] }

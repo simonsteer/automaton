@@ -1,4 +1,4 @@
-import { BattleManager, GridManager } from '../../services'
+import { BattleManager } from '../../services'
 
 type EntityMappings = {
   unit: Unit
@@ -26,10 +26,8 @@ export default class Game {
   };
 
   *startBattle(grid: Grid, units: [Unit, RawCoords][]) {
-    const managedGrid = new GridManager({ game: this, grid, units })
-    const battle = new BattleManager(managedGrid)
-    while (true) {
-      yield
-    }
+    grid.add.units(...units)
+    const battle = new BattleManager(grid)
+    yield* battle.start()
   }
 }

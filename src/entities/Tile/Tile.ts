@@ -1,9 +1,6 @@
-import Base from '../Base'
-
-export default class Tile extends Base {
+export default class Tile {
   terrain: Terrain
-  constructor(game: Game, terrain: Terrain) {
-    super(game)
+  constructor(terrain: Terrain) {
     this.terrain = terrain
   }
 }

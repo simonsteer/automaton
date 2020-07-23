@@ -4,8 +4,8 @@ export default class Terrain extends Base {
   cost = (unit: Unit) => 1
   cache = new Map<Symbol, number>()
 
-  constructor(game: Game, cost: (unit: Unit) => number) {
+  constructor(game: Game, cost?: (unit: Unit) => number) {
     super(game, 'terrain')
-    this.cost = cost
+    if (cost) this.cost = cost
   }
 }
