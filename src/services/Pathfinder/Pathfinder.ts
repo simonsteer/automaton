@@ -34,29 +34,21 @@ export default class Pathfinder {
       const checkAdjacentTiles = (coordinates: Coords, stepsLeft: number) => {
         const adjacent = this.unit.directionalConstraint.adjacent(coordinates)
         adjacent.forEach(coordinates => {
-          if (this.coordinates.hash === coordinates.hash) {
-            return
-          }
+          if (this.coordinates.hash === coordinates.hash) return
 
           const { tile } = this.grid.get.data(coordinates) || {}
-          if (!tile) {
-            return
-          }
+          if (!tile) return
 
           const tileCost = tile.terrain.cost(this.unit)
-          if (tileCost > stepsLeft) {
-            return
-          }
-
-          reachable.add(coordinates.hash)
-          if (stepsLeft - tileCost > 0) {
+          if (tileCost > stepsLeft) return
+          if (!reachable.has(coordinates.hash)) reachable.add(coordinates.hash)
+          if (stepsLeft - tileCost > 0)
             checkAdjacentTiles(coordinates, stepsLeft - tileCost)
-          }
         })
       }
       checkAdjacentTiles(this.coordinates, this.unit.get.stats().movement)
 
-      return [...reachable].map(Coords.parse).map(c => new Coords(c))
+      return [...reachable].map(Coords.parse)
     },
   }
 
