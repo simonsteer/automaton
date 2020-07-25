@@ -1,10 +1,22 @@
 import compact from 'lodash/compact'
 
+type GeneratedPathfinderWithActions = {
+  pathfinder: Pathfinder
+  actions: {
+    move: (path: RawCoords[]) => GeneratedPathfinderWithActions[]
+    custom: (callback: () => void) => GeneratedPathfinderWithActions[]
+  }
+}
+
+type PathfindersWithActionsGenerator = Generator<
+  GeneratedPathfinderWithActions[],
+  GeneratedPathfinderWithActions[]
+>
+
 export default class TurnManager {
   battle: BattleManager
   team: Team
 
-  private inProgress = false
   private unitData = new Map<
     Symbol,
     { maxActions: number; actionsTaken: number }
@@ -21,49 +33,53 @@ export default class TurnManager {
     this.team = teams[battle.turn % teams.length]
   }
 
-  *start() {
-    this.inProgress = true
-    while (this.inProgress) {
-      const unitsWithActionsLeft = this.getUsablePathfinders().map(
-        pathfinder => {
-          return {
-            unit: pathfinder.unit,
-            pathfinder,
-            actions: {
-              move: () => {
-                this.unitData
-                this.incrementActionsTaken(pathfinder.unit.id)
-              },
-            },
-          }
-        }
-      )
-
-      yield unitsWithActionsLeft
+  *start(): PathfindersWithActionsGenerator {
+    while (true) {
+      yield this.mappedPathfinders
     }
   }
 
-  private getPathfinderActions(pathfinder: Pathfinder) {
-    const { unit } = pathfinder
-
-    return {
-      unit,
-      pathfinder,
-      actions: {
-        move: () => {
-          this.unitData
-          this.incrementActionsTaken(unit.id)
-        },
-      },
-    }
+  private get mappedPathfinders() {
+    return this.usablePathfinders.map(pathfinder =>
+      this.mapActionsToPathfinder(pathfinder, this.start())
+    )
   }
 
-  private getUsablePathfinders() {
+  private get usablePathfinders() {
     return compact(
       [...this.unitData]
         .filter(data => data[1].actionsTaken < data[1].maxActions)
         .map(data => this.battle.grid.get.pathfinder(data[0]))
     )
+  }
+
+  private mapActionsToPathfinder(
+    pathfinder: Pathfinder,
+    generator: PathfindersWithActionsGenerator
+  ) {
+    const { unit } = pathfinder
+
+    return {
+      pathfinder,
+      actions: {
+        move: this.action(generator, unit, (path: RawCoords[]) => {
+          pathfinder.commit(path)
+        }),
+        custom: (callback: () => void) => {
+          return this.action(generator, unit, callback)()
+        },
+      },
+    }
+  }
+
+  private action = <Callback extends (...args: any) => void>(
+    generator: Generator,
+    unit: Unit,
+    callback: Callback
+  ) => (...args: Parameters<Callback>) => {
+    callback(...args)
+    this.incrementActionsTaken(unit.id)
+    return generator.next().value
   }
 
   private incrementActionsTaken(unitId: Symbol) {

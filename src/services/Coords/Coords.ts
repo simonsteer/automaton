@@ -31,4 +31,10 @@ export default class Coords {
     this.x < 0 || this.x >= grid.size.x || this.y < 0 || this.y >= grid.size.y
 
   withinBounds = (grid: Grid) => !this.outOfBounds(grid)
+
+  update = ({ x = this.x, y = this.y }: Partial<{ x: number; y: number }>) => {
+    this.y = y
+    this.x = x
+    return this
+  }
 }

@@ -1,3 +1,4 @@
+import last from 'lodash/last'
 import Coords from '../Coords'
 import Graph from './Dijkstra/Graph'
 import { GraphNodeNeighbour } from './Dijkstra/types'
@@ -27,7 +28,29 @@ export default class Pathfinder {
     return this._coordinates
   }
 
+  commit = (path: RawCoords[]) => {
+    if (path.length === 0) {
+      return
+    }
+    const newCoordinates = last(path)!
+    this._coordinates.update(newCoordinates)
+    return this
+  }
+
   get = {
+    route: (toCoords: RawCoords) => {
+      const coords = new Coords(toCoords)
+
+      const { path, cost } = this.graph.path(
+        this.unit,
+        this.coordinates.hash,
+        coords.hash,
+        { cost: true }
+      ) as { path: null | string[]; cost: number }
+
+      const coordsPath = (path || []).map(Coords.parse)
+      return { path: coordsPath, cost }
+    },
     reachable: () => {
       const reachable = new Set<string>()
 
