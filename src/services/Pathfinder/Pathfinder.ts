@@ -28,7 +28,7 @@ export default class Pathfinder {
   }
 
   get = {
-    reachableCoordinates: () => {
+    reachable: () => {
       const reachable = new Set<string>()
 
       const checkAdjacentTiles = (coordinates: Coords, stepsLeft: number) => {

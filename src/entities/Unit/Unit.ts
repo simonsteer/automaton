@@ -1,10 +1,11 @@
 import Base from '../Base'
 import { UnitStats } from './types'
 import DirectionalConstraint from '../../services/DirectionalConstraint'
-import { DEFAULT_DIRECTIONAL_CONSTRAINT } from '../../services/DirectionalConstraint/constants'
+import { ORTHAGONAL_MOVEMENT } from '../../services/DirectionalConstraint/recipes'
 
 type UnitConstructorOptions = {
   team: Team
+  directionalConstraint?: DirectionalConstraint
   stats?: Partial<UnitStats>
 }
 
@@ -18,14 +19,20 @@ export default class Unit extends Base {
     maxActions: 1,
   }
   private team!: Team
-  directionalConstraint = new DirectionalConstraint(
-    DEFAULT_DIRECTIONAL_CONSTRAINT
-  )
+  directionalConstraint: DirectionalConstraint
 
-  constructor(game: Game, { team, stats = {} }: UnitConstructorOptions) {
+  constructor(
+    game: Game,
+    {
+      directionalConstraint = new DirectionalConstraint(ORTHAGONAL_MOVEMENT),
+      team,
+      stats = {},
+    }: UnitConstructorOptions
+  ) {
     super(game, 'unit')
     this.set.team(team)
     this.set.stats(stats)
+    this.directionalConstraint = directionalConstraint
   }
 
   get = {
