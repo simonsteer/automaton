@@ -6,6 +6,7 @@ export default class BattleManager {
   turn = -1
   grid: Grid
   endCondition: BattleManagerCallback<boolean>
+  private didStart = false
   private callbacks: {
     onTurnStart: BattleManagerCallback
     onTurnEnd: BattleManagerCallback
@@ -27,10 +28,11 @@ export default class BattleManager {
   }
 
   get inProgress() {
-    return !this.endCondition(this)
+    return this.didStart && !this.endCondition(this)
   }
 
   *start() {
+    this.didStart = true
     const { onTurnStart, onTurnEnd } = this.callbacks
 
     while (this.inProgress) {
@@ -48,6 +50,7 @@ export default class BattleManager {
       }
     }
 
+    this.endCondition = () => true
     yield null
   }
 

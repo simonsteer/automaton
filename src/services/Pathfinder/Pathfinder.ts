@@ -28,7 +28,7 @@ export default class Pathfinder {
     return this._coordinates
   }
 
-  commit = (path: RawCoords[]) => {
+  move = (path: RawCoords[]) => {
     if (path.length === 0) {
       return
     }

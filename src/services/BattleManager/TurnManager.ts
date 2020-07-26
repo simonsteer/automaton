@@ -23,12 +23,6 @@ export default class TurnManager {
     this.actionableUnits = this.getActionableUnits()
   }
 
-  private updateActionableUnits() {
-    this.actionableUnits = this.actionableUnits.filter(
-      ({ actionsTaken, maxActions }) => actionsTaken < maxActions
-    )
-  }
-
   private getActionableUnits() {
     return compact(
       [...this.unitData].map(([unitId, { actionsTaken, maxActions }]) => {
@@ -44,7 +38,7 @@ export default class TurnManager {
           maxActions,
           actions: {
             move: this.createAction(unit.id, (path: RawCoords[]) => {
-              pathfinder.commit(path)
+              pathfinder.move(path)
             }),
             custom: (callback: () => void) => {
               return this.createAction(unit.id, callback)()
@@ -63,6 +57,15 @@ export default class TurnManager {
     this.incrementActionsTaken(unitId)
     this.updateActionableUnits()
     return this.actionableUnits
+  }
+
+  private updateActionableUnits() {
+    if (!this.battle.inProgress) {
+      this.actionableUnits = []
+    }
+    this.actionableUnits = this.actionableUnits.filter(
+      ({ actionsTaken, maxActions }) => actionsTaken < maxActions
+    )
   }
 
   private incrementActionsTaken(unitId: Symbol) {
