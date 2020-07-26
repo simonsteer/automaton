@@ -24,6 +24,17 @@ export default class Grid extends Base {
   }
 
   get = {
+    data: ({ x, y }: RawCoords) => {
+      const vector = this.graph[y]?.[x] as GridVectorData | undefined
+      if (!vector) return null
+
+      return {
+        ...vector,
+        pathfinder: this.get
+          .pathfinders()
+          .find(p => p.coordinates.hash === Coords.hash({ x, y })),
+      }
+    },
     pathfinder: (id: Symbol) => this.pathfinders.get(id),
     pathfinders: () => [...this.pathfinders.values()],
     teams: () => [
@@ -35,8 +46,9 @@ export default class Grid extends Base {
         return acc
       }, new Set<Team>()),
     ],
-    data: ({ x, y }: RawCoords) =>
-      this.graph[y]?.[x] as GridVectorData | undefined,
+    team: (id: Symbol) => this.get.teams().find(team => team.id === id),
+    unit: (id: Symbol) => this.get.pathfinder(id)?.unit,
+    units: () => this.get.pathfinders().map(p => p.unit),
   }
 
   add = {

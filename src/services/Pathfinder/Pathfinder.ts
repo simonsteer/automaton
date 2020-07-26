@@ -51,28 +51,30 @@ export default class Pathfinder {
       const coordsPath = (path || []).map(Coords.parse)
       return { path: coordsPath, cost }
     },
-    reachable: () => {
-      const reachable = new Set<string>()
+    reachable: (
+      fromCoords = this.coordinates,
+      stepsLeft = this.unit.get.stats().movement,
+      accumulator = new Set<string>()
+    ) =>
+      [
+        ...this.unit.directionalConstraint
+          .adjacent(fromCoords)
+          .reduce((acc, coordinates) => {
+            if (this.coordinates.hash === coordinates.hash) return acc
 
-      const checkAdjacentTiles = (coordinates: Coords, stepsLeft: number) => {
-        const adjacent = this.unit.directionalConstraint.adjacent(coordinates)
-        adjacent.forEach(coordinates => {
-          if (this.coordinates.hash === coordinates.hash) return
+            const { tile } = this.grid.get.data(coordinates) || {}
+            if (!tile) return acc
 
-          const { tile } = this.grid.get.data(coordinates) || {}
-          if (!tile) return
+            const tileCost = tile.terrain.cost(this.unit)
+            if (tileCost > stepsLeft) return acc
 
-          const tileCost = tile.terrain.cost(this.unit)
-          if (tileCost > stepsLeft) return
-          if (!reachable.has(coordinates.hash)) reachable.add(coordinates.hash)
-          if (stepsLeft - tileCost > 0)
-            checkAdjacentTiles(coordinates, stepsLeft - tileCost)
-        })
-      }
-      checkAdjacentTiles(this.coordinates, this.unit.get.stats().movement)
+            if (!acc.has(coordinates.hash)) acc.add(coordinates.hash)
+            if (stepsLeft - tileCost > 0)
+              this.get.reachable(coordinates, stepsLeft - tileCost, acc)
 
-      return [...reachable].map(Coords.parse)
-    },
+            return acc
+          }, accumulator),
+      ].map(Coords.parse),
   }
 
   private buildGraph() {

@@ -1,7 +1,7 @@
 import Base from '../Base'
 import { UnitStats } from './types'
 import DirectionalConstraint from '../../services/DirectionalConstraint'
-import { ORTHAGONAL_MOVEMENT } from '../../services/DirectionalConstraint/recipes'
+import { ORTHOGONAL_MOVEMENT } from '../../services/DirectionalConstraint/recipes'
 
 type UnitConstructorOptions = {
   team: Team
@@ -24,7 +24,7 @@ export default class Unit extends Base {
   constructor(
     game: Game,
     {
-      directionalConstraint = new DirectionalConstraint(ORTHAGONAL_MOVEMENT),
+      directionalConstraint = new DirectionalConstraint(ORTHOGONAL_MOVEMENT),
       team,
       stats = {},
     }: UnitConstructorOptions
