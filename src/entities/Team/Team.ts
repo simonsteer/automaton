@@ -45,7 +45,7 @@ export default class Team extends Base {
         break
       }
       case 'string': {
-        const newTeam = this.clone({ parent: this }).make[params](this)
+        const newTeam = this.clone().make[params](this)
         newTeams.push(newTeam)
         break
       }
@@ -63,9 +63,7 @@ export default class Team extends Base {
             )
 
           for (let i = 0; i < branches; i++) {
-            const newTeam = this.clone({ parent: this }).make[
-              parentRelationship
-            ](this)
+            const newTeam = this.clone().make[parentRelationship](this)
 
             if (i === branches - 1)
               newTeams.forEach(team => team.make[siblingRelationship](newTeam))
@@ -79,7 +77,7 @@ export default class Team extends Base {
             )
 
           branches.forEach((config, i) => {
-            const newTeam = this.clone({ parent: this })
+            const newTeam = this.clone()
               .make[parentRelationship](this)
               .split(config)
 
@@ -98,7 +96,16 @@ export default class Team extends Base {
   }
 
   add = {
+    unit: (unit: Unit) => {
+      unit.set.team(this)
+      return this
+    },
+    units: (units: Unit[]) => {
+      units.forEach(this.add.unit)
+      return this
+    },
     child: (team: Team) => {
+      team.parent = this
       this.children.add(team.id)
       return this
     },
@@ -108,17 +115,9 @@ export default class Team extends Base {
     },
   }
 
-  private addUnit = (unit: Unit) => {
-    this.units.add(unit.id)
-    return this
-  }
-  private removeUnit = (unit: Unit) => {
-    this.units.delete(unit.id)
-    return this
-  }
-
   remove = {
     child: (team: Team) => {
+      team.parent = undefined
       this.children.delete(team.id)
       return this
     },
@@ -230,5 +229,24 @@ export default class Team extends Base {
       friendly: [...this.friendly],
       ...overrides,
     })
+  }
+
+  /*
+  The methods below are intentionally private and unused in this class
+  
+  Unit.ts accesses these methods using strings as indexes. This is because
+  units need to be aware of these methods for the purpose of updating what
+  team it belongs to, but these methods shouldn't be exposed to developers
+  using the framework, since using them on their own may lead to
+  inconsistent game data.
+  */
+
+  private addUnit = (unit: Unit) => {
+    this.units.add(unit.id)
+    return this
+  }
+  private removeUnit = (unit: Unit) => {
+    this.units.delete(unit.id)
+    return this
   }
 }
