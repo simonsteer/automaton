@@ -23,11 +23,5 @@ export default class Game {
     grid: (id: Symbol) => this.getEntity('grid', id),
     terrain: (id: Symbol) => this.getEntity('terrain', id),
     team: (id: Symbol) => this.getEntity('team', id),
-  };
-
-  *startBattle(grid: Grid, units: [Unit, RawCoords][]) {
-    grid.add.units(...units)
-    const battle = new BattleManager(grid)
-    yield* battle.start()
   }
 }

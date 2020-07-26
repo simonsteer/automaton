@@ -98,10 +98,6 @@ export default class Team extends Base {
   }
 
   add = {
-    unit: (unit: Unit) => {
-      this.units.add(unit.id)
-      return this
-    },
     child: (team: Team) => {
       this.children.add(team.id)
       return this
@@ -112,15 +108,16 @@ export default class Team extends Base {
     },
   }
 
+  private addUnit = (unit: Unit) => {
+    this.units.add(unit.id)
+    return this
+  }
+  private removeUnit = (unit: Unit) => {
+    this.units.delete(unit.id)
+    return this
+  }
+
   remove = {
-    unit: (unit: Unit) => {
-      this.units.delete(unit.id)
-      return this
-    },
-    units: (units: Unit[]) => {
-      units.forEach(this.remove.unit)
-      return this
-    },
     child: (team: Team) => {
       this.children.delete(team.id)
       return this

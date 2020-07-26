@@ -46,9 +46,9 @@ export default class Unit extends Base {
       return this
     },
     team: (team: Team) => {
-      this.team?.remove.unit(this)
+      this.team?.['removeUnit'](this)
       this.team = team
-      this.team.add.unit(this)
+      this.team['addUnit'](this)
       return this
     },
   }
