@@ -1,25 +1,31 @@
 import BattleManager from './BattleManager'
-import TurnManager from './TurnManager'
 import { Game, Unit } from '../../entities'
 import { createSimpleGrid } from '../../utils'
 import Team from '../../entities/Team'
 
 describe('BattleManager', () => {
+  beforeEach(() => (battle = new BattleManager(game, grid)))
+
   const game = new Game()
   const grid = createSimpleGrid(game, 5)
 
-  beforeEach(() => {
-    grid.clear()
-  })
+  const [team_1, team_2] = new Team(game)
+    .split({ branches: 2, siblingRelationship: 'hostile' })
+    .get.children()
 
-  it('correctly determines if the battle is in progress or not', () => {
-    const [team_1, team_2] = new Team(game)
-      .split({ branches: 2, siblingRelationship: 'hostile' })
-      .get.children()
+  const team_1_units = Array(2)
+    .fill(0)
+    .map(() => new Unit(game, { team: team_1 }))
+  const team_2_units = Array(2)
+    .fill(0)
+    .map(() => new Unit(game, { team: team_2 }))
 
-    const team_1_unit_1 = new Unit(game, { team: team_1 })
-    const team_1_unit_2 = new Unit(game, { team: team_1 })
+  let battle = new BattleManager(game, grid)
 
-    const team_2_unit_2 = new Unit(game, { team: team_1 })
+  it('does not consider the battle "in progress" if we have not begun iterating through turns', () => {
+    expect(battle.inProgress).toBe(false)
+    const generator = battle.begin()
+    const result = generator.next()
+    expect(battle.inProgress).toBe(true)
   })
 })

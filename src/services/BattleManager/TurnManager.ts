@@ -9,7 +9,7 @@ export default class TurnManager {
     { maxActions: number; actionsTaken: number }
   >(
     this.battle.grid.get.pathfinders().map(pathfinder => {
-      const { maxActions } = pathfinder.unit.get.stats()
+      const { maxActions } = pathfinder.unit
       return [pathfinder.unit.id, { pathfinder, actionsTaken: 0, maxActions }]
     })
   )
@@ -18,7 +18,7 @@ export default class TurnManager {
 
   constructor(battle: BattleManager) {
     this.battle = battle
-    const teams = battle.get.teams()
+    const teams = battle.grid.get.teams()
     this.team = teams[battle.turn % teams.length]
     this.actionableUnits = this.getActionableUnits()
   }
@@ -38,7 +38,7 @@ export default class TurnManager {
           maxActions,
           actions: {
             move: this.createAction(unit.id, (path: RawCoords[]) => {
-              pathfinder.move(path)
+              // pathfinder.move(path)
             }),
             custom: (callback: () => void) => {
               return this.createAction(unit.id, callback)()
