@@ -1,30 +1,33 @@
 import Base from '../Base'
-import { UnitStats } from './types'
 import DirectionalConstraint from '../../services/DirectionalConstraint'
 import { ORTHOGONAL_MOVEMENT } from '../../services/DirectionalConstraint/recipes'
 
 type UnitConstructorOptions = {
   team: Team
-  directionalConstraint?: DirectionalConstraint
-  stats?: Partial<UnitStats>
+  movement?: { steps?: number; pattern?: DirectionalConstraint }
+  stats?: Partial<Unit['_stats']>
+  maxActions?: number
 }
 
 export default class Unit extends Base {
-  private stats = {
+  private _stats = {
     offense: 1,
     defense: 0,
     speed: 1,
-    movement: 1,
-    maxHealth: 1,
-    maxActions: 1,
+    health: 1,
   }
-  private team!: Team
-  directionalConstraint: DirectionalConstraint
+  private _team!: Team
+  movement: { pattern: DirectionalConstraint; steps: number }
+  maxActions: number
 
   constructor(
     game: Game,
     {
-      directionalConstraint = new DirectionalConstraint(ORTHOGONAL_MOVEMENT),
+      maxActions = 1,
+      movement: {
+        pattern = new DirectionalConstraint(ORTHOGONAL_MOVEMENT),
+        steps = 1,
+      } = {},
       team,
       stats = {},
     }: UnitConstructorOptions
@@ -32,23 +35,27 @@ export default class Unit extends Base {
     super(game, 'unit')
     this.set.team(team)
     this.set.stats(stats)
-    this.directionalConstraint = directionalConstraint
+    this.maxActions = maxActions
+    this.movement = { pattern, steps }
   }
 
-  get = {
-    stats: () => this.stats,
-    team: () => this.team,
+  get stats() {
+    return this._stats
+  }
+
+  get team() {
+    return this._team
   }
 
   set = {
-    stats: (updates: Partial<Unit['stats']>) => {
-      this.stats = { ...this.stats, ...updates }
+    stats: (updates: Partial<Unit['_stats']>) => {
+      this._stats = { ...this._stats, ...updates }
       return this
     },
     team: (team: Team) => {
-      this.team?.['removeUnit'](this)
-      this.team = team
-      this.team['addUnit'](this)
+      this._team?.['removeUnit'](this)
+      this._team = team
+      this._team['addUnit'](this)
       return this
     },
   }

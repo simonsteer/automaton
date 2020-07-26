@@ -14,9 +14,7 @@ describe('Pathfinder', () => {
     it('can get reachable coordinates with default movement constraints and default terrain', () => {
       const unit = new Unit(game, {
         team,
-        stats: {
-          movement: 3,
-        },
+        movement: { steps: 3 },
       })
       const grid = createSimpleGrid(game, 5).add.units([[unit, { x: 0, y: 0 }]])
 
@@ -53,9 +51,7 @@ describe('Pathfinder', () => {
     it('can get reachable coordinates with default movement constraints and custom terrain', () => {
       const unit = new Unit(game, {
         team,
-        stats: {
-          movement: 3,
-        },
+        movement: { steps: 3 },
       })
       const terrain = new Terrain(game, () => 3)
       const grid = createSimpleGrid(game, 5).add.units([[unit, { x: 0, y: 0 }]])
@@ -99,8 +95,10 @@ describe('Pathfinder', () => {
     it('can get reachable coordinates with custom movement constraints and default terrain', () => {
       const unit = new Unit(game, {
         team,
-        stats: { movement: 2 },
-        directionalConstraint: new DirectionalConstraint(DIAGONAL_MOVEMENT),
+        movement: {
+          pattern: new DirectionalConstraint(DIAGONAL_MOVEMENT),
+          steps: 2,
+        },
       })
       const grid = createSimpleGrid(game, 5).add.units([[unit, { x: 1, y: 1 }]])
 
@@ -135,8 +133,10 @@ describe('Pathfinder', () => {
     it('can get reachable coordinates with custom movement constraints and custom terrain', () => {
       const unit = new Unit(game, {
         team,
-        stats: { movement: 3 },
-        directionalConstraint: new DirectionalConstraint(DIAGONAL_MOVEMENT),
+        movement: {
+          pattern: new DirectionalConstraint(DIAGONAL_MOVEMENT),
+          steps: 3,
+        },
       })
       const terrain = new Terrain(game, () => 3)
       const grid = createSimpleGrid(game, 5).add.units([[unit, { x: 1, y: 1 }]])

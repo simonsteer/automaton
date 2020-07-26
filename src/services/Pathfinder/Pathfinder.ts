@@ -1,4 +1,3 @@
-import last from 'lodash/last'
 import Coords from '../Coords'
 import Graph from './Dijkstra/Graph'
 import { GraphNodeNeighbour } from './Dijkstra/types'
@@ -28,15 +27,6 @@ export default class Pathfinder {
     return this._coordinates
   }
 
-  move = (path: RawCoords[]) => {
-    if (path.length === 0) {
-      return
-    }
-    const newCoordinates = last(path)!
-    this._coordinates.update(newCoordinates)
-    return this
-  }
-
   get = {
     route: (toCoords: RawCoords) => {
       const coords = new Coords(toCoords)
@@ -53,11 +43,11 @@ export default class Pathfinder {
     },
     reachable: (
       fromCoords = this.coordinates,
-      stepsLeft = this.unit.get.stats().movement,
+      stepsLeft = this.unit.movement.steps,
       accumulator = new Set<string>()
     ) =>
       [
-        ...this.unit.directionalConstraint
+        ...this.unit.movement.pattern
           .adjacent(fromCoords)
           .reduce((acc, coordinates) => {
             if (this.coordinates.hash === coordinates.hash) return acc
@@ -81,7 +71,7 @@ export default class Pathfinder {
     const graph = new Graph()
     this.grid.mapTiles(tile => {
       const neighbours: GraphNodeNeighbour = {}
-      this.unit.directionalConstraint
+      this.unit.movement.pattern
         .adjacent(tile.coords)
         .filter(coords => coords.withinBounds(this.grid))
         .forEach(({ x, y }) => {
