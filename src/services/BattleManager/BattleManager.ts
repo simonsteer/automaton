@@ -2,13 +2,12 @@ import TurnManager from './TurnManager'
 
 type BattleManagerCallback<T = void> = (battle: BattleManager) => T
 
-const DEFAULT_END_CONDITION: BattleManagerCallback<boolean> = battle =>
+const DEFAULT_END_CONDITION = (battle: BattleManager) =>
   battle.grid.get.teams().length === 1
 
 export default class BattleManager {
   turn = -1
   grid: Grid
-  game: Game
   endCondition: BattleManagerCallback<boolean>
   private didStart = false
   private callbacks: {
@@ -17,7 +16,6 @@ export default class BattleManager {
   }
 
   constructor(
-    game: Game,
     grid: Grid,
     {
       onTurnStart = () => {},
@@ -27,7 +25,6 @@ export default class BattleManager {
       endCondition?: BattleManagerCallback<boolean>
     }
   ) {
-    this.game = game
     this.grid = grid
     this.endCondition = endCondition
     this.callbacks = { onTurnStart, onTurnEnd }
@@ -37,26 +34,20 @@ export default class BattleManager {
     return this.didStart && !this.endCondition(this)
   }
 
-  *begin() {
+  *start() {
     this.didStart = true
     const { onTurnStart, onTurnEnd } = this.callbacks
 
     while (this.inProgress) {
       this.turn++
       const turn = new TurnManager(this)
-
-      while (turn.actionableUnits.length > 0) {
-        onTurnStart(this)
-        yield {
-          turn: this.turn,
-          team: turn.team,
-          units: turn.actionableUnits,
-        }
-        onTurnEnd(this)
+      onTurnStart(this)
+      yield {
+        turn: this.turn,
+        team: turn.team,
+        units: turn.actionableUnits,
       }
+      onTurnEnd(this)
     }
-
-    this.endCondition = () => true
-    yield null
   }
 }

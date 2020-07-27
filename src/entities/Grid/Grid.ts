@@ -38,8 +38,7 @@ export default class Grid extends Base {
     pathfinder: (id: Symbol) => this.pathfinders.get(id),
     pathfinders: () => [...this.pathfinders.values()],
     teams: () => [
-      ...this.get.pathfinders().reduce((acc, pathfinder) => {
-        const team = pathfinder.unit.get.team()
+      ...this.get.units().reduce((acc, { team }) => {
         if (!acc.has(team)) {
           acc.add(team)
         }
@@ -52,13 +51,15 @@ export default class Grid extends Base {
   }
 
   add = {
-    units: (units: [Unit, RawCoords][]) => {
-      units.forEach(([unit, coordinates]) =>
-        this.pathfinders.set(
-          unit.id,
-          new Pathfinder({ grid: this, unit, coordinates })
-        )
+    unit: (unit: Unit, coordinates: RawCoords) => {
+      this.pathfinders.set(
+        unit.id,
+        new Pathfinder({ grid: this, unit, coordinates })
       )
+      return this
+    },
+    units: (units: [Unit, RawCoords][]) => {
+      units.forEach(args => this.add.unit(...args))
       return this
     },
   }

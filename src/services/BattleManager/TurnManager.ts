@@ -7,12 +7,7 @@ export default class TurnManager {
   private unitData = new Map<
     Symbol,
     { maxActions: number; actionsTaken: number }
-  >(
-    this.battle.grid.get.pathfinders().map(pathfinder => {
-      const { maxActions } = pathfinder.unit
-      return [pathfinder.unit.id, { pathfinder, actionsTaken: 0, maxActions }]
-    })
-  )
+  >()
 
   actionableUnits: ReturnType<TurnManager['getActionableUnits']>
 
@@ -21,9 +16,13 @@ export default class TurnManager {
     const teams = battle.grid.get.teams()
     this.team = teams[battle.turn % teams.length]
     this.actionableUnits = this.getActionableUnits()
+    this.battle.grid.get.pathfinders().map(pathfinder => {
+      const { maxActions } = pathfinder.unit
+      this.unitData.set(pathfinder.unit.id, { actionsTaken: 0, maxActions })
+    })
   }
 
-  private getActionableUnits() {
+  private getActionableUnits = () => {
     return compact(
       [...this.unitData].map(([unitId, { actionsTaken, maxActions }]) => {
         const pathfinder = this.battle.grid.get.pathfinder(unitId)
@@ -59,7 +58,7 @@ export default class TurnManager {
     return this.actionableUnits
   }
 
-  private updateActionableUnits() {
+  private updateActionableUnits = () => {
     if (!this.battle.inProgress) {
       this.actionableUnits = []
     }
@@ -68,7 +67,7 @@ export default class TurnManager {
     )
   }
 
-  private incrementActionsTaken(unitId: Symbol) {
+  private incrementActionsTaken = (unitId: Symbol) => {
     const unitData = this.unitData.get(unitId)
     if (unitData) unitData.actionsTaken++
   }
