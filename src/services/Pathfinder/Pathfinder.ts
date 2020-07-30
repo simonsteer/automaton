@@ -82,12 +82,10 @@ export default class Pathfinder {
 
   get = {
     route: (toCoords: RawCoords) => {
-      const coords = new Coords(toCoords)
-
       const result = this.graph.path(
         this.unit,
         this.coordinates.hash,
-        coords.hash,
+        Coords.hash(toCoords),
         { cost: true }
       ) as { path: null | string[]; cost: number }
 

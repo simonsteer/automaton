@@ -7,10 +7,10 @@ import DirectionalConstraint from '../DirectionalConstraint'
 import { DIAGONAL_MOVEMENT } from '../DirectionalConstraint/recipes'
 
 describe('Pathfinder', () => {
-  describe('getting reachable coordinates', () => {
-    const game = new Game()
-    const team = new Team(game)
+  const game = new Game()
+  const team = new Team(game)
 
+  describe('getting reachable coordinates', () => {
     it('can get reachable coordinates with default movement constraints and default terrain', () => {
       const unit = new Unit(game, {
         team,
@@ -27,6 +27,7 @@ describe('Pathfinder', () => {
 
       const pathfinder = grid.get.pathfinder(unit.id)!
 
+      const reachable = pathfinder.get.reachable()
       const expected = [
         { x: 0, y: 1 },
         { x: 0, y: 2 },
@@ -38,7 +39,6 @@ describe('Pathfinder', () => {
         { x: 1, y: 2 },
         { x: 2, y: 1 },
       ].map(c => new Coords(c))
-      const reachable = pathfinder.get.reachable()
 
       const sorted = {
         expected: sortBy(expected, ['x', 'y']).map(c => c.hash),
@@ -73,6 +73,7 @@ describe('Pathfinder', () => {
 
       const pathfinder = grid.get.pathfinder(unit.id)!
 
+      const reachable = pathfinder.get.reachable()
       const expected = [
         { x: 0, y: 1 },
         { x: 0, y: 2 },
@@ -82,7 +83,6 @@ describe('Pathfinder', () => {
         { x: 3, y: 0 },
         { x: 2, y: 1 },
       ].map(c => new Coords(c))
-      const reachable = pathfinder.get.reachable()
 
       const sorted = {
         expected: sortBy(expected, ['x', 'y']).map(c => c.hash),
@@ -111,6 +111,7 @@ describe('Pathfinder', () => {
 
       const pathfinder = grid.get.pathfinder(unit.id)!
 
+      const reachable = pathfinder.get.reachable()
       const expected = [
         { x: 0, y: 0 },
         { x: 0, y: 2 },
@@ -120,7 +121,6 @@ describe('Pathfinder', () => {
         { x: 3, y: 3 },
         { x: 3, y: 1 },
       ].map(c => new Coords(c))
-      const reachable = pathfinder.get.reachable()
 
       const sorted = {
         expected: sortBy(expected, ['x', 'y']).map(c => c.hash),
@@ -162,6 +162,7 @@ describe('Pathfinder', () => {
 
       const pathfinder = grid.get.pathfinder(unit.id)!
 
+      const reachable = pathfinder.get.reachable()
       const expected = [
         { x: 0, y: 0 },
         { x: 0, y: 2 },
@@ -171,7 +172,6 @@ describe('Pathfinder', () => {
         { x: 2, y: 4 },
         { x: 4, y: 2 },
       ].map(c => new Coords(c))
-      const reachable = pathfinder.get.reachable()
 
       const sorted = {
         expected: sortBy(expected, ['x', 'y']).map(c => c.hash),
@@ -179,6 +179,44 @@ describe('Pathfinder', () => {
       }
 
       expect(sorted.reachable).toEqual(sorted.expected)
+    })
+  })
+
+  describe('pathfinding for arbitrary coordinates', () => {
+    it('can find simple paths', () => {
+      const unit = new Unit(game, {
+        team,
+        movement: { steps: 3 },
+      })
+      const terrain = new Terrain(game, () => 2)
+      const grid = createSimpleGrid(game, 5).add.unit(unit, { x: 0, y: 0 })
+      grid.graph[0][1] = {
+        tile: new Tile(terrain),
+        coords: new Coords({ x: 3, y: 1 }),
+      }
+
+      //  __ __ __ __ __
+      // |U_|2_|__|__|__|
+      // |√_|√_|√_|__|__|
+      // |__|__|__|__|__|
+      // |__|__|__|__|__|
+      // |__|__|__|__|__|
+
+      const pathfinder = grid.get.pathfinder(unit.id)!
+
+      const path = pathfinder.get.route({ x: 2, y: 1 })!
+      const expected = [
+        { x: 0, y: 1 },
+        { x: 1, y: 1 },
+        { x: 2, y: 1 },
+      ].map(c => new Coords(c))
+
+      const sorted = {
+        expected: sortBy(expected, ['x', 'y']).map(c => c.hash),
+        path: sortBy(path, ['x', 'y']).map(c => c.hash),
+      }
+
+      expect(sorted.path).toEqual(sorted.expected)
     })
   })
 })
