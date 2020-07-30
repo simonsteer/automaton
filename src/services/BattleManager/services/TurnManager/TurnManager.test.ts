@@ -1,7 +1,7 @@
 import TurnManager from './TurnManager'
-import { Game, Unit } from '../../../../entities'
+import { Game, Unit, Grid } from '../../../../entities'
 import Team from '../../../../entities/Team'
-import { createSimpleGrid } from '../../../../utils'
+import { createSimpleGraph } from '../../../../utils'
 import { BattleManager } from '../../..'
 
 describe('TurnManager', () => {
@@ -14,7 +14,7 @@ describe('TurnManager', () => {
   const unit1 = new Unit(game, { team: team1, actions: 2 })
   const unit2 = new Unit(game, { team: team2 })
 
-  const grid = createSimpleGrid(game, 5).add.units([
+  const grid = new Grid(game, { graph: createSimpleGraph(game, 5) }).add.units([
     [unit1, { x: 0, y: 0 }],
     [unit2, { x: 1, y: 0 }],
   ])

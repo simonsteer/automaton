@@ -1,6 +1,7 @@
 import sortBy from 'lodash/sortBy'
-import { Terrain, Game, Tile, Unit } from '../../entities'
-import { createSimpleGrid } from '../../utils'
+import { Terrain, Game, Tile, Unit, Grid } from '../../entities'
+import { mapGraph } from '../../entities/Grid/utils'
+import { createSimpleGraph } from '../../utils'
 import Team from '../../entities/Team'
 import { Coords } from '..'
 import DirectionalConstraint from '../DirectionalConstraint'
@@ -12,11 +13,10 @@ describe('Pathfinder', () => {
 
   describe('getting reachable coordinates', () => {
     it('can get reachable coordinates with default movement constraints and default terrain', () => {
-      const unit = new Unit(game, {
-        team,
-        movement: { steps: 3 },
-      })
-      const grid = createSimpleGrid(game, 5).add.units([[unit, { x: 0, y: 0 }]])
+      const unit = new Unit(game, { team, movement: { steps: 3 } })
+      const grid = new Grid(game, {
+        graph: createSimpleGraph(game, 5),
+      }).add.units([[unit, { x: 0, y: 0 }]])
 
       //  __ __ __ __ __
       // |U_|√_|√_|√_|__|
@@ -54,15 +54,10 @@ describe('Pathfinder', () => {
         movement: { steps: 3 },
       })
       const terrain = new Terrain(game, () => 3)
-      const grid = createSimpleGrid(game, 5).add.units([[unit, { x: 0, y: 0 }]])
-      grid.graph[1][1] = {
-        tile: new Tile(terrain),
-        coords: new Coords({ x: 1, y: 1 }),
-      }
-      grid.graph[2][1] = {
-        tile: new Tile(terrain),
-        coords: new Coords({ x: 1, y: 2 }),
-      }
+      const graph = createSimpleGraph(game, 5)
+      graph[1][1] = new Tile(terrain)
+      graph[2][1] = new Tile(terrain)
+      const grid = new Grid(game, { graph }).add.units([[unit, { x: 0, y: 0 }]])
 
       //  __ __ __ __ __
       // |U_|√_|√_|√_|__|
@@ -100,7 +95,8 @@ describe('Pathfinder', () => {
           steps: 2,
         },
       })
-      const grid = createSimpleGrid(game, 5).add.units([[unit, { x: 1, y: 1 }]])
+      const graph = createSimpleGraph(game, 5)
+      const grid = new Grid(game, { graph }).add.units([[unit, { x: 1, y: 1 }]])
 
       //  __ __ __ __ __
       // |√_|__|√_|__|__|
@@ -139,19 +135,11 @@ describe('Pathfinder', () => {
         },
       })
       const terrain = new Terrain(game, () => 3)
-      const grid = createSimpleGrid(game, 5).add.units([[unit, { x: 1, y: 1 }]])
-      grid.graph[1][3] = {
-        tile: new Tile(terrain),
-        coords: new Coords({ x: 3, y: 1 }),
-      }
-      grid.graph[3][1] = {
-        tile: new Tile(terrain),
-        coords: new Coords({ x: 1, y: 3 }),
-      }
-      grid.graph[4][4] = {
-        tile: new Tile(terrain),
-        coords: new Coords({ x: 4, y: 4 }),
-      }
+      const graph = createSimpleGraph(game, 5)
+      graph[1][3] = new Tile(terrain)
+      graph[3][1] = new Tile(terrain)
+      graph[4][4] = new Tile(terrain)
+      const grid = new Grid(game, { graph }).add.units([[unit, { x: 1, y: 1 }]])
 
       //  __ __ __ __ __
       // |√_|__|√_|__|__|
@@ -183,32 +171,66 @@ describe('Pathfinder', () => {
   })
 
   describe('pathfinding for arbitrary coordinates', () => {
-    it('can find simple paths', () => {
-      const unit = new Unit(game, {
-        team,
-        movement: { steps: 3 },
-      })
+    it('can find paths with the default movement pattern', () => {
+      const unit = new Unit(game, { team })
       const terrain = new Terrain(game, () => 2)
-      const grid = createSimpleGrid(game, 5).add.unit(unit, { x: 0, y: 0 })
-      grid.graph[0][1] = {
-        tile: new Tile(terrain),
-        coords: new Coords({ x: 3, y: 1 }),
-      }
+
+      const graph = createSimpleGraph(game, 5)
+      graph[1][1] = new Tile(terrain)
+      graph[1][2] = new Tile(terrain)
+      const grid = new Grid(game, { graph }).add.unit(unit, { x: 0, y: 0 })
 
       //  __ __ __ __ __
-      // |U_|2_|__|__|__|
+      // |U_|__|__|__|__|
+      // |√_|__|__|__|__|
       // |√_|√_|√_|__|__|
-      // |__|__|__|__|__|
       // |__|__|__|__|__|
       // |__|__|__|__|__|
 
       const pathfinder = grid.get.pathfinder(unit.id)!
+      const path = pathfinder.get.route({ x: 2, y: 2 })!
 
-      const path = pathfinder.get.route({ x: 2, y: 1 })!
       const expected = [
         { x: 0, y: 1 },
+        { x: 0, y: 2 },
+        { x: 1, y: 2 },
+        { x: 2, y: 2 },
+      ].map(c => new Coords(c))
+
+      const sorted = {
+        expected: sortBy(expected, ['x', 'y']).map(c => c.hash),
+        path: sortBy(path, ['x', 'y']).map(c => c.hash),
+      }
+
+      expect(sorted.path).toEqual(sorted.expected)
+    })
+
+    it('can find paths with custom movement patterns', () => {
+      const unit = new Unit(game, {
+        team,
+        movement: { pattern: new DirectionalConstraint(DIAGONAL_MOVEMENT) },
+      })
+      const terrain = new Terrain(game, () => 2)
+      const graph = createSimpleGraph(game, 5)
+      graph[1][3] = new Tile(terrain)
+      const grid = new Grid(game, { graph }).add.unit(unit, { x: 0, y: 0 })
+
+      //  __ __ __ __ __
+      // |U_|__|__|__|__|
+      // |__|√_|__|__|__|
+      // |__|__|√_|__|√_|
+      // |__|__|__|√_|__|
+      // |__|__|__|__|__|
+
+      const pathfinder = grid.get.pathfinder(unit.id)!
+
+      const path = pathfinder.get.route({ x: 4, y: 2 })!
+
+      const expected = [
         { x: 1, y: 1 },
-        { x: 2, y: 1 },
+        { x: 2, y: 2 },
+        { x: 3, y: 3 },
+        { x: 4, y: 2 },
       ].map(c => new Coords(c))
 
       const sorted = {
