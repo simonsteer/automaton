@@ -6,15 +6,19 @@ import { BattleManager } from '../../..'
 
 describe('TurnManager', () => {
   const game = new Game()
+
   const [team1, team2] = new Team(game)
     .split({ branches: 2, siblingRelationship: 'hostile' })
     .get.children()
+
   const unit1 = new Unit(game, { team: team1, actions: 2 })
   const unit2 = new Unit(game, { team: team2 })
+
   const grid = createSimpleGrid(game, 5).add.units([
     [unit1, { x: 0, y: 0 }],
     [unit2, { x: 1, y: 0 }],
   ])
+
   const battle = new BattleManager(grid)
 
   beforeEach(() => (battle.turn = 0))
@@ -54,12 +58,17 @@ describe('TurnManager', () => {
     const units = turn.getActionableUnits()
 
     let count = 0
-    const nextState = units[0].actions.custom(() => {
+    const increment = () => {
       count++
-      return 'INCREMENT'
-    })
+      return count % 2 === 0
+    }
 
+    let nextState = units[0].actions.custom(increment)
     expect(count).toBe(1)
-    expect(nextState.sideEffect).toBe('INCREMENT')
+    expect(nextState.sideEffect).toBe(false)
+
+    nextState = nextState.actionableUnits[0].actions.custom(increment)
+    expect(count).toBe(2)
+    expect(nextState.sideEffect).toBe(true)
   })
 })
