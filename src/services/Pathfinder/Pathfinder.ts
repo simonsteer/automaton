@@ -27,19 +27,71 @@ export default class Pathfinder {
     return this._coordinates
   }
 
+  move = (path: RawCoords[]) => {
+    if (path.length < 1) {
+      return this
+    }
+
+    return path.reduce(
+      (acc, coordinates, index) => {
+        if (acc.abort) {
+          return acc
+        }
+
+        const data = this.grid.get.data(coordinates)
+        if (!data) {
+          throw new Error(
+            `No data was found at coordinates: { x: ${coordinates.x}; y: ${coordinates.y} }`
+          )
+        }
+
+        const prevCoords = path[index - 1] as RawCoords | undefined
+        if (prevCoords) {
+          const prevData = this.grid.get.data(coordinates)!
+          const { tile: prevTile } = prevData
+          prevTile.onUnitExit(this.unit)
+        }
+
+        const { unit: otherUnit, tile } = data
+        const {
+          onUnitEnter,
+          onUnitStop,
+          shouldEndRouteBeforeEnter,
+          shouldEndRouteAfterEnter,
+        } = tile
+
+        if (shouldEndRouteBeforeEnter(this.unit)) {
+          acc.abort = true
+          return acc
+        } else {
+          acc.path.push(coordinates)
+          onUnitEnter(this.unit)
+
+          if (!otherUnit && shouldEndRouteAfterEnter(this.unit)) {
+            acc.abort = true
+          }
+
+          onUnitStop(this.unit)
+        }
+
+        return acc
+      },
+      { path: [] as RawCoords[], abort: false }
+    )
+  }
+
   get = {
     route: (toCoords: RawCoords) => {
       const coords = new Coords(toCoords)
 
-      const { path, cost } = this.graph.path(
+      const result = this.graph.path(
         this.unit,
         this.coordinates.hash,
         coords.hash,
         { cost: true }
       ) as { path: null | string[]; cost: number }
 
-      const coordsPath = (path || []).map(Coords.parse)
-      return { path: coordsPath, cost }
+      return result.path?.map(Coords.parse).slice(1)
     },
     reachable: (
       fromCoords = this.coordinates,

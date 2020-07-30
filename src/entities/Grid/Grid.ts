@@ -1,3 +1,4 @@
+import compact from 'lodash/compact'
 import { GridGraph, GridVectorData } from './types'
 import { mapGraph } from './utils'
 import Base from '../Base'
@@ -5,7 +6,8 @@ import { Coords, Pathfinder } from '../../services'
 
 export default class Grid extends Base {
   graph: GridGraph
-  private pathfinders = new Map<Symbol, Pathfinder>()
+  pathfinders = new Map<Symbol, Pathfinder>()
+  coordinates = new Map<string, Symbol>()
 
   constructor(
     game: Game,
@@ -24,19 +26,24 @@ export default class Grid extends Base {
   }
 
   get = {
-    data: ({ x, y }: RawCoords) => {
-      const vector = this.graph[y]?.[x] as GridVectorData | undefined
-      if (!vector) return null
+    data: (coordinates: RawCoords) => {
+      const tile = this.get.tile(coordinates)
+      if (!tile) {
+        return null
+      }
+      const unitId = this.coordinates.get(Coords.hash(coordinates))
+      const pathfinder = unitId && this.pathfinders.get(unitId)
 
       return {
-        ...vector,
-        pathfinder: this.get
-          .pathfinders()
-          .find(p => p.coordinates.hash === Coords.hash({ x, y })),
+        unit: pathfinder?.unit,
+        pathfinder,
+        tile,
       }
     },
+    tile: ({ x, y }: RawCoords) => this.graph[y]?.[x]?.tile,
     pathfinder: (id: Symbol) => this.pathfinders.get(id),
-    pathfinders: () => [...this.pathfinders.values()],
+    pathfinders: (ids = [...this.pathfinders.keys()]) =>
+      compact(ids.map(id => this.pathfinders.get(id))),
     teams: () => [
       ...this.get.units().reduce((acc, { team }) => {
         if (!acc.has(team)) {
@@ -47,7 +54,8 @@ export default class Grid extends Base {
     ],
     team: (id: Symbol) => this.get.teams().find(team => team.id === id),
     unit: (id: Symbol) => this.get.pathfinder(id)?.unit,
-    units: () => this.get.pathfinders().map(p => p.unit),
+    units: (ids = [...this.pathfinders.keys()]) =>
+      this.get.pathfinders(ids).map(p => p.unit),
   }
 
   add = {
@@ -56,6 +64,7 @@ export default class Grid extends Base {
         unit.id,
         new Pathfinder({ grid: this, unit, coordinates })
       )
+      this.coordinates.set(Coords.hash(coordinates), unit.id)
       return this
     },
     units: (units: [Unit, RawCoords][]) => {

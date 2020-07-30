@@ -26,7 +26,7 @@ export default class ConflictManager {
       if (result.didHit) {
         this.defender.currentHealth -= result.damageDealt
         actions.push({ actor: this.aggressor, result })
-        if (this.defender.currentHealth === 0) {
+        if (this.defender.isDead) {
           turns.aggressor = 0
           turns.defender = 0
         }
@@ -39,7 +39,7 @@ export default class ConflictManager {
       if (result.didHit) {
         this.aggressor.currentHealth -= result.damageDealt
         actions.push({ actor: this.defender, result })
-        if (this.aggressor.currentHealth === 0) {
+        if (this.aggressor.isDead) {
           turns.aggressor = 0
           turns.defender = 0
         }

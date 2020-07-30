@@ -29,7 +29,7 @@ export default class TurnManager {
       }
 
       const pathfinder = this.battle.grid.get.pathfinder(unitId)
-      if (!pathfinder || pathfinder.unit.currentHealth < 1) {
+      if (!pathfinder || pathfinder.unit.isDead) {
         return acc
       }
 
@@ -53,9 +53,7 @@ export default class TurnManager {
       actionsTaken,
       maxActions,
       actions: {
-        move: this.createAction(unit.id, (path: RawCoords[]) => {
-          // pathfinder.move(path)
-        }),
+        move: this.createAction(unit.id, pathfinder.move),
         engage: this.createAction(unit.id, (unitB: Unit) =>
           new ConflictManager(unit, unitB).process()
         ),

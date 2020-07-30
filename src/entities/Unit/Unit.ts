@@ -36,6 +36,10 @@ export default class Unit extends Base {
     this.currentHealth = this.maxHealth
   }
 
+  get isDead() {
+    return this.currentHealth <= 0
+  }
+
   get team() {
     return this._team
   }
