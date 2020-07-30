@@ -16,3 +16,5 @@ type BattleManager = import('./src/services/BattleManager').default
 type RawCoords = { x: Coords['x']; y: Coords['y'] }
 
 type FunctionMap = { [key: string]: (...args: any[]) => any }
+
+type ExtractMapValue<M> = M extends Map<any, infer R> ? R : M

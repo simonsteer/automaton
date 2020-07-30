@@ -5,42 +5,35 @@ import { ORTHOGONAL_MOVEMENT } from '../../services/DirectionalConstraint/recipe
 type UnitConstructorOptions = {
   team: Team
   movement?: { steps?: number; pattern?: DirectionalConstraint }
-  stats?: Partial<Unit['_stats']>
-  maxActions?: number
+  health?: number
+  actions?: number
 }
 
 export default class Unit extends Base {
-  private _stats = {
-    offense: 1,
-    defense: 0,
-    speed: 1,
-    health: 1,
-  }
   private _team!: Team
   movement: { pattern: DirectionalConstraint; steps: number }
-  maxActions: number
+  actions: number
+  maxHealth: number
+  currentHealth: number
 
   constructor(
     game: Game,
     {
-      maxActions = 1,
+      actions = 2,
       movement: {
         pattern = new DirectionalConstraint(ORTHOGONAL_MOVEMENT),
         steps = 1,
       } = {},
+      health = 1,
       team,
-      stats = {},
     }: UnitConstructorOptions
   ) {
     super(game, 'unit')
     this.set.team(team)
-    this.set.stats(stats)
-    this.maxActions = maxActions
+    this.actions = actions
     this.movement = { pattern, steps }
-  }
-
-  get stats() {
-    return this._stats
+    this.maxHealth = health
+    this.currentHealth = this.maxHealth
   }
 
   get team() {
@@ -48,10 +41,6 @@ export default class Unit extends Base {
   }
 
   set = {
-    stats: (updates: Partial<Unit['_stats']>) => {
-      this._stats = { ...this._stats, ...updates }
-      return this
-    },
     team: (team: Team) => {
       this._team?.['removeUnit'](this)
       this._team = team

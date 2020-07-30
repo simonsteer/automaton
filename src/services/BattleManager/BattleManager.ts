@@ -1,4 +1,4 @@
-import TurnManager from './TurnManager'
+import { TurnManager } from './services'
 
 type BattleManagerCallback<T = void> = (battle: BattleManager) => T
 
@@ -45,7 +45,7 @@ export default class BattleManager {
       yield {
         turn: this.turn,
         team: turn.team,
-        units: turn.actionableUnits,
+        units: turn.getActionableUnits(),
       }
       onTurnEnd(this)
     }

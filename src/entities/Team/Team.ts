@@ -136,7 +136,7 @@ export default class Team extends Base {
       recursive ? this.parent?.get.parent(true) || this : this.parent || this,
     children: (recursive = false) =>
       [...this.children].reduce((acc, teamId) => {
-        const team = this.game.get.team(teamId)
+        const team = this.game.entities.team.get(teamId)
         if (team) {
           recursive
             ? acc.push(team, ...team.get.children(true))
@@ -145,7 +145,9 @@ export default class Team extends Base {
         return acc
       }, [] as Team[]),
     units: (recursive = false) => {
-      const thisUnits = [...this.units].map(this.game.get.unit)
+      const thisUnits = [...this.units].map(id =>
+        this.game.entities.unit.get(id)
+      )
 
       return compact(
         recursive
