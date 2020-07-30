@@ -10,8 +10,6 @@ export default class TurnManager {
     { maxActions: number; actionsTaken: number }
   >()
 
-  private actionableUnits!: ReturnType<TurnManager['mapActionsToPathfinder']>[]
-
   constructor(battle: BattleManager) {
     this.battle = battle
     const teams = battle.grid.get.teams()
@@ -24,37 +22,25 @@ export default class TurnManager {
     )
   }
 
-  getActionableUnits = () => {
-    if (!this.actionableUnits) {
-      this.actionableUnits = [...this.unitData].reduce(
-        (acc, [unitId, { actionsTaken, maxActions }]) => {
-          if (actionsTaken > maxActions) {
-            return acc
-          }
+  getActionableUnits = () =>
+    [...this.unitData].reduce((acc, [unitId, { actionsTaken, maxActions }]) => {
+      if (actionsTaken >= maxActions) {
+        return acc
+      }
 
-          const pathfinder = this.battle.grid.get.pathfinder(unitId)
-          if (!pathfinder || pathfinder.unit.currentHealth < 1) {
-            return acc
-          }
+      const pathfinder = this.battle.grid.get.pathfinder(unitId)
+      if (!pathfinder || pathfinder.unit.currentHealth < 1) {
+        return acc
+      }
 
-          acc.push(
-            this.mapActionsToPathfinder(pathfinder, {
-              maxActions,
-              actionsTaken,
-            })
-          )
-          return acc
-        },
-        [] as ReturnType<TurnManager['mapActionsToPathfinder']>[]
+      acc.push(
+        this.mapActionsToPathfinder(pathfinder, {
+          maxActions,
+          actionsTaken,
+        })
       )
-    } else {
-      this.actionableUnits = this.actionableUnits.filter(
-        ({ actionsTaken, maxActions }) => actionsTaken < maxActions
-      )
-    }
-
-    return this.actionableUnits
-  }
+      return acc
+    }, [] as ReturnType<TurnManager['mapActionsToPathfinder']>[])
 
   private mapActionsToPathfinder = (
     pathfinder: Pathfinder,
