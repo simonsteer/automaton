@@ -6,6 +6,7 @@ export default class ChessPiece extends Unit {
     game: Game,
     {
       team,
+      movement = {},
       ...restOptions
     }: Omit<UnitConstructorOptions, 'team'> & {
       team: 'black' | 'white'
@@ -13,6 +14,7 @@ export default class ChessPiece extends Unit {
   ) {
     super(game, {
       team: team === 'black' ? blackTeam : whiteTeam,
+      movement: { canPassThroughUnit: () => false, ...movement },
       ...restOptions,
     })
   }

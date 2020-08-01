@@ -14,3 +14,11 @@ export const SIMPLE_DIAGONAL_CONSTRAINT: Constraint = {
     y: [-1, 1],
   },
 }
+
+export const SIMPLE_PANORAMIC_CONSTRAINT: Constraint = {
+  offsets: {
+    x: [[-1, 1]],
+    y: [[-1, 1]],
+  },
+  exceptions: [({ x, y }) => !(x === 0 && y === 0)],
+}

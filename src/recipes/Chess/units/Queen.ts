@@ -15,6 +15,7 @@ const QUEEN_CONSTRAINT = new DirectionalConstraint({
     },
   ],
 })
+
 export default class Queen extends ChessPiece {
   constructor(game: Game, team: 'black' | 'white') {
     super(game, {

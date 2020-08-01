@@ -7,7 +7,7 @@ const BISHOP_CONSTRAINT = new DirectionalConstraint({
     y: [[-7, 7]],
     x: [[-7, 7]],
   },
-  exceptions: [({ x, y }) => Math.abs(x) !== Math.abs(y)],
+  exceptions: [({ x, y }) => Math.abs(x) === Math.abs(y)],
 })
 export default class Queen extends ChessPiece {
   constructor(game: Game, team: 'black' | 'white') {
