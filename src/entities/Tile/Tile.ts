@@ -12,9 +12,20 @@ export default class Tile {
     this.terrain = terrain
   }
 
-  shouldEndRouteAfterEnter: TileInteractionCallback<boolean> = () => false
-  shouldEndRouteBeforeEnter: TileInteractionCallback<boolean> = () => false
-  onUnitEnter: TileInteractionCallback<void> = () => {}
-  onUnitExit: TileInteractionCallback<void> = () => {}
-  onUnitStop: TileInteractionCallback<void> = () => {}
+  guard = {
+    entry: (() => false) as TileInteractionCallback<boolean>,
+    crossover: (() => false) as TileInteractionCallback<boolean>,
+  }
+
+  on = {
+    unit: {
+      enter: (() => {}) as TileInteractionCallback<void>,
+      exit: (() => {}) as TileInteractionCallback<void>,
+      stop: (() => {}) as TileInteractionCallback<void>,
+    },
+    guard: {
+      entry: (() => {}) as TileInteractionCallback<void>,
+      crossover: (() => {}) as TileInteractionCallback<void>,
+    },
+  }
 }

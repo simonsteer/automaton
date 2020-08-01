@@ -1,4 +1,4 @@
-import { Terrain, Tile, Grid } from './entities'
+import { Terrain, Tile } from './entities'
 
 export function patchObjectFunctionCalls<
   F extends { [key: string]: (...args: any[]) => any }

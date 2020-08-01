@@ -29,12 +29,15 @@ export default class Pathfinder {
 
   move = (path: RawCoords[]) => {
     if (path.length < 1) {
-      return this
+      console.error(
+        `Paths must contain at least one set of coordinates. Pathfinder#move receieved a path with a length of 0.`
+      )
+      return []
     }
 
     return path.reduce(
       (acc, coordinates, index) => {
-        if (acc.abort) {
+        if (acc.abort || this.unit.isDead) {
           return acc
         }
 
@@ -45,39 +48,33 @@ export default class Pathfinder {
           )
         }
 
-        const prevCoords = path[index - 1] as RawCoords | undefined
-        if (prevCoords) {
-          const prevData = this.grid.get.data(coordinates)!
-          const { tile: prevTile } = prevData
-          prevTile.onUnitExit(this.unit)
-        }
+        const { pathfinder, tile } = data
+        const isLastStep = index === path.length - 1
 
-        const { unit: otherUnit, tile } = data
-        const {
-          onUnitEnter,
-          onUnitStop,
-          shouldEndRouteBeforeEnter,
-          shouldEndRouteAfterEnter,
-        } = tile
-
-        if (shouldEndRouteBeforeEnter(this.unit)) {
+        if (tile.guard.entry(this.unit)) {
           acc.abort = true
-          return acc
+          tile.on.guard.entry(this.unit)
+          tile.on.unit.stop(this.unit)
         } else {
+          const prev = path[index - 1] as RawCoords | undefined
+          if (prev) this.grid.get.data(prev)?.tile.on.unit.exit(this.unit)
+
           acc.path.push(coordinates)
-          onUnitEnter(this.unit)
+          tile.on.unit.enter(this.unit)
 
-          if (!otherUnit && shouldEndRouteAfterEnter(this.unit)) {
+          if (isLastStep) {
+            tile.on.unit.stop(this.unit)
+          } else if (!pathfinder && tile.guard.crossover(this.unit)) {
             acc.abort = true
+            tile.on.guard.crossover(this.unit)
+            tile.on.unit.stop(this.unit)
           }
-
-          onUnitStop(this.unit)
         }
 
         return acc
       },
       { path: [] as RawCoords[], abort: false }
-    )
+    ).path
   }
 
   get = {
@@ -89,7 +86,7 @@ export default class Pathfinder {
         { cost: true }
       ) as { path: null | string[]; cost: number }
 
-      return result.path?.map(Coords.parse).slice(1)
+      return result.path?.map(Coords.parse).slice(1) || []
     },
     reachable: (
       fromCoords = this.coordinates,
@@ -99,15 +96,15 @@ export default class Pathfinder {
       [
         ...this.unit.movement.pattern
           .adjacent(fromCoords)
+          .filter(this.grid.withinBounds)
           .reduce((acc, coordinates) => {
             if (this.coordinates.hash === coordinates.hash) return acc
 
-            const { tile } = this.grid.get.data(coordinates) || {}
-            if (!tile) return acc
+            const tileCost = this.grid.get
+              .data(coordinates)!
+              .tile.terrain.cost(this.unit)
 
-            const tileCost = tile.terrain.cost(this.unit)
             if (tileCost > stepsLeft) return acc
-
             if (!acc.has(coordinates.hash)) acc.add(coordinates.hash)
             if (stepsLeft - tileCost > 0)
               this.get.reachable(coordinates, stepsLeft - tileCost, acc)
@@ -115,6 +112,17 @@ export default class Pathfinder {
             return acc
           }, accumulator),
       ].map(Coords.parse),
+    targetable: (fromCoords = this.coordinates) =>
+      this.unit.weapon?.range.adjacent(fromCoords).filter(coords => {
+        if (!this.grid.withinBounds(coords)) {
+          return false
+        }
+        const otherTeam = this.grid.get.data(coords)?.pathfinder?.unit?.team
+        return !!(
+          otherTeam?.is.hostile(this.unit.team) ||
+          otherTeam?.is.wildcard(this.unit.team)
+        )
+      }) || [],
   }
 
   private buildGraph() {

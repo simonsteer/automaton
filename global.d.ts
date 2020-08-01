@@ -8,6 +8,7 @@ type Game = import('./src/entities/Game').default
 type Terrain = import('./src/entities/Terrain').default
 type Tile = import('./src/entities/Tile').default
 type Team = import('./src/entities/Team').default
+type Weapon = import('./src/entities/Weapon').default
 
 type Coords = import('./src/services/Coords').default
 type Pathfinder = import('./src/services/Pathfinder').default

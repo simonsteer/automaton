@@ -25,6 +25,9 @@ export default class Grid extends Base {
     return { y: this.graph.length, x: this.graph[0].length }
   }
 
+  withinBounds = ({ x, y }: RawCoords) =>
+    x >= 0 && x < this.size.x && y >= 0 && y < this.size.y
+
   get = {
     data: (coordinates: RawCoords) => {
       const tile = this.get.tile(coordinates)
@@ -35,7 +38,6 @@ export default class Grid extends Base {
       const pathfinder = unitId && this.pathfinders.get(unitId)
 
       return {
-        unit: pathfinder?.unit,
         pathfinder,
         tile,
       }

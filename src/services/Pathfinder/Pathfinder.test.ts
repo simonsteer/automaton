@@ -1,11 +1,10 @@
 import sortBy from 'lodash/sortBy'
 import { Terrain, Game, Tile, Unit, Grid } from '../../entities'
-import { mapGraph } from '../../entities/Grid/utils'
 import { createSimpleGraph } from '../../utils'
 import Team from '../../entities/Team'
 import { Coords } from '..'
 import DirectionalConstraint from '../DirectionalConstraint'
-import { DIAGONAL_MOVEMENT } from '../DirectionalConstraint/recipes'
+import { DIAGONAL_CONSTRAINT } from '../DirectionalConstraint/recipes'
 
 describe('Pathfinder', () => {
   const game = new Game()
@@ -91,7 +90,7 @@ describe('Pathfinder', () => {
       const unit = new Unit(game, {
         team,
         movement: {
-          pattern: new DirectionalConstraint(DIAGONAL_MOVEMENT),
+          pattern: new DirectionalConstraint(DIAGONAL_CONSTRAINT),
           steps: 2,
         },
       })
@@ -130,7 +129,7 @@ describe('Pathfinder', () => {
       const unit = new Unit(game, {
         team,
         movement: {
-          pattern: new DirectionalConstraint(DIAGONAL_MOVEMENT),
+          pattern: new DirectionalConstraint(DIAGONAL_CONSTRAINT),
           steps: 3,
         },
       })
@@ -182,14 +181,14 @@ describe('Pathfinder', () => {
 
       //  __ __ __ __ __
       // |U_|__|__|__|__|
-      // |√_|__|__|__|__|
+      // |√_|t_|t_|__|__|
       // |√_|√_|√_|__|__|
       // |__|__|__|__|__|
       // |__|__|__|__|__|
 
       const pathfinder = grid.get.pathfinder(unit.id)!
-      const path = pathfinder.get.route({ x: 2, y: 2 })!
 
+      const path = pathfinder.get.route({ x: 2, y: 2 })
       const expected = [
         { x: 0, y: 1 },
         { x: 0, y: 2 },
@@ -208,7 +207,7 @@ describe('Pathfinder', () => {
     it('can find paths with custom movement patterns', () => {
       const unit = new Unit(game, {
         team,
-        movement: { pattern: new DirectionalConstraint(DIAGONAL_MOVEMENT) },
+        movement: { pattern: new DirectionalConstraint(DIAGONAL_CONSTRAINT) },
       })
       const terrain = new Terrain(game, () => 2)
       const graph = createSimpleGraph(game, 5)
@@ -217,7 +216,7 @@ describe('Pathfinder', () => {
 
       //  __ __ __ __ __
       // |U_|__|__|__|__|
-      // |__|√_|__|__|__|
+      // |__|√_|__|t_|__|
       // |__|__|√_|__|√_|
       // |__|__|__|√_|__|
       // |__|__|__|__|__|
@@ -225,7 +224,6 @@ describe('Pathfinder', () => {
       const pathfinder = grid.get.pathfinder(unit.id)!
 
       const path = pathfinder.get.route({ x: 4, y: 2 })!
-
       const expected = [
         { x: 1, y: 1 },
         { x: 2, y: 2 },

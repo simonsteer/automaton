@@ -1,12 +1,14 @@
 import Base from '../Base'
 import DirectionalConstraint from '../../services/DirectionalConstraint'
-import { ORTHOGONAL_MOVEMENT } from '../../services/DirectionalConstraint/recipes'
+import { ORTHOGONAL_CONSTRAINT } from '../../services/DirectionalConstraint/recipes'
 
 type UnitConstructorOptions = {
   team: Team
   movement?: { steps?: number; pattern?: DirectionalConstraint }
+  attackRange?: DirectionalConstraint
   health?: number
   actions?: number
+  weapon?: Weapon
 }
 
 export default class Unit extends Base {
@@ -15,17 +17,19 @@ export default class Unit extends Base {
   actions: number
   maxHealth: number
   currentHealth: number
+  weapon?: Weapon
 
   constructor(
     game: Game,
     {
       actions = 2,
       movement: {
-        pattern = new DirectionalConstraint(ORTHOGONAL_MOVEMENT),
+        pattern = new DirectionalConstraint(ORTHOGONAL_CONSTRAINT),
         steps = 1,
       } = {},
       health = 1,
       team,
+      weapon,
     }: UnitConstructorOptions
   ) {
     super(game, 'unit')
@@ -34,6 +38,11 @@ export default class Unit extends Base {
     this.movement = { pattern, steps }
     this.maxHealth = health
     this.currentHealth = this.maxHealth
+    this.weapon = weapon
+  }
+
+  get isArmed() {
+    return !!this.weapon
   }
 
   get isDead() {
@@ -42,6 +51,16 @@ export default class Unit extends Base {
 
   get team() {
     return this._team
+  }
+
+  equip = (weapon: Weapon) => {
+    this.weapon = weapon
+    return this
+  }
+
+  unequip = () => {
+    this.weapon = undefined
+    return this
   }
 
   set = {
