@@ -1,0 +1,3 @@
+- Make Pathfinder respect whether a unit can be passed through or not when calculating routes
+- Write more unit tests for Pathfinder class to cover edge cases
+- Finish Chess recipe
