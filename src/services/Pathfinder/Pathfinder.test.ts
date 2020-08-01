@@ -4,7 +4,7 @@ import { createSimpleGraph } from '../../utils'
 import Team from '../../entities/Team'
 import { Coords } from '..'
 import DirectionalConstraint from '../DirectionalConstraint'
-import { DIAGONAL_CONSTRAINT } from '../DirectionalConstraint/recipes'
+import { SIMPLE_DIAGONAL_CONSTRAINT } from '../../recipes/constraints'
 
 describe('Pathfinder', () => {
   const game = new Game()
@@ -90,7 +90,7 @@ describe('Pathfinder', () => {
       const unit = new Unit(game, {
         team,
         movement: {
-          pattern: new DirectionalConstraint(DIAGONAL_CONSTRAINT),
+          pattern: new DirectionalConstraint(SIMPLE_DIAGONAL_CONSTRAINT),
           steps: 2,
         },
       })
@@ -129,7 +129,7 @@ describe('Pathfinder', () => {
       const unit = new Unit(game, {
         team,
         movement: {
-          pattern: new DirectionalConstraint(DIAGONAL_CONSTRAINT),
+          pattern: new DirectionalConstraint(SIMPLE_DIAGONAL_CONSTRAINT),
           steps: 3,
         },
       })
@@ -207,7 +207,9 @@ describe('Pathfinder', () => {
     it('can find paths with custom movement patterns', () => {
       const unit = new Unit(game, {
         team,
-        movement: { pattern: new DirectionalConstraint(DIAGONAL_CONSTRAINT) },
+        movement: {
+          pattern: new DirectionalConstraint(SIMPLE_DIAGONAL_CONSTRAINT),
+        },
       })
       const terrain = new Terrain(game, () => 2)
       const graph = createSimpleGraph(game, 5)

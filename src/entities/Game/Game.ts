@@ -1,4 +1,9 @@
+import Weapon from '../Weapon'
+import { EventEmitter } from 'events'
+
 export default class Game {
+  private emitter = new EventEmitter()
+  defaults: { weapon: Weapon }
   entities = {
     unit: new Map<Symbol, Unit>(),
     grid: new Map<Symbol, Grid>(),
@@ -6,4 +11,10 @@ export default class Game {
     team: new Map<Symbol, Team>(),
     weapon: new Map<Symbol, Weapon>(),
   } as const
+
+  constructor() {
+    this.defaults = {
+      weapon: new Weapon(this),
+    }
+  }
 }

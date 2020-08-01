@@ -100,14 +100,22 @@ export default class Pathfinder {
           .reduce((acc, coordinates) => {
             if (this.coordinates.hash === coordinates.hash) return acc
 
-            const tileCost = this.grid.get
-              .data(coordinates)!
-              .tile.terrain.cost(this.unit)
+            const tileData = this.grid.get.data(coordinates)!
 
-            if (tileCost > stepsLeft) return acc
+            const movementCost = tileData.tile.terrain.cost(this.unit)
+            const tileUnit = tileData.pathfinder?.unit
+
+            if (movementCost > stepsLeft) return acc
+            if (tileUnit && !this.unit.movement.canPassThroughUnit(tileUnit)) {
+              return acc
+            }
+
             if (!acc.has(coordinates.hash)) acc.add(coordinates.hash)
-            if (stepsLeft - tileCost > 0)
-              this.get.reachable(coordinates, stepsLeft - tileCost, acc)
+            if (stepsLeft - movementCost > 0) {
+              this.get.reachable(coordinates, stepsLeft - movementCost, acc)
+            } else if (this.grid.get.data(fromCoords)?.pathfinder) {
+              acc.delete(fromCoords.hash)
+            }
 
             return acc
           }, accumulator),

@@ -9,16 +9,16 @@ export default class ConflictManager {
   }
 
   calculators = {
-    turns: (() => 1) as ConflictCalculator,
+    moves: (unit => (unit.weapon ? 1 : 0)) as ConflictCalculator,
     accuracy: (() => 1) as ConflictCalculator,
-    damage: (() => 1) as ConflictCalculator,
+    damage: (unit => unit.weapon?.power || 0) as ConflictCalculator,
   }
 
   readonly process = () => {
     const actions = []
     const turns = {
-      aggressor: this.calculators.turns(this.aggressor, this.defender),
-      defender: this.calculators.turns(this.defender, this.aggressor),
+      aggressor: this.calculators.moves(this.aggressor, this.defender),
+      defender: this.calculators.moves(this.defender, this.aggressor),
     }
 
     while (turns.aggressor > 0) {

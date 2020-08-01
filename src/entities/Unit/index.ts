@@ -1,1 +1,1 @@
-export { default } from './Unit'
+export { default, UnitConstructorOptions } from './Unit'

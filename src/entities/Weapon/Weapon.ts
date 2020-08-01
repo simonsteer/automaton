@@ -1,6 +1,6 @@
 import Base from '../Base'
 import { DirectionalConstraint } from '../../services'
-import { ORTHOGONAL_CONSTRAINT } from '../../services/DirectionalConstraint/recipes'
+import { SIMPLE_ORTHOGONAL_CONSTRAINT } from '../../recipes/constraints'
 
 export default class Weapon extends Base {
   power: number
@@ -10,7 +10,7 @@ export default class Weapon extends Base {
     game: Game,
     {
       power = 1,
-      range = new DirectionalConstraint(ORTHOGONAL_CONSTRAINT),
+      range = new DirectionalConstraint(SIMPLE_ORTHOGONAL_CONSTRAINT),
     } = {} as {
       power?: number
       range?: DirectionalConstraint

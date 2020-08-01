@@ -1,10 +1,14 @@
 import Base from '../Base'
 import DirectionalConstraint from '../../services/DirectionalConstraint'
-import { ORTHOGONAL_CONSTRAINT } from '../../services/DirectionalConstraint/recipes'
+import { SIMPLE_ORTHOGONAL_CONSTRAINT } from '../../recipes/constraints'
 
-type UnitConstructorOptions = {
+export type UnitConstructorOptions = {
   team: Team
-  movement?: { steps?: number; pattern?: DirectionalConstraint }
+  movement?: {
+    steps?: number
+    pattern?: DirectionalConstraint
+    canPassThroughUnit?: (otherUnit: Unit) => boolean
+  }
   attackRange?: DirectionalConstraint
   health?: number
   actions?: number
@@ -13,7 +17,11 @@ type UnitConstructorOptions = {
 
 export default class Unit extends Base {
   private _team!: Team
-  movement: { pattern: DirectionalConstraint; steps: number }
+  movement: {
+    pattern: DirectionalConstraint
+    steps: number
+    canPassThroughUnit: (otherUnit: Unit) => boolean
+  }
   actions: number
   maxHealth: number
   currentHealth: number
@@ -24,21 +32,32 @@ export default class Unit extends Base {
     {
       actions = 2,
       movement: {
-        pattern = new DirectionalConstraint(ORTHOGONAL_CONSTRAINT),
+        pattern = new DirectionalConstraint(SIMPLE_ORTHOGONAL_CONSTRAINT),
         steps = 1,
+        canPassThroughUnit = ({ team }: Unit) =>
+          team.is.friendly(this.team) || team.is.neutral(this.team),
       } = {},
       health = 1,
       team,
-      weapon,
+      ...rest
     }: UnitConstructorOptions
   ) {
     super(game, 'unit')
+    if (health < 0) {
+      throw new Error(
+        `Unit health must be greater than 0. Received value: ${health}`
+      )
+    }
     this.set.team(team)
     this.actions = actions
-    this.movement = { pattern, steps }
+    this.movement = { pattern, steps, canPassThroughUnit }
     this.maxHealth = health
     this.currentHealth = this.maxHealth
-    this.weapon = weapon
+    if ('weapon' in rest) {
+      this.weapon = rest.weapon
+    } else {
+      this.weapon = this.game.defaults.weapon
+    }
   }
 
   get isArmed() {
@@ -58,7 +77,7 @@ export default class Unit extends Base {
     return this
   }
 
-  unequip = () => {
+  disarm = () => {
     this.weapon = undefined
     return this
   }
