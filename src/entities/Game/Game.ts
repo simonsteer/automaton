@@ -16,7 +16,7 @@ export default class Game {
   }
 
   startBattle(grid: Grid) {
-    const iterator = this.__startBattle(grid)
+    return this.__startBattle(grid).value
   }
 
   private __startBattle(grid: Grid) {

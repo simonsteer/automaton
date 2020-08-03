@@ -70,14 +70,14 @@ export default class TurnManager {
   ) => (...args: Parameters<Callback>) => {
     const sideEffect = callback(...args) as ReturnType<Callback>
     this.incrementActionsTaken(pathfinder)
-
-    const nextActionableUnits = this.getActionableUnits()
-    if (nextActionableUnits.length === 0) {
-      // next turn or end battle
-    }
+    const actionableUnits = this.getActionableUnits()
 
     return {
-      nextActionableUnits,
+      nextTurn:
+        actionableUnits.length === 0
+          ? this.battle.regenerator?.next().value || null
+          : null,
+      actionableUnits,
       sideEffect,
     }
   }
