@@ -1,4 +1,3 @@
-import compact from 'lodash/compact'
 import ConflictManager from '../ConflictManager'
 
 export default class TurnManager {
@@ -69,11 +68,17 @@ export default class TurnManager {
     pathfinder: Pathfinder,
     callback: Callback
   ) => (...args: Parameters<Callback>) => {
-    const result = callback(...args) as ReturnType<Callback>
+    const sideEffect = callback(...args) as ReturnType<Callback>
     this.incrementActionsTaken(pathfinder)
+
+    const nextActionableUnits = this.getActionableUnits()
+    if (nextActionableUnits.length === 0) {
+      // next turn or end battle
+    }
+
     return {
-      actionableUnits: this.getActionableUnits(),
-      sideEffect: result,
+      nextActionableUnits,
+      sideEffect,
     }
   }
 

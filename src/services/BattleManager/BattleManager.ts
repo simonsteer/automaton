@@ -1,53 +1,52 @@
 import { TurnManager } from './services'
+import { EventEmitter } from 'events'
 
 type BattleManagerCallback<T = void> = (battle: BattleManager) => T
 
 const DEFAULT_END_CONDITION = (battle: BattleManager) =>
   battle.grid.get.teams().length === 1
 
+type Regenerator = Generator<
+  {
+    turn: number
+    team: Team
+    units: ReturnType<TurnManager['getActionableUnits']>
+  },
+  null,
+  Regenerator
+>
+
 export default class BattleManager {
+  private didStart = false
   turn = -1
   grid: Grid
   endCondition: BattleManagerCallback<boolean>
-  private didStart = false
-  private callbacks: {
-    onTurnStart: BattleManagerCallback
-    onTurnEnd: BattleManagerCallback
-  }
+  regenerator?: ReturnType<BattleManager['start']>
 
   constructor(
     grid: Grid,
-    {
-      onTurnStart = () => {},
-      onTurnEnd = () => {},
-      endCondition = DEFAULT_END_CONDITION,
-    } = {} as Partial<BattleManager['callbacks']> & {
+    { endCondition = DEFAULT_END_CONDITION } = {} as {
       endCondition?: BattleManagerCallback<boolean>
     }
   ) {
     this.grid = grid
     this.endCondition = endCondition
-    this.callbacks = { onTurnStart, onTurnEnd }
   }
 
   get inProgress() {
     return this.didStart && !this.endCondition(this)
   }
 
-  *start() {
-    const { onTurnStart, onTurnEnd } = this.callbacks
-
+  *start(): Regenerator {
     while (!this.didStart || this.inProgress) {
       if (!this.didStart) this.didStart = true
       this.turn++
       const turn = new TurnManager(this)
-      onTurnStart(this)
-      yield {
+      this.regenerator = yield {
         turn: this.turn,
         team: turn.team,
         units: turn.getActionableUnits(),
       }
-      onTurnEnd(this)
     }
 
     return null
