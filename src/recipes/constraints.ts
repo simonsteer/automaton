@@ -1,4 +1,4 @@
-import { Constraint } from '../services/DirectionalConstraint/types'
+import { Constraint } from '../services/RangeConstraint/types'
 
 export const SIMPLE_ORTHOGONAL_CONSTRAINT: Constraint = {
   offsets: {

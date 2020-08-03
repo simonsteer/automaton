@@ -34,18 +34,11 @@ export default class BattleManager {
     return this.didStart && !this.endCondition(this)
   }
 
-  start() {
-    const generator = this._start()
-    const iterator = generator.next()
-    return [generator, iterator] as const
-  }
-
-  private *_start() {
-    this.didStart = true
-    this.turn = -1
+  *start() {
     const { onTurnStart, onTurnEnd } = this.callbacks
 
-    while (this.inProgress) {
+    while (!this.didStart || this.inProgress) {
+      if (!this.didStart) this.didStart = true
       this.turn++
       const turn = new TurnManager(this)
       onTurnStart(this)
@@ -57,10 +50,6 @@ export default class BattleManager {
       onTurnEnd(this)
     }
 
-    return {
-      turn: this.turn,
-      team: new TurnManager(this).team,
-      units: [],
-    }
+    return null
   }
 }

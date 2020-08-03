@@ -1,20 +1,18 @@
 import TurnManager from './TurnManager'
-import { Game, Unit, Grid } from '../../../../entities'
+import { Unit, Grid } from '../../../../entities'
 import Team from '../../../../entities/Team'
 import { createSimpleGraph } from '../../../../utils'
 import { BattleManager } from '../../..'
 
 describe('TurnManager', () => {
-  const game = new Game()
-
-  const [team1, team2] = new Team(game)
+  const [team1, team2] = new Team()
     .split({ branches: 2, siblingRelationship: 'hostile' })
     .get.children()
 
-  const unit1 = new Unit(game, { team: team1, actions: 2 })
-  const unit2 = new Unit(game, { team: team2 })
+  const unit1 = new Unit({ team: team1, actions: 2 })
+  const unit2 = new Unit({ team: team2 })
 
-  const grid = new Grid(game, { graph: createSimpleGraph(game, 5) }).add.units([
+  const grid = new Grid({ graph: createSimpleGraph(5) }).add.units([
     [unit1, { x: 0, y: 0 }],
     [unit2, { x: 1, y: 0 }],
   ])
@@ -26,14 +24,14 @@ describe('TurnManager', () => {
   it('gets the correct units for each turn that passes', () => {
     const turn1 = new TurnManager(battle)
     const unitsTurn1 = turn1.getActionableUnits()
-    expect(unitsTurn1[0].unit.id).toBe(unit1.id)
+    expect(unitsTurn1[0].pathfinder.unit.id).toBe(unit1.id)
     expect(unitsTurn1.length).toBe(1)
 
     battle.turn++
 
     const turn2 = new TurnManager(battle)
     const unitsTurn2 = turn2.getActionableUnits()
-    expect(unitsTurn2[0].unit.id).toBe(unit2.id)
+    expect(unitsTurn2[0].pathfinder.unit.id).toBe(unit2.id)
     expect(unitsTurn2.length).toBe(1)
   })
 

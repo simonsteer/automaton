@@ -2,7 +2,7 @@ import range from 'lodash/range'
 import { Constraint } from './types'
 import Coords from '../Coords'
 
-export default class DirectionalConstraint {
+export default class RangeConstraint {
   constraint: Constraint
   offsets: {
     x: Set<number>

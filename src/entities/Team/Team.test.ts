@@ -5,9 +5,9 @@ import { Unit } from '..'
 describe('Team', () => {
   const game = new Game()
 
-  const team_1 = new Team(game)
-  const team_2 = new Team(game)
-  const team_1_unit = new Unit(game, { team: team_1 })
+  const team_1 = new Team()
+  const team_2 = new Team()
+  const team_1_unit = new Unit({ team: team_1 })
 
   it('can retrieve units associated with the team', () => {
     const units = team_1.get.units(true)
@@ -75,7 +75,7 @@ describe('Team', () => {
     })
 
     describe('recursive team declarations', () => {
-      const team_3 = new Team(game)
+      const team_3 = new Team()
 
       team_3.split({
         branches: [
@@ -126,18 +126,18 @@ describe('Team', () => {
       })
 
       it('can recursively retreive units from sub-teams', () => {
-        const team_3_unit = new Unit(game, {
+        const team_3_unit = new Unit({
           team: team_3,
         })
-        const faction_1_unit = new Unit(game, { team: faction_1 })
-        const faction_1_sub_faction_1_unit = new Unit(game, {
+        const faction_1_unit = new Unit({ team: faction_1 })
+        const faction_1_sub_faction_1_unit = new Unit({
           team: faction_1_sub_faction_1,
         })
-        const faction_2_unit = new Unit(game, { team: faction_2 })
-        const faction_2_sub_faction_1_unit = new Unit(game, {
+        const faction_2_unit = new Unit({ team: faction_2 })
+        const faction_2_sub_faction_1_unit = new Unit({
           team: faction_2_sub_faction_1,
         })
-        const faction_2_sub_faction_2_unit = new Unit(game, {
+        const faction_2_sub_faction_2_unit = new Unit({
           team: faction_2_sub_faction_2,
         })
 

@@ -6,7 +6,7 @@ export default class TurnManager {
   team: Team
 
   private unitData = new Map<
-    Symbol,
+    Pathfinder,
     { maxActions: number; actionsTaken: number }
   >()
 
@@ -14,33 +14,35 @@ export default class TurnManager {
     this.battle = battle
     const teams = battle.grid.get.teams()
     this.team = teams[battle.turn % teams.length]
-    this.team.get.units().forEach(unit =>
-      this.unitData.set(unit.id, {
+    this.team.get.pathfinders(this.battle.grid).forEach(pathfinder =>
+      this.unitData.set(pathfinder, {
         actionsTaken: 0,
-        maxActions: unit.actions,
+        maxActions: pathfinder.unit.actions,
       })
     )
   }
 
   getActionableUnits = () =>
-    [...this.unitData].reduce((acc, [unitId, { actionsTaken, maxActions }]) => {
-      if (actionsTaken >= maxActions) {
-        return acc
-      }
+    [...this.unitData].reduce(
+      (acc, [pathfinder, { actionsTaken, maxActions }]) => {
+        if (actionsTaken >= maxActions) {
+          return acc
+        }
 
-      const pathfinder = this.battle.grid.get.pathfinder(unitId)
-      if (!pathfinder || pathfinder.unit.isDead) {
-        return acc
-      }
+        if (pathfinder.unit.isDead) {
+          return acc
+        }
 
-      acc.push(
-        this.mapActionsToPathfinder(pathfinder, {
-          maxActions,
-          actionsTaken,
-        })
-      )
-      return acc
-    }, [] as ReturnType<TurnManager['mapActionsToPathfinder']>[])
+        acc.push(
+          this.mapActionsToPathfinder(pathfinder, {
+            maxActions,
+            actionsTaken,
+          })
+        )
+        return acc
+      },
+      [] as ReturnType<TurnManager['mapActionsToPathfinder']>[]
+    )
 
   private mapActionsToPathfinder = (
     pathfinder: Pathfinder,
@@ -49,32 +51,34 @@ export default class TurnManager {
     const { unit } = pathfinder
     return {
       pathfinder,
-      unit,
       actionsTaken,
       maxActions,
       actions: {
-        move: this.createAction(unit.id, pathfinder.move),
-        engage: this.createAction(unit.id, (unitB: Unit) =>
+        move: this.createAction(pathfinder, pathfinder.move),
+        engage: this.createAction(pathfinder, (unitB: Unit) =>
           new ConflictManager(unit, unitB).process()
         ),
         custom: <M>(callback: () => M) => {
-          return this.createAction(unit.id, callback)()
+          return this.createAction(pathfinder, callback)()
         },
       },
     }
   }
 
   private createAction = <Callback extends (...args: any) => any>(
-    unitId: Symbol,
+    pathfinder: Pathfinder,
     callback: Callback
   ) => (...args: Parameters<Callback>) => {
     const result = callback(...args) as ReturnType<Callback>
-    this.incrementActionsTaken(unitId)
-    return { actionableUnits: this.getActionableUnits(), sideEffect: result }
+    this.incrementActionsTaken(pathfinder)
+    return {
+      actionableUnits: this.getActionableUnits(),
+      sideEffect: result,
+    }
   }
 
-  private incrementActionsTaken = (unitId: Symbol) => {
-    const unitData = this.unitData.get(unitId)
+  private incrementActionsTaken = (pathfinder: Pathfinder) => {
+    const unitData = this.unitData.get(pathfinder)
     if (unitData) unitData.actionsTaken++
   }
 }

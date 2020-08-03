@@ -2,39 +2,54 @@ import Weapon from '../Weapon'
 import { EventEmitter } from 'events'
 import { Terrain } from '..'
 import Tile from '../Tile'
+import { BattleManager, TurnManager } from '../../services'
+import { GameEvents } from './types'
+
+const defaultTerrain = new Terrain()
+const defaultTile = new Tile(defaultTerrain)
+const defaultWeapon = new Weapon()
 
 export default class Game {
+  readonly id = Symbol()
   private emitter = new EventEmitter()
-  defaults: { weapon: Weapon; tile: Tile; terrain: Terrain }
-  entities = {
-    unit: new Map<Symbol, Unit>(),
-    grid: new Map<Symbol, Grid>(),
-    terrain: new Map<Symbol, Terrain>(),
-    team: new Map<Symbol, Team>(),
-    weapon: new Map<Symbol, Weapon>(),
-  } as const
-
-  constructor() {
-    const defaultTerrain = new Terrain(this)
-    this.defaults = {
-      weapon: new Weapon(this),
-      terrain: defaultTerrain,
-      tile: new Tile(defaultTerrain),
-    }
+  static defaults = {
+    terrain: defaultTerrain,
+    tile: defaultTile,
+    weapon: defaultWeapon,
   }
 
-  clear = {
-    units: () => this.entities.unit.clear(),
-    grids: () => this.entities.grid.clear(),
-    terrain: () => this.entities.terrain.clear(),
-    teams: () => this.entities.team.clear(),
-    weapons: () => this.entities.weapon.clear(),
-    entities: () => {
-      this.clear.grids()
-      this.clear.terrain()
-      this.clear.teams()
-      this.clear.units()
-      this.clear.weapons()
-    },
+  on<EventName extends keyof GameEvents>(
+    event: EventName,
+    callback: GameEvents[EventName]
+  ) {
+    this.emitter.on(event, callback)
+    return this
+  }
+
+  off<EventName extends keyof GameEvents>(
+    event: EventName,
+    callback: GameEvents[EventName]
+  ) {
+    this.emitter.off(event, callback)
+    return this
+  }
+
+  startBattle(grid: Grid) {
+    const generator = this.__startBattle(grid)
+    const iterator = generator.next()
+    const value = iterator.value
+  }
+
+  private emit<EventName extends keyof GameEvents>(
+    event: EventName,
+    ...args: Parameters<GameEvents[EventName]>
+  ) {
+    this.emitter.emit(event, ...args)
+  }
+
+  private *__startBattle(grid: Grid) {
+    const battle = new BattleManager(grid)
+    yield* battle.start()
+    return null
   }
 }

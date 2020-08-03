@@ -1,19 +1,21 @@
 import compact from 'lodash/compact'
 import { GridGraph, GridVectorData } from './types'
 import { mapGraph } from '../../utils'
-import Base from '../Base'
 import { Coords, Pathfinder } from '../../services'
 
-export default class Grid extends Base {
+export default class Grid {
+  readonly id = Symbol()
   graph: GridGraph
-  pathfinders = new Map<Symbol, Pathfinder>()
-  coordinates = new Map<string, Symbol>()
+  pathfinders = new Map<Unit, Pathfinder>()
+  coordinates = new Map<string, Unit>()
 
-  constructor(
-    game: Game,
-    { graph, units }: { graph: Tile[][]; units?: [Unit, RawCoords][] }
-  ) {
-    super(game, 'grid')
+  constructor({
+    graph,
+    units,
+  }: {
+    graph: Tile[][]
+    units?: [Unit, RawCoords][]
+  }) {
     this.graph = mapGraph(graph, (tile, { x, y }) => ({
       coords: new Coords({ x, y }),
       tile,
@@ -43,7 +45,7 @@ export default class Grid extends Base {
       }
     },
     tile: ({ x, y }: RawCoords) => this.graph[y]?.[x]?.tile,
-    pathfinder: (id: Symbol) => this.pathfinders.get(id),
+    pathfinder: (unit: Unit) => this.pathfinders.get(unit),
     pathfinders: (ids = [...this.pathfinders.keys()]) =>
       compact(ids.map(id => this.pathfinders.get(id))),
     teams: () => [
@@ -54,8 +56,6 @@ export default class Grid extends Base {
         return acc
       }, new Set<Team>()),
     ],
-    team: (id: Symbol) => this.get.teams().find(team => team.id === id),
-    unit: (id: Symbol) => this.get.pathfinder(id)?.unit,
     units: (ids = [...this.pathfinders.keys()]) =>
       this.get.pathfinders(ids).map(p => p.unit),
   }
@@ -63,10 +63,10 @@ export default class Grid extends Base {
   add = {
     unit: (unit: Unit, coordinates: RawCoords) => {
       this.pathfinders.set(
-        unit.id,
+        unit,
         new Pathfinder({ grid: this, unit, coordinates })
       )
-      this.coordinates.set(Coords.hash(coordinates), unit.id)
+      this.coordinates.set(Coords.hash(coordinates), unit)
       return this
     },
     units: (units: [Unit, RawCoords][]) => {
@@ -76,8 +76,8 @@ export default class Grid extends Base {
   }
 
   remove = {
-    units: (units: Symbol[]) => {
-      units.forEach(unitId => this.pathfinders.delete(unitId))
+    units: (units: Unit[]) => {
+      units.forEach(unit => this.pathfinders.delete(unit))
       return this
     },
   }

@@ -1,11 +1,7 @@
 import { TileConfig, TileInteractionCallback } from './types'
 
 export default class Tile {
-  static SIDE_EFFECTS = {
-    END_TURN: Symbol(),
-    END_ROUTE: Symbol(),
-    OBSTRUCT_ROUTE: Symbol(),
-  }
+  readonly id = Symbol()
 
   terrain: Terrain
   constructor(terrain: Terrain, callbacks = {} as TileConfig) {

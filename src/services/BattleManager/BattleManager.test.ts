@@ -1,39 +1,33 @@
 import BattleManager from './BattleManager'
 import { createSimpleGraph } from '../../utils'
-import { Game, Unit, Team, Grid } from '../../entities'
+import { Unit, Team, Grid } from '../../entities'
 
 describe('BattleManager', () => {
-  const game = new Game()
-
-  const [team1, team2] = new Team(game)
+  const [team1, team2] = new Team()
     .split({ branches: 2, siblingRelationship: 'hostile' })
     .get.children()
 
-  const unit1 = new Unit(game, { team: team1, actions: 2 })
-  const unit2 = new Unit(game, { team: team2 })
+  const unit1 = new Unit({ team: team1, actions: 2 })
+  const unit2 = new Unit({ team: team2 })
 
-  const grid = new Grid(game, { graph: createSimpleGraph(game, 5) }).add.units([
+  const grid = new Grid({ graph: createSimpleGraph(5) }).add.units([
     [unit1, { x: 0, y: 0 }],
     [unit2, { x: 1, y: 0 }],
   ])
 
-  const battle = new BattleManager(grid)
-  let [generator, state] = battle.start()
-
-  beforeEach(() => {
-    ;[generator, state] = battle.start()
-  })
-
   it('can correctly tell when the battle has started', () => {
     const battle = new BattleManager(grid)
     expect(battle.inProgress).toBe(false)
-    battle.start()
+    const generator = battle.start()
+    generator.next()
     expect(battle.inProgress).toBe(true)
   })
 
   it('increments turns when iterated through', () => {
-    expect(battle.turn).toBe(0)
-    state = generator.next()
-    expect(state.value.turn).toBe(1)
+    const battle = new BattleManager(grid)
+    const generator = battle.start()
+    expect(battle.turn).toBe(-1)
+    const iterator = generator.next()
+    expect(iterator.value?.turn).toBe(0)
   })
 })

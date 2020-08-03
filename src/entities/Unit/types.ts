@@ -2,10 +2,10 @@ export type UnitConfig = {
   team: Team
   movement?: {
     steps?: number
-    pattern?: DirectionalConstraint
+    pattern?: RangeConstraint
     canPassThroughUnit?: (otherUnit: Unit) => boolean
   }
-  attackRange?: DirectionalConstraint
+  attackRange?: RangeConstraint
   health?: number
   actions?: number
   weapon?: Weapon
