@@ -6,7 +6,7 @@ export default class Base {
     this.game = game
     this.game.entities[entityType].set(
       this.id,
-      (this as unknown) as Unit & Grid & Team & Terrain
+      (this as unknown) as Unit & Grid & Team & Terrain & Weapon
     )
   }
 }
