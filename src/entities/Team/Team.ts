@@ -11,7 +11,13 @@ export default class Team extends Base {
 
   constructor(
     game: Game,
-    { parent, hostile = [], friendly = [] } = {} as TeamConfig
+    {
+      parent,
+      hostile = [],
+      friendly = [],
+      neutral = [],
+      wildcard = [],
+    } = {} as TeamConfig
   ) {
     super(game, 'team')
     this.make.friendly(this)
@@ -21,6 +27,8 @@ export default class Team extends Base {
     }
     hostile.forEach(this.make.hostile)
     friendly.forEach(this.make.friendly)
+    wildcard.forEach(this.make.wildcard)
+    neutral.forEach(this.make.neutral)
   }
 
   split = (params = 1 as TeamSplitConfig) => {

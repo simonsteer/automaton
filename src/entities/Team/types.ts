@@ -3,6 +3,8 @@ import { TEAM_RELATIONSHIP_TYPES } from './constants'
 export type TeamConfig = {
   hostile?: Team[]
   friendly?: Team[]
+  neutral?: Team[]
+  wildcard?: Team[]
   parent?: Team
 }
 

@@ -1,19 +1,7 @@
 import Base from '../Base'
 import DirectionalConstraint from '../../services/DirectionalConstraint'
 import { SIMPLE_ORTHOGONAL_CONSTRAINT } from '../../recipes/constraints'
-
-export type UnitConstructorOptions = {
-  team: Team
-  movement?: {
-    steps?: number
-    pattern?: DirectionalConstraint
-    canPassThroughUnit?: (otherUnit: Unit) => boolean
-  }
-  attackRange?: DirectionalConstraint
-  health?: number
-  actions?: number
-  weapon?: Weapon
-}
+import { UnitConfig } from './types'
 
 export default class Unit extends Base {
   private _team!: Team
@@ -40,7 +28,7 @@ export default class Unit extends Base {
       health = 1,
       team,
       ...rest
-    }: UnitConstructorOptions
+    }: UnitConfig
   ) {
     super(game, 'unit')
     if (health < 0) {

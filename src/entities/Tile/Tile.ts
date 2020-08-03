@@ -1,4 +1,4 @@
-type TileInteractionCallback<D = void> = (unit: Unit) => D
+import { TileConfig, TileInteractionCallback } from './types'
 
 export default class Tile {
   static SIDE_EFFECTS = {
@@ -8,8 +8,10 @@ export default class Tile {
   }
 
   terrain: Terrain
-  constructor(terrain: Terrain) {
+  constructor(terrain: Terrain, callbacks = {} as TileConfig) {
     this.terrain = terrain
+    if (callbacks.guard) this.guard = { ...this.guard, ...callbacks.guard }
+    if (callbacks.on) this.on = { ...this.on, ...callbacks.on }
   }
 
   guard = {
