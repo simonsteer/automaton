@@ -1,20 +1,5 @@
 import { Terrain, Tile } from './entities'
 
-export function patchObjectFunctionCalls<
-  F extends { [key: string]: (...args: any[]) => any }
->(obj: F, { pre = () => {}, post = () => {} } = {}) {
-  const result = {} as { [key: string]: (...args: any[]) => any }
-  for (const prop in obj) {
-    result[prop] = (...args: any[]) => {
-      pre()
-      const val = obj[prop](...args)
-      post()
-      return val
-    }
-  }
-  return result as F
-}
-
 export function createSimpleGraph(game: Game, size: number) {
   const terrain = new Terrain(game)
   const tile = new Tile(terrain)
@@ -22,4 +7,11 @@ export function createSimpleGraph(game: Game, size: number) {
   return Array(size)
     .fill(tile)
     .map(t => Array(size).fill(t)) as Tile[][]
+}
+
+export function mapGraph<T, R>(
+  graph: T[][],
+  callback: (item: T, coordinates: RawCoords) => R
+) {
+  return graph.map((row, y) => row.map((item, x) => callback(item, { x, y })))
 }

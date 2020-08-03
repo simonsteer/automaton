@@ -1,6 +1,6 @@
 import compact from 'lodash/compact'
 import { GridGraph, GridVectorData } from './types'
-import { mapGraph } from './utils'
+import { mapGraph } from '../../utils'
 import Base from '../Base'
 import { Coords, Pathfinder } from '../../services'
 
