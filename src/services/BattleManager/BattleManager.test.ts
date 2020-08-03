@@ -1,6 +1,6 @@
 import BattleManager from './BattleManager'
 import { createSimpleGraph } from '../../utils'
-import { Unit, Team, Grid } from '../../entities'
+import { Unit, Team, Grid, Game } from '../../entities'
 
 describe('BattleManager', () => {
   const [team1, team2] = new Team()

@@ -1,11 +1,8 @@
-import { Terrain, Tile } from './entities'
+import { Game } from './entities'
 
 export function createSimpleGraph(size: number) {
-  const terrain = new Terrain()
-  const tile = new Tile(terrain)
-
   return Array(size)
-    .fill(tile)
+    .fill(Game.defaults.tile)
     .map(t => Array(size).fill(t)) as Tile[][]
 }
 
