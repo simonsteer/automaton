@@ -7,7 +7,7 @@ export default class Unit {
   readonly id = Symbol()
   private _team!: Team
   movement: {
-    pattern: RangeConstraint
+    range: RangeConstraint
     steps: number
     canPassThroughUnit: (otherUnit: Unit) => boolean
   }
@@ -19,7 +19,7 @@ export default class Unit {
   constructor({
     actions = 2,
     movement: {
-      pattern = new RangeConstraint(SIMPLE_ORTHOGONAL_CONSTRAINT),
+      range = new RangeConstraint(SIMPLE_ORTHOGONAL_CONSTRAINT),
       steps = 1,
       canPassThroughUnit = ({ team }: Unit) =>
         team.is.friendly(this.team) || team.is.neutral(this.team),
@@ -35,7 +35,7 @@ export default class Unit {
     }
     this.set.team(team)
     this.actions = actions
-    this.movement = { pattern, steps, canPassThroughUnit }
+    this.movement = { range, steps, canPassThroughUnit }
     this.maxHealth = health
     this.currentHealth = this.maxHealth
     if ('weapon' in rest) {

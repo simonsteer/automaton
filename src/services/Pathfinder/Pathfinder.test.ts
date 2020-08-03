@@ -90,7 +90,7 @@ describe('Pathfinder', () => {
       const unit = new Unit({
         team,
         movement: {
-          pattern: new RangeConstraint(SIMPLE_DIAGONAL_CONSTRAINT),
+          range: new RangeConstraint(SIMPLE_DIAGONAL_CONSTRAINT),
           steps: 2,
         },
       })
@@ -129,7 +129,7 @@ describe('Pathfinder', () => {
       const unit = new Unit({
         team,
         movement: {
-          pattern: new RangeConstraint(SIMPLE_DIAGONAL_CONSTRAINT),
+          range: new RangeConstraint(SIMPLE_DIAGONAL_CONSTRAINT),
           steps: 3,
         },
       })
@@ -170,7 +170,7 @@ describe('Pathfinder', () => {
   })
 
   describe('pathfinding for arbitrary coordinates', () => {
-    it('can find paths with the default movement pattern', () => {
+    it('can find paths with the default movement range', () => {
       const unit = new Unit({ team })
       const terrain = new Terrain({ cost: () => 2 })
 
@@ -204,11 +204,11 @@ describe('Pathfinder', () => {
       expect(sorted.path).toEqual(sorted.expected)
     })
 
-    it('can find paths with custom movement patterns', () => {
+    it('can find paths with custom movement ranges', () => {
       const unit = new Unit({
         team,
         movement: {
-          pattern: new RangeConstraint(SIMPLE_DIAGONAL_CONSTRAINT),
+          range: new RangeConstraint(SIMPLE_DIAGONAL_CONSTRAINT),
         },
       })
       const terrain = new Terrain({ cost: () => 2 })

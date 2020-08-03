@@ -18,7 +18,7 @@ type Pathfinder = import('./src/services/Pathfinder').default
 type BattleManager = import('./src/services/BattleManager').default
 type TurnManager = import('./src/services/BattleManager/services').TurnManager
 type ConflictManager = import('./src/services/BattleManager/services').ConflictManager
-type DirectionalConstraint = import('./src/services/RangeConstraint').default
+type RangeConstraint = import('./src/services/RangeConstraint').default
 
 type GeneratorReturnValues<Type> = Type extends Generator<
   infer IteratorValue,

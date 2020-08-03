@@ -94,7 +94,7 @@ export default class Pathfinder {
       accumulator = new Set<string>()
     ) =>
       [
-        ...this.unit.movement.pattern
+        ...this.unit.movement.range
           .adjacent(fromCoords)
           .filter(this.grid.withinBounds)
           .reduce((acc, coordinates) => {
@@ -137,7 +137,7 @@ export default class Pathfinder {
     const graph = new Graph()
     this.grid.mapTiles(tile => {
       const neighbours: GraphNodeNeighbour = {}
-      this.unit.movement.pattern
+      this.unit.movement.range
         .adjacent(tile.coords)
         .filter(coords => coords.withinBounds(this.grid))
         .forEach(({ x, y }) => {
