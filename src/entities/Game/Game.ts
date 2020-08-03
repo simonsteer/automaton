@@ -15,7 +15,7 @@ export default class Game {
     weapon: defaultWeapon,
   }
 
-  startBattle(grid: Grid) {
+  startBattle = (grid: Grid) => {
     return this.__startBattle(grid).value
   }
 

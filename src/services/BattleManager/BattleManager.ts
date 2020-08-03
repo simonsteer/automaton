@@ -1,5 +1,4 @@
 import { TurnManager } from './services'
-import { EventEmitter } from 'events'
 
 type BattleManagerCallback<T = void> = (battle: BattleManager) => T
 

@@ -1,5 +1,3 @@
-import { TEAM_RELATIONSHIP_TYPES } from './constants'
-
 export type TeamConfig = {
   hostile?: Team[]
   friendly?: Team[]
@@ -8,7 +6,7 @@ export type TeamConfig = {
   parent?: Team
 }
 
-export type TeamRelationshipType = ValueInObject<typeof TEAM_RELATIONSHIP_TYPES>
+export type TeamRelationshipType = Exclude<keyof TeamConfig, 'parent'>
 
 export type TeamSplitConfig =
   | number
