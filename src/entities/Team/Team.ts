@@ -1,5 +1,5 @@
 import compact from 'lodash/compact'
-import { TeamSplitConfig, TeamConfig } from './types'
+import { TeamSplitConfig, TeamConfig, TeamRelationshipType } from './types'
 
 export default class Team {
   readonly id = Symbol()
@@ -18,15 +18,15 @@ export default class Team {
       wildcard = [],
     } = {} as TeamConfig
   ) {
-    this.make.friendly(this)
+    this.changeRelationship(this, 'friendly')
     if (parent) {
       this.parent = parent
-      this.make.friendly(parent)
+      this.changeRelationship(parent, 'friendly')
     }
-    hostile.forEach(this.make.hostile)
-    friendly.forEach(this.make.friendly)
-    wildcard.forEach(this.make.wildcard)
-    neutral.forEach(this.make.neutral)
+    hostile.forEach(team => this.changeRelationship(team, 'hostile'))
+    friendly.forEach(team => this.changeRelationship(team, 'friendly'))
+    wildcard.forEach(team => this.changeRelationship(team, 'wildcard'))
+    neutral.forEach(team => this.changeRelationship(team, 'neutral'))
   }
 
   split = (params = 1 as TeamSplitConfig) => {
@@ -41,9 +41,11 @@ export default class Team {
         for (let i = 0; i < params; i++) {
           const newTeam = this.clone({
             parent: this,
-          }).make.friendly(this)
+          }).changeRelationship(this, 'friendly')
           if (i === params - 1)
-            newTeams.forEach(team => team.make.friendly(newTeam))
+            newTeams.forEach(team =>
+              team.changeRelationship(newTeam, 'friendly')
+            )
 
           newTeams.push(newTeam)
           this.children.add(newTeam)
@@ -51,7 +53,7 @@ export default class Team {
         break
       }
       case 'string': {
-        const newTeam = this.clone().make[params](this)
+        const newTeam = this.clone().changeRelationship(this, params)
         newTeams.push(newTeam)
         break
       }
@@ -69,10 +71,15 @@ export default class Team {
             )
 
           for (let i = 0; i < branches; i++) {
-            const newTeam = this.clone().make[parentRelationship](this)
+            const newTeam = this.clone().changeRelationship(
+              this,
+              parentRelationship
+            )
 
             if (i === branches - 1)
-              newTeams.forEach(team => team.make[siblingRelationship](newTeam))
+              newTeams.forEach(team =>
+                team.changeRelationship(newTeam, siblingRelationship)
+              )
 
             newTeams.push(newTeam)
           }
@@ -84,11 +91,13 @@ export default class Team {
 
           branches.forEach((config, i) => {
             const newTeam = this.clone()
-              .make[parentRelationship](this)
+              .changeRelationship(this, parentRelationship)
               .split(config)
 
             if (i === branches.length - 1)
-              newTeams.forEach(team => team.make[siblingRelationship](newTeam))
+              newTeams.forEach(team =>
+                team.changeRelationship(newTeam, siblingRelationship)
+              )
 
             newTeams.push(newTeam)
           })
@@ -97,131 +106,124 @@ export default class Team {
       }
     }
 
-    newTeams.forEach(this.add.child)
+    newTeams.forEach(this.addChild)
     return this
   }
 
-  add = {
-    unit: (unit: Unit) => {
-      unit.set.team(this)
-      return this
-    },
-    units: (units: Unit[]) => {
-      units.forEach(this.add.unit)
-      return this
-    },
-    child: (team: Team) => {
-      team.parent = this
-      this.children.add(team)
-      return this
-    },
-    children: (teams: Team[]) => {
-      teams.forEach(this.add.child)
-      return this
-    },
+  addChild = (team: Team) => {
+    team.parent = this
+    this.children.add(team)
+    return this
   }
 
-  remove = {
-    child: (team: Team) => {
-      team.parent = undefined
-      this.children.delete(team)
-      return this
-    },
-    children: (teams?: Team[]) => {
-      const teamIds = teams?.map(team => team)
-      this.get
-        .children()
-        .filter(team => !teamIds || teamIds.includes(team))
-        .forEach(this.remove.child)
-      return this
-    },
+  addChildren = (teams: Team[]) => {
+    teams.forEach(this.addChild)
+    return this
   }
 
-  get = {
-    parent: (recursive = false): Team =>
-      recursive ? this.parent?.get.parent(true) || this : this.parent || this,
-    children: (recursive = false) =>
-      [...this.children.values()].reduce((acc, team) => {
-        recursive ? acc.push(team, ...team.get.children(true)) : acc.push(team)
+  removeChild = (team: Team) => {
+    team.parent = undefined
+    this.children.delete(team)
+    return this
+  }
+
+  removeChildren = (teams?: Team[]) => {
+    const teamIds = teams?.map(team => team)
+    this.getChildren()
+      .filter(team => !teamIds || teamIds.includes(team))
+      .forEach(this.removeChild)
+    return this
+  }
+
+  getParent = (recursive = false): Team =>
+    recursive ? this.parent?.getParent(true) || this : this.parent || this
+
+  getChildren = (recursive = false) =>
+    [...this.children.values()].reduce((acc, team) => {
+      recursive ? acc.push(team, ...team.getChildren(true)) : acc.push(team)
+      return acc
+    }, [] as Team[])
+
+  getUnits = (recursive = false) => {
+    const thisUnits = [...this.units.values()]
+    return compact(
+      recursive
+        ? [...this.getChildren(true)].reduce((units, team) => {
+            units.push(...team.getUnits())
+            return units
+          }, thisUnits)
+        : thisUnits
+    )
+  }
+
+  getPathfinders = (grid: Grid, recursive = false) => {
+    let units = [...this.units.keys()]
+    if (recursive) {
+      units = [...this.getChildren(true)].reduce((acc, team) => {
+        acc.push(...team.units.keys())
         return acc
-      }, [] as Team[]),
-    units: (recursive = false) => {
-      const thisUnits = [...this.units.values()]
-      return compact(
-        recursive
-          ? [...this.get.children(true)].reduce((units, team) => {
-              units.push(...team.get.units())
-              return units
-            }, thisUnits)
-          : thisUnits
-      )
-    },
-    pathfinders: (grid: Grid, recursive = false) => {
-      let units = [...this.units.keys()]
-      if (recursive) {
-        units = [...this.get.children(true)].reduce((acc, team) => {
-          acc.push(...team.units.keys())
-          return acc
-        }, units)
-      }
-      return compact(units.map(unitId => grid.get.pathfinder(unitId)))
-    },
-    size: (recursive = false) => {
-      let size = this.units.size
-      if (recursive) {
-        size =
-          size +
-          this.get
-            .children(true)
-            .reduce((acc, child) => acc + child.units.size, 0)
-      }
-      return size
-    },
+      }, units)
+    }
+    return compact(units.map(unitId => grid.getPathfinder(unitId)))
   }
 
-  make = {
-    hostile: (team: Team) => {
-      this.make.neutral(team)
-      this.hostile.add(team)
-      team.hostile.add(this)
-      return this
-    },
-    friendly: (team: Team) => {
-      this.make.neutral(team)
-      this.friendly.add(team)
-      team.friendly.add(this)
-      return this
-    },
-    neutral: (team: Team) => {
-      this.hostile.delete(team)
-      this.friendly.delete(team)
-      team.hostile.delete(this)
-      team.friendly.delete(this)
-      return this
-    },
-    wildcard: (team: Team) => {
-      this.hostile.add(team)
-      this.friendly.add(team)
-      team.hostile.add(this)
-      team.friendly.add(this)
-      return this
-    },
+  getSize = (recursive = false) => {
+    let size = this.units.size
+    if (recursive) {
+      size =
+        size +
+        this.getChildren(true).reduce((acc, child) => acc + child.units.size, 0)
+    }
+    return size
   }
 
-  is = {
-    child: (team: Team, recursive = false) =>
-      this.get.children(recursive).some(child => child.id === team.id),
-    parent: (team: Team, recursive = false) =>
-      team.get.parent(recursive).id === this.id,
-    friendly: (team: Team): boolean =>
-      this.friendly.has(team) || !!this.parent?.is.friendly(team),
-    hostile: (team: Team): boolean =>
-      this.hostile.has(team) || !!this.parent?.is.hostile(team),
-    neutral: (team: Team) => !this.is.friendly(team) && !this.is.hostile(team),
-    wildcard: (team: Team) => this.is.friendly(team) && this.is.hostile(team),
+  changeRelationship = (team: Team, relationship: TeamRelationshipType) => {
+    switch (relationship) {
+      case 'friendly':
+        this.changeRelationship(team, 'neutral')
+        this.friendly.add(team)
+        team.friendly.add(this)
+        break
+      case 'hostile':
+        this.changeRelationship(team, 'neutral')
+        this.hostile.add(team)
+        team.hostile.add(this)
+        break
+      case 'neutral':
+        this.hostile.delete(team)
+        this.friendly.delete(team)
+        team.hostile.delete(this)
+        team.friendly.delete(this)
+        break
+      case 'wildcard':
+        this.hostile.add(team)
+        this.friendly.add(team)
+        team.hostile.add(this)
+        team.friendly.add(this)
+        break
+      default:
+        break
+    }
+    return this
   }
 
-  private clone = (overrides = {} as TeamConfig) => {
+  isNeutral = (team: Team) => !this.isFriendly(team) && !this.isHostile(team)
+
+  isWildcard = (team: Team) => this.isFriendly(team) && this.isHostile(team)
+
+  isHostile = (team: Team): boolean =>
+    this.hostile.has(team) || !!this.parent?.isHostile(team)
+
+  isFriendly = (team: Team): boolean =>
+    this.friendly.has(team) || !!this.parent?.isFriendly(team)
+
+  isParent = (team: Team, recursive = false) =>
+    team.getParent(recursive).id === this.id
+
+  isChild = (team: Team, recursive = false) =>
+    this.getChildren(recursive).some(child => child.id === team.id)
+
+  clone = (overrides = {} as TeamConfig) => {
     return new Team({
       parent: this.parent,
       hostile: [...this.hostile],
@@ -240,11 +242,11 @@ export default class Team {
   inconsistent game data.
   */
 
-  private addUnit = (unit: Unit) => {
+  private __addUnit = (unit: Unit) => {
     this.units.add(unit)
     return this
   }
-  private removeUnit = (unit: Unit) => {
+  private __removeUnit = (unit: Unit) => {
     this.units.delete(unit)
     return this
   }

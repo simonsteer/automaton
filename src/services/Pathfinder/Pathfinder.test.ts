@@ -15,7 +15,7 @@ describe('Pathfinder', () => {
       const unit = new Unit({ team, movement: { steps: 3 } })
       const grid = new Grid({
         graph: createSimpleGraph(5),
-      }).add.units([[unit, { x: 0, y: 0 }]])
+      }).addUnits([[unit, { x: 0, y: 0 }]])
 
       //  __ __ __ __ __
       // |U_|√_|√_|√_|__|
@@ -24,9 +24,9 @@ describe('Pathfinder', () => {
       // |√_|__|__|__|__|
       // |__|__|__|__|__|
 
-      const pathfinder = grid.get.pathfinder(unit)!
+      const pathfinder = grid.getPathfinder(unit)!
 
-      const reachable = pathfinder.get.reachable()
+      const reachable = pathfinder.getReachable()
       const expected = [
         { x: 0, y: 1 },
         { x: 0, y: 2 },
@@ -56,7 +56,7 @@ describe('Pathfinder', () => {
       const graph = createSimpleGraph(5)
       graph[1][1] = new Tile(terrain)
       graph[2][1] = new Tile(terrain)
-      const grid = new Grid({ graph }).add.units([[unit, { x: 0, y: 0 }]])
+      const grid = new Grid({ graph }).addUnits([[unit, { x: 0, y: 0 }]])
 
       //  __ __ __ __ __
       // |U_|√_|√_|√_|__|
@@ -65,9 +65,9 @@ describe('Pathfinder', () => {
       // |√_|__|__|__|__|
       // |__|__|__|__|__|
 
-      const pathfinder = grid.get.pathfinder(unit)!
+      const pathfinder = grid.getPathfinder(unit)!
 
-      const reachable = pathfinder.get.reachable()
+      const reachable = pathfinder.getReachable()
       const expected = [
         { x: 0, y: 1 },
         { x: 0, y: 2 },
@@ -95,7 +95,7 @@ describe('Pathfinder', () => {
         },
       })
       const graph = createSimpleGraph(5)
-      const grid = new Grid({ graph }).add.units([[unit, { x: 1, y: 1 }]])
+      const grid = new Grid({ graph }).addUnits([[unit, { x: 1, y: 1 }]])
 
       //  __ __ __ __ __
       // |√_|__|√_|__|__|
@@ -104,9 +104,9 @@ describe('Pathfinder', () => {
       // |__|√_|__|√_|__|
       // |__|__|__|__|__|
 
-      const pathfinder = grid.get.pathfinder(unit)!
+      const pathfinder = grid.getPathfinder(unit)!
 
-      const reachable = pathfinder.get.reachable()
+      const reachable = pathfinder.getReachable()
       const expected = [
         { x: 0, y: 0 },
         { x: 0, y: 2 },
@@ -138,7 +138,7 @@ describe('Pathfinder', () => {
       graph[1][3] = new Tile(terrain)
       graph[3][1] = new Tile(terrain)
       graph[4][4] = new Tile(terrain)
-      const grid = new Grid({ graph }).add.units([[unit, { x: 1, y: 1 }]])
+      const grid = new Grid({ graph }).addUnits([[unit, { x: 1, y: 1 }]])
 
       //  __ __ __ __ __
       // |√_|__|√_|__|__|
@@ -147,9 +147,9 @@ describe('Pathfinder', () => {
       // |__|__|__|√_|__|
       // |__|__|√_|__|__|
 
-      const pathfinder = grid.get.pathfinder(unit)!
+      const pathfinder = grid.getPathfinder(unit)!
 
-      const reachable = pathfinder.get.reachable()
+      const reachable = pathfinder.getReachable()
       const expected = [
         { x: 0, y: 0 },
         { x: 0, y: 2 },
@@ -177,7 +177,7 @@ describe('Pathfinder', () => {
       const graph = createSimpleGraph(5)
       graph[1][1] = new Tile(terrain)
       graph[1][2] = new Tile(terrain)
-      const grid = new Grid({ graph }).add.unit(unit, { x: 0, y: 0 })
+      const grid = new Grid({ graph }).addUnit(unit, { x: 0, y: 0 })
 
       //  __ __ __ __ __
       // |U_|__|__|__|__|
@@ -186,9 +186,9 @@ describe('Pathfinder', () => {
       // |__|__|__|__|__|
       // |__|__|__|__|__|
 
-      const pathfinder = grid.get.pathfinder(unit)!
+      const pathfinder = grid.getPathfinder(unit)!
 
-      const path = pathfinder.get.route({ x: 2, y: 2 })
+      const path = pathfinder.getRoute({ x: 2, y: 2 })
       const expected = [
         { x: 0, y: 1 },
         { x: 0, y: 2 },
@@ -214,7 +214,7 @@ describe('Pathfinder', () => {
       const terrain = new Terrain({ cost: () => 2 })
       const graph = createSimpleGraph(5)
       graph[1][3] = new Tile(terrain)
-      const grid = new Grid({ graph }).add.unit(unit, { x: 0, y: 0 })
+      const grid = new Grid({ graph }).addUnit(unit, { x: 0, y: 0 })
 
       //  __ __ __ __ __
       // |U_|__|__|__|__|
@@ -223,9 +223,9 @@ describe('Pathfinder', () => {
       // |__|__|__|√_|__|
       // |__|__|__|__|__|
 
-      const pathfinder = grid.get.pathfinder(unit)!
+      const pathfinder = grid.getPathfinder(unit)!
 
-      const path = pathfinder.get.route({ x: 4, y: 2 })!
+      const path = pathfinder.getRoute({ x: 4, y: 2 })!
       const expected = [
         { x: 1, y: 1 },
         { x: 2, y: 2 },

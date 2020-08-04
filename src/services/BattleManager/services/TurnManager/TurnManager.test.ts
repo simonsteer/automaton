@@ -7,12 +7,12 @@ import { BattleManager } from '../../..'
 describe('TurnManager', () => {
   const [team1, team2] = new Team()
     .split({ branches: 2, siblingRelationship: 'hostile' })
-    .get.children()
+    .getChildren()
 
   const unit1 = new Unit({ team: team1, actions: 2 })
   const unit2 = new Unit({ team: team2 })
 
-  const grid = new Grid({ graph: createSimpleGraph(5) }).add.units([
+  const grid = new Grid({ graph: createSimpleGraph(5) }).addUnits([
     [unit1, { x: 0, y: 0 }],
     [unit2, { x: 1, y: 0 }],
   ])

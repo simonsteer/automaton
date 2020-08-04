@@ -20,7 +20,7 @@ export default class Grid {
       coords: new Coords({ x, y }),
       tile,
     }))
-    if (units) this.add.units(units)
+    if (units) this.addUnits(units)
   }
 
   get size() {
@@ -30,56 +30,61 @@ export default class Grid {
   withinBounds = ({ x, y }: RawCoords) =>
     x >= 0 && x < this.size.x && y >= 0 && y < this.size.y
 
-  get = {
-    data: (coordinates: RawCoords) => {
-      const tile = this.get.tile(coordinates)
-      if (!tile) {
-        return null
-      }
-      const unitId = this.coordinates.get(Coords.hash(coordinates))
-      const pathfinder = unitId && this.pathfinders.get(unitId)
+  getData = (coordinates: RawCoords) => {
+    const tile = this.getTile(coordinates)
+    if (!tile) {
+      return null
+    }
+    const unitId = this.coordinates.get(Coords.hash(coordinates))
+    const pathfinder = unitId && this.pathfinders.get(unitId)
 
-      return {
-        pathfinder,
-        tile,
-      }
-    },
-    tile: ({ x, y }: RawCoords) => this.graph[y]?.[x]?.tile,
-    pathfinder: (unit: Unit) => this.pathfinders.get(unit),
-    pathfinders: (ids = [...this.pathfinders.keys()]) =>
-      compact(ids.map(id => this.pathfinders.get(id))),
-    teams: () => [
-      ...this.get.units().reduce((acc, { team }) => {
-        if (!acc.has(team)) {
-          acc.add(team)
-        }
-        return acc
-      }, new Set<Team>()),
-    ],
-    units: (ids = [...this.pathfinders.keys()]) =>
-      this.get.pathfinders(ids).map(p => p.unit),
+    return {
+      pathfinder,
+      tile,
+    }
   }
 
-  add = {
-    unit: (unit: Unit, coordinates: RawCoords) => {
-      this.pathfinders.set(
-        unit,
-        new Pathfinder({ grid: this, unit, coordinates })
-      )
-      this.coordinates.set(Coords.hash(coordinates), unit)
-      return this
-    },
-    units: (units: [Unit, RawCoords][]) => {
-      units.forEach(args => this.add.unit(...args))
-      return this
-    },
+  getTile = ({ x, y }: RawCoords) => this.graph[y]?.[x]?.tile
+
+  getPathfinder = (unit: Unit) => this.pathfinders.get(unit)
+
+  getPathfinders = (ids = [...this.pathfinders.keys()]) =>
+    compact(ids.map(this.getPathfinder))
+
+  getTeams = () => [
+    ...this.getUnits().reduce((acc, { team }) => {
+      if (!acc.has(team)) {
+        acc.add(team)
+      }
+      return acc
+    }, new Set<Team>()),
+  ]
+
+  getUnits = (ids = [...this.pathfinders.keys()]) =>
+    this.getPathfinders(ids).map(p => p.unit)
+
+  addUnit = (unit: Unit, coordinates: RawCoords) => {
+    this.pathfinders.set(
+      unit,
+      new Pathfinder({ grid: this, unit, coordinates })
+    )
+    this.coordinates.set(Coords.hash(coordinates), unit)
+    return this
   }
 
-  remove = {
-    units: (units: Unit[]) => {
-      units.forEach(unit => this.pathfinders.delete(unit))
-      return this
-    },
+  addUnits = (units: [Unit, RawCoords][]) => {
+    units.forEach(args => this.addUnit(...args))
+    return this
+  }
+
+  removeUnit = (unit: Unit) => {
+    this.pathfinders.delete(unit)
+    return this
+  }
+
+  removeUnits = (units: Unit[]) => {
+    units.forEach(this.removeUnit)
+    return this
   }
 
   clear = () => {

@@ -41,7 +41,7 @@ export default class Pathfinder {
           return acc
         }
 
-        const data = this.grid.get.data(coordinates)
+        const data = this.grid.getData(coordinates)
         if (!data) {
           throw new Error(
             `No data was found at coordinates: { x: ${coordinates.x}; y: ${coordinates.y} }`
@@ -57,7 +57,7 @@ export default class Pathfinder {
           tile.on.unit.stop(this.unit)
         } else {
           const prev = path[index - 1] as RawCoords | undefined
-          if (prev) this.grid.get.data(prev)?.tile.on.unit.exit(this.unit)
+          if (prev) this.grid.getData(prev)?.tile.on.unit.exit(this.unit)
 
           acc.path.push(coordinates)
           tile.on.unit.enter(this.unit)
@@ -77,61 +77,61 @@ export default class Pathfinder {
     ).path
   }
 
-  get = {
-    route: (toCoords: RawCoords) => {
-      const result = this.graph.path(
-        this.unit,
-        this.coordinates.hash,
-        Coords.hash(toCoords),
-        { cost: true }
-      ) as { path: null | string[]; cost: number }
+  getRoute = (toCoords: RawCoords) => {
+    const result = this.graph.path(
+      this.unit,
+      this.coordinates.hash,
+      Coords.hash(toCoords),
+      { cost: true }
+    ) as { path: null | string[]; cost: number }
 
-      return result.path?.map(Coords.parse).slice(1) || []
-    },
-    reachable: (
-      fromCoords = this.coordinates,
-      stepsLeft = this.unit.movement.steps,
-      accumulator = new Set<string>()
-    ) =>
-      [
-        ...this.unit.movement.range
-          .adjacent(fromCoords)
-          .filter(this.grid.withinBounds)
-          .reduce((acc, coordinates) => {
-            if (this.coordinates.hash === coordinates.hash) return acc
-
-            const tileData = this.grid.get.data(coordinates)!
-
-            const movementCost = tileData.tile.terrain.cost(this.unit)
-            const tileUnit = tileData.pathfinder?.unit
-
-            if (movementCost > stepsLeft) return acc
-            if (tileUnit && !this.unit.movement.canPassThroughUnit(tileUnit)) {
-              return acc
-            }
-
-            if (!acc.has(coordinates.hash)) acc.add(coordinates.hash)
-            if (stepsLeft - movementCost > 0) {
-              this.get.reachable(coordinates, stepsLeft - movementCost, acc)
-            } else if (this.grid.get.data(fromCoords)?.pathfinder) {
-              acc.delete(fromCoords.hash)
-            }
-
-            return acc
-          }, accumulator),
-      ].map(Coords.parse),
-    targetable: (fromCoords = this.coordinates) =>
-      this.unit.weapon?.range.adjacent(fromCoords).filter(coords => {
-        if (!this.grid.withinBounds(coords)) {
-          return false
-        }
-        const otherTeam = this.grid.get.data(coords)?.pathfinder?.unit?.team
-        return !!(
-          otherTeam?.is.hostile(this.unit.team) ||
-          otherTeam?.is.wildcard(this.unit.team)
-        )
-      }) || [],
+    return result.path?.map(Coords.parse).slice(1) || []
   }
+
+  getReachable = (
+    fromCoords = this.coordinates,
+    stepsLeft = this.unit.movement.steps,
+    accumulator = new Set<string>()
+  ) =>
+    [
+      ...this.unit.movement.range
+        .adjacent(fromCoords)
+        .filter(this.grid.withinBounds)
+        .reduce((acc, coordinates) => {
+          if (this.coordinates.hash === coordinates.hash) return acc
+
+          const tileData = this.grid.getData(coordinates)!
+
+          const movementCost = tileData.tile.terrain.cost(this.unit)
+          const tileUnit = tileData.pathfinder?.unit
+
+          if (movementCost > stepsLeft) return acc
+          if (tileUnit && !this.unit.movement.canPassThroughUnit(tileUnit)) {
+            return acc
+          }
+
+          if (!acc.has(coordinates.hash)) acc.add(coordinates.hash)
+          if (stepsLeft - movementCost > 0) {
+            this.getReachable(coordinates, stepsLeft - movementCost, acc)
+          } else if (this.grid.getData(fromCoords)?.pathfinder) {
+            acc.delete(fromCoords.hash)
+          }
+
+          return acc
+        }, accumulator),
+    ].map(Coords.parse)
+
+  getTargetable = (fromCoords = this.coordinates) =>
+    this.unit.weapon?.range.adjacent(fromCoords).filter(coords => {
+      if (!this.grid.withinBounds(coords)) {
+        return false
+      }
+      const otherTeam = this.grid.getData(coords)?.pathfinder?.unit?.team
+      return !!(
+        otherTeam?.isHostile(this.unit.team) ||
+        otherTeam?.isWildcard(this.unit.team)
+      )
+    }) || []
 
   private buildGraph() {
     const graph = new Graph()

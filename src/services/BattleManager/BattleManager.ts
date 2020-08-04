@@ -3,7 +3,7 @@ import { TurnManager } from './services'
 type BattleManagerCallback<T = void> = (battle: BattleManager) => T
 
 const DEFAULT_END_CONDITION = (battle: BattleManager) =>
-  battle.grid.get.teams().length === 1
+  battle.grid.getTeams().length === 1
 
 type Regenerator = Generator<
   {

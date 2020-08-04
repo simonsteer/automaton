@@ -4,7 +4,7 @@ import ChessTeam from './ChessTeam'
 const chess = new Chess()
 
 const renderBoard = () => {
-  const pathfinders = chess.board.get.pathfinders()
+  const pathfinders = chess.board.getPathfinders()
 
   return chess.board.graph.reduce((acc, row, y) => {
     const tiles = row.map(({ coords }, x) => {

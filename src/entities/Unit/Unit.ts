@@ -22,7 +22,7 @@ export default class Unit {
       range = new RangeConstraint(SIMPLE_ORTHOGONAL_CONSTRAINT),
       steps = 1,
       canPassThroughUnit = ({ team }: Unit) =>
-        team.is.friendly(this.team) || team.is.neutral(this.team),
+        team.isFriendly(this.team) || team.isNeutral(this.team),
     } = {},
     health = 1,
     team,
@@ -33,7 +33,7 @@ export default class Unit {
         `Unit health must be greater than 0. Received value: ${health}`
       )
     }
-    this.set.team(team)
+    this.setTeam(team)
     this.actions = actions
     this.movement = { range, steps, canPassThroughUnit }
     this.maxHealth = health
@@ -67,12 +67,10 @@ export default class Unit {
     return this
   }
 
-  set = {
-    team: (team: Team) => {
-      this._team?.['removeUnit'](this)
-      this._team = team
-      this._team['addUnit'](this)
-      return this
-    },
+  setTeam = (team: Team) => {
+    this._team?.['__removeUnit'](this)
+    this._team = team
+    this._team['__addUnit'](this)
+    return this
   }
 }

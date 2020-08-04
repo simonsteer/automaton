@@ -11,9 +11,9 @@ export default class TurnManager {
 
   constructor(battle: BattleManager) {
     this.battle = battle
-    const teams = battle.grid.get.teams()
+    const teams = battle.grid.getTeams()
     this.team = teams[battle.turn % teams.length]
-    this.team.get.pathfinders(this.battle.grid).forEach(pathfinder =>
+    this.team.getPathfinders(this.battle.grid).forEach(pathfinder =>
       this.unitData.set(pathfinder, {
         actionsTaken: 0,
         maxActions: pathfinder.unit.actions,
@@ -46,23 +46,20 @@ export default class TurnManager {
   private mapActionsToPathfinder = (
     pathfinder: Pathfinder,
     { actionsTaken, maxActions }: { actionsTaken: number; maxActions: number }
-  ) => {
-    const { unit } = pathfinder
-    return {
-      pathfinder,
-      actionsTaken,
-      maxActions,
-      actions: {
-        move: this.createAction(pathfinder, pathfinder.move),
-        engage: this.createAction(pathfinder, (unitB: Unit) =>
-          new ConflictManager(unit, unitB).process()
-        ),
-        custom: <M>(callback: () => M) => {
-          return this.createAction(pathfinder, callback)()
-        },
+  ) => ({
+    pathfinder,
+    actionsTaken,
+    maxActions,
+    actions: {
+      move: this.createAction(pathfinder, pathfinder.move),
+      engage: this.createAction(pathfinder, (unitB: Unit) =>
+        new ConflictManager(pathfinder.unit, unitB).process()
+      ),
+      custom: <M>(callback: () => M) => {
+        return this.createAction(pathfinder, callback)()
       },
-    }
-  }
+    },
+  })
 
   private createAction = <Callback extends (...args: any) => any>(
     pathfinder: Pathfinder,

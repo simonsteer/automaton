@@ -19,7 +19,7 @@ export default class Chess extends Game {
   reset() {
     this.black = new ChessTeam('black')
     this.white = new ChessTeam('white')
-    this.white.make.hostile(this.black)
+    this.white.changeRelationship(this.black, 'hostile')
     this.board = this.createBoard()
   }
 
