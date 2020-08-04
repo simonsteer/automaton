@@ -2,9 +2,13 @@
   "name": "automaton",
   "version": "1.0.0",
   "description": "An extensible state machine for turn-based strategy games",
-  "main": "dist/index.js",
+  "main": "dist",
   "scripts": {
-    "test": "jest src"
+    "test": "jest src",
+    "dependencies": "rm -rf node_modules && npm i",
+    "transpile": "tsc --build",
+    "build": "npm run dependencies && npm run transpile",
+    "relink": "npm run build && npm link"
   },
   "author": "",
   "license": "ISC",
@@ -20,6 +24,8 @@
     "typescript": "^3.9.6"
   },
   "dependencies": {
+    "@automaton/entities": "file:src/entities",
+    "@automaton/services": "file:src/services",
     "jest": "^26.1.0",
     "lodash": "^4.17.19"
   }

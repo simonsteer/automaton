@@ -1,5 +1,11 @@
-export { default as BattleManager } from './BattleManager'
-export * from './BattleManager/services'
-export { default as Coords } from './Coords'
-export { default as Pathfinder } from './Pathfinder'
 export { default as RangeConstraint } from './RangeConstraint'
+export {
+  RangeConstraintConfig,
+  RangeConstraintException,
+  RangeConstraintOffset,
+} from './RangeConstraint/types'
+export { default as Coords, RawCoords } from './Coords'
+export { default as BattleManager } from './BattleManager'
+export { default as ConflictManager } from './BattleManager/services/ConflictManager'
+export { default as Turn } from './BattleManager/services/TurnManager'
+export { default as Pathfinder } from './Pathfinder'

@@ -1,4 +1,4 @@
-import { RangeConstraint } from '../../services'
+import RangeConstraint from '../../services/RangeConstraint'
 import { SIMPLE_ORTHOGONAL_CONSTRAINT } from '../../recipes/constraints'
 import { WeaponConfig } from './types'
 

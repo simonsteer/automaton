@@ -1,7 +1,7 @@
-import Weapon from '../Weapon'
-import { Terrain } from '..'
-import Tile from '../Tile'
-import { BattleManager } from '../../services'
+import Weapon from './Weapon'
+import Terrain from './Terrain'
+import Tile from './Tile'
+import BattleManager from '../services/BattleManager'
 
 const defaultTerrain = new Terrain()
 const defaultTile = new Tile(defaultTerrain)

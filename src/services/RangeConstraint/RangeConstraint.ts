@@ -1,15 +1,15 @@
 import range from 'lodash/range'
-import { Constraint } from './types'
+import { RangeConstraintConfig } from './types'
 import Coords from '../Coords'
 
 export default class RangeConstraint {
-  constraint: Constraint
+  constraint: RangeConstraintConfig
   offsets: {
     x: Set<number>
     y: Set<number>
   }
 
-  constructor(constraint: Constraint) {
+  constructor(constraint: RangeConstraintConfig) {
     this.constraint = constraint
     this.offsets = this.buildRangeSets()
   }
@@ -58,7 +58,7 @@ export default class RangeConstraint {
             : [offset]
 
           offsetRange.forEach(value =>
-            acc[key as keyof Constraint['offsets']].add(value)
+            acc[key as keyof RangeConstraintConfig['offsets']].add(value)
           )
         })
         return acc

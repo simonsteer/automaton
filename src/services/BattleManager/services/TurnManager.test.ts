@@ -1,8 +1,9 @@
 import TurnManager from './TurnManager'
-import { Unit, Grid } from '../../../../entities'
-import Team from '../../../../entities/Team'
-import { createSimpleGraph } from '../../../../utils'
-import { BattleManager } from '../../..'
+import Team from '../../../entities/Team'
+import { createSimpleGraph } from '../../../utils'
+import BattleManager from '../../BattleManager'
+import Unit from '../../../entities/Unit'
+import Grid from '../../../entities/Grid'
 
 describe('TurnManager', () => {
   const [team1, team2] = new Team()

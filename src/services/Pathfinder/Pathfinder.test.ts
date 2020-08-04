@@ -1,13 +1,15 @@
 import sortBy from 'lodash/sortBy'
-import { Terrain, Game, Tile, Unit, Grid } from '../../entities'
 import { createSimpleGraph } from '../../utils'
 import Team from '../../entities/Team'
-import { Coords } from '..'
 import RangeConstraint from '../RangeConstraint'
 import { SIMPLE_DIAGONAL_CONSTRAINT } from '../../recipes/constraints'
+import Unit from '../../entities/Unit'
+import Grid from '../../entities/Grid'
+import Terrain from '../../entities/Terrain'
+import Tile from '../../entities/Tile'
+import Coords from '../Coords'
 
 describe('Pathfinder', () => {
-  const game = new Game()
   const team = new Team()
 
   describe('getting reachable coordinates', () => {

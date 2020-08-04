@@ -1,4 +1,4 @@
-import { Game } from './entities'
+import Game from './entities/Game'
 
 export function createSimpleGraph(size: number) {
   return Array(size)

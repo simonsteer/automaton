@@ -1,5 +1,5 @@
 import { DeepMap, GraphNodeMap, GraphNodeNeighbour } from './types'
-import { Terrain } from '../../../entities'
+import Terrain from '../../../entities/Terrain'
 
 /**
  * Validates a cost for a node

@@ -11,4 +11,4 @@ type BattleManager = import('../src/services/BattleManager').default
 type TurnManager = import('../src/services/BattleManager/services').TurnManager
 type ConflictManager = import('../src/services/BattleManager/services').ConflictManager
 type RangeConstraint = import('../src/services/RangeConstraint').default
-type RawCoords = { x: number; y: number }
+type RawCoords = import('../src/services/Coords').RawCoords

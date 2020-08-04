@@ -1,4 +1,4 @@
-import ConflictManager from '../ConflictManager'
+import ConflictManager from './ConflictManager'
 
 export default class TurnManager {
   battle: BattleManager

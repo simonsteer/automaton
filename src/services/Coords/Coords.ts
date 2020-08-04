@@ -1,3 +1,5 @@
+export type RawCoords = { x: number; y: number }
+
 export default class Coords {
   x: number
   y: number

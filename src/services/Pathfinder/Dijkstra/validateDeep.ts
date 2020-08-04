@@ -1,4 +1,4 @@
-import { Terrain } from '../../../entities'
+import Terrain from '../../../entities/Terrain'
 
 /**
  * Validate a map to ensure all it's values are either a number or a map
