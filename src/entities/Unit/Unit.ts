@@ -10,6 +10,7 @@ export default class Unit {
     range: RangeConstraint
     steps: number
     canPassThroughUnit: (otherUnit: Unit) => boolean
+    contiguous: boolean
   }
   actions: number
   maxHealth: number
@@ -21,6 +22,7 @@ export default class Unit {
     movement: {
       range = new RangeConstraint(SIMPLE_ORTHOGONAL_CONSTRAINT),
       steps = 1,
+      contiguous = false,
       canPassThroughUnit = ({ team }: Unit) =>
         team.isFriendly(this.team) || team.isNeutral(this.team),
     } = {},
@@ -35,7 +37,7 @@ export default class Unit {
     }
     this.setTeam(team)
     this.actions = actions
-    this.movement = { range, steps, canPassThroughUnit }
+    this.movement = { range, steps, canPassThroughUnit, contiguous }
     this.maxHealth = health
     this.currentHealth = this.maxHealth
     if ('weapon' in rest) {

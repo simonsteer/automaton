@@ -91,34 +91,41 @@ export default class Pathfinder {
   getReachable = (
     fromCoords = this.coordinates,
     stepsLeft = this.unit.movement.steps,
-    accumulator = new Set<string>()
+    accumulator = {
+      accessible: new Set<string>(),
+      inaccessible: new Set<string>(),
+    }
   ) =>
     [
       ...this.unit.movement.range
         .adjacent(fromCoords)
         .filter(this.grid.withinBounds)
         .reduce((acc, coordinates) => {
-          if (this.coordinates.hash === coordinates.hash) return acc
+          if (
+            stepsLeft === 0 ||
+            acc.inaccessible.has(fromCoords.hash) ||
+            this.coordinates.hash === coordinates.hash
+          ) {
+            return acc
+          }
 
           const tileData = this.grid.getData(coordinates)!
-
           const movementCost = tileData.tile.terrain.cost(this.unit)
           const tileUnit = tileData.pathfinder?.unit
 
           if (movementCost > stepsLeft) return acc
           if (tileUnit && !this.unit.movement.canPassThroughUnit(tileUnit)) {
+            acc.inaccessible.add(coordinates.hash)
             return acc
           }
 
-          if (!acc.has(coordinates.hash)) acc.add(coordinates.hash)
+          acc.accessible.add(coordinates.hash)
           if (stepsLeft - movementCost > 0) {
             this.getReachable(coordinates, stepsLeft - movementCost, acc)
-          } else if (this.grid.getData(fromCoords)?.pathfinder) {
-            acc.delete(fromCoords.hash)
           }
 
           return acc
-        }, accumulator),
+        }, accumulator).accessible,
     ].map(Coords.parse)
 
   getTargetable = (fromCoords = this.coordinates) =>
