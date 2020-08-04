@@ -4,7 +4,7 @@
   "description": "An extensible state machine for turn-based strategy games",
   "main": "dist/index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest src"
   },
   "author": "",
   "license": "ISC",

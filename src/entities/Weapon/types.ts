@@ -1,4 +1,4 @@
-export type WeaponConfig = {
+export interface WeaponConfig {
   power?: number
   range?: RangeConstraint
 }

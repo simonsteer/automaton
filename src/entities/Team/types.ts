@@ -1,4 +1,4 @@
-export type TeamConfig = {
+export interface TeamConfig {
   hostile?: Team[]
   friendly?: Team[]
   neutral?: Team[]

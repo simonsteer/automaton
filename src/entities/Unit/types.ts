@@ -1,4 +1,4 @@
-export type UnitConfig = {
+export interface UnitConfig {
   team: Team
   movement?: {
     steps?: number

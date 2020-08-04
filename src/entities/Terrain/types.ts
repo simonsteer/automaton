@@ -1,1 +1,3 @@
-export type TerrainConfig = { cost?: (unit: Unit) => number }
+export interface TerrainConfig {
+  cost?: (unit: Unit) => number
+}

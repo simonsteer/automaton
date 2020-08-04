@@ -5,7 +5,7 @@ import { Game } from '..'
 
 export default class Unit {
   readonly id = Symbol()
-  private _team!: Team
+  _team!: Team
   movement: {
     range: RangeConstraint
     steps: number
