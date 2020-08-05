@@ -10,7 +10,7 @@ describe('GraphNodeMap merge strategies', () => {
   }
   const map2: GraphNodeMap = {
     a: { b: terrain },
-    b: { a: terrain, d: terrain },
+    b: { a: terrain, c: terrain },
     c: { a: terrain },
   }
   const map3: GraphNodeMap = {
@@ -26,10 +26,11 @@ describe('GraphNodeMap merge strategies', () => {
       expect(difference(map1)).toEqual(map1)
       expect(difference(map1, map2)).toEqual({
         c: { a: terrain },
-        b: { d: terrain },
+        b: { c: terrain },
       })
       expect(difference(map1, map2, map3)).toEqual({
         a: { c: terrain },
+        b: { c: terrain, d: terrain },
         d: { a: terrain },
         e: { a: terrain },
       })
@@ -42,6 +43,39 @@ describe('GraphNodeMap merge strategies', () => {
       })
       expect(difference(map2, map3)).toEqual({
         a: { c: terrain },
+        b: { c: terrain, d: terrain },
+        d: { a: terrain },
+        e: { a: terrain },
+      })
+    })
+  })
+
+  describe('union', () => {
+    it('can get the union between two or more GraphNodeMaps', () => {
+      expect(union(map1)).toEqual(map1)
+      expect(union(map1, map2)).toEqual({
+        a: { b: terrain },
+        b: { a: terrain, c: terrain },
+        c: { a: terrain },
+      })
+      expect(union(map1, map2, map3)).toEqual({
+        a: { b: terrain, c: terrain },
+        b: { a: terrain, c: terrain, d: terrain },
+        c: { a: terrain },
+        d: { a: terrain },
+        e: { a: terrain },
+      })
+      expect(union(map1, map3)).toEqual({
+        a: { b: terrain, c: terrain },
+        b: { a: terrain, d: terrain },
+        c: { a: terrain },
+        d: { a: terrain },
+        e: { a: terrain },
+      })
+      expect(union(map2, map3)).toEqual({
+        a: { b: terrain, c: terrain },
+        b: { a: terrain, c: terrain, d: terrain },
+        c: { a: terrain },
         d: { a: terrain },
         e: { a: terrain },
       })
