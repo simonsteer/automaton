@@ -1,4 +1,4 @@
-import { difference, union } from './utils'
+import { difference, union, intersect } from './utils'
 import { GraphNodeMap } from './Dijkstra/types'
 import { Terrain } from '../../entities'
 
@@ -78,6 +78,29 @@ describe('GraphNodeMap merge strategies', () => {
         c: { a: terrain },
         d: { a: terrain },
         e: { a: terrain },
+      })
+    })
+  })
+
+  describe('intersect', () => {
+    it('can get the intersection between two or more GraphNodeMaps', () => {
+      expect(intersect(map1)).toEqual(map1)
+      expect(intersect(map1, map2)).toEqual({
+        a: { b: terrain },
+        b: { a: terrain },
+      })
+      expect(intersect(map1, map2, map3)).toEqual({
+        a: { b: terrain },
+        b: { a: terrain },
+      })
+      expect(intersect(map1, map3)).toEqual({
+        a: { b: terrain },
+        b: { a: terrain },
+      })
+      expect(intersect(map2, map3)).toEqual({
+        a: { b: terrain },
+        b: { a: terrain },
+        c: { a: terrain },
       })
     })
   })
