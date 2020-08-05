@@ -2,7 +2,6 @@ import Coords from '../Coords'
 import Graph from './Dijkstra/Graph'
 import { GraphNodeNeighbour } from './Dijkstra/types'
 import * as mergeStrategies from '@automaton/services/RangeConstraint/utils'
-import { stringify } from 'querystring'
 
 export default class Pathfinder {
   readonly grid: Grid
@@ -90,15 +89,12 @@ export default class Pathfinder {
     return result.path?.map(Coords.parse).slice(1) || []
   }
 
-  getReachable = (fromCoords = this.coordinates) => {
-    const { constraints } = this.unit.movement
-
-    const allReachableTiles = constraints.map(constraint =>
-      this.getReachableForConstraint(constraint, fromCoords)
-    )
-
-    return this.merge(...allReachableTiles).map(hash => Coords.parse(hash))
-  }
+  getReachable = (fromCoords = this.coordinates) =>
+    this.merge(
+      ...this.unit.movement.constraints.map(constraint =>
+        this.getReachableForConstraint(constraint, fromCoords)
+      )
+    ).map(hash => Coords.parse(hash))
 
   getTargetable = (fromCoords = this.coordinates) =>
     this.unit.weapon?.range.adjacent(fromCoords).filter(coords => {
@@ -115,11 +111,11 @@ export default class Pathfinder {
   private buildGraph() {
     const graph = new Graph()
 
-    let neighbours: string[][] = []
-    this.grid.mapTiles(tile => {
-      const constraintNeighbours = this.unit.movement.constraints.reduce(
-        (acc, constraint) => {
-          acc.push(
+    const constraintNeighbours = this.unit.movement.constraints.map(
+      constraint => {
+        const neighbours: string[] = []
+        this.grid.mapTiles(tile => {
+          neighbours.push(
             ...constraint
               .adjacent(tile.coords)
               .filter(coords => coords.withinBounds(this.grid))
@@ -128,15 +124,13 @@ export default class Pathfinder {
                 return `${tile.coords.hash}|${neighbour.coords.hash}`
               })
           )
-          return acc
-        },
-        [] as string[]
-      )
-      neighbours.push(constraintNeighbours)
-    })
+        })
+        return neighbours
+      }
+    )
 
     const neighbourMap: { [key: string]: GraphNodeNeighbour } = {}
-    const merged = this.merge(...neighbours)
+    const merged = this.merge(...constraintNeighbours)
     merged
       .map(hash => {
         const [tileHash, neighbourHash] = hash.split('|')
