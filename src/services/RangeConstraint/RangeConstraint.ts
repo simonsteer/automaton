@@ -1,44 +1,48 @@
 import range from 'lodash/range'
 import { RangeConstraintConfig } from './types'
 import Coords from '../Coords'
+import Graph from '../Pathfinder/Dijkstra/Graph'
+import { GraphNodeNeighbour } from '../Pathfinder/Dijkstra/types'
 
 export default class RangeConstraint {
-  constraints: RangeConstraintConfig[]
-  constructor(...constraints: RangeConstraintConfig[]) {
-    this.constraints = constraints
+  private constraint: RangeConstraintConfig
+  private offsets = {
+    x: new Set<number>(),
+    y: new Set<number>(),
+  }
+
+  constructor(constraint: RangeConstraintConfig) {
+    this.constraint = constraint
+    this.offsets = this.buildOffsets()
   }
 
   /**
    * get coordinates considered adjacent to the coordinates passed in
    */
-  adjacent(coordsA: Coords) {
-    const adjacentCoords: Coords[] = []
-    this.constraints.forEach(constraint => {
-      const offsets = this.buildRangeSet(constraint)
-
-      for (const xOffset of offsets.x) {
-        for (const yOffset of offsets.y) {
-          const coordsB = {
-            x: coordsA.x + xOffset,
-            y: coordsA.y + yOffset,
-          }
-          const deltas = coordsA.deltas(coordsB)
-          if (
-            !constraint.exceptions ||
-            constraint.exceptions.every(exception => exception(deltas))
-          ) {
-            adjacentCoords.push(new Coords(coordsB))
-          }
+  adjacent = (coordsA: Coords) => {
+    const coordinates: string[] = []
+    for (const xOffset of this.offsets.x) {
+      for (const yOffset of this.offsets.y) {
+        const coordsB = {
+          x: coordsA.x + xOffset,
+          y: coordsA.y + yOffset,
+        }
+        const deltas = coordsA.deltas(coordsB)
+        if (
+          !this.constraint.exceptions ||
+          this.constraint.exceptions.every(exception => exception(deltas))
+        ) {
+          coordinates.push(Coords.hash(coordsB))
         }
       }
-    })
-    return adjacentCoords
+    }
+    return coordinates.map(hash => Coords.parse(hash))
   }
 
-  private buildRangeSet = ({ offsets }: RangeConstraintConfig) =>
+  private buildOffsets = () =>
     (['x', 'y'] as const).reduce(
       (acc, key) => {
-        offsets[key].forEach(offset => {
+        this.constraint.offsets[key].forEach(offset => {
           const offsetRange = Array.isArray(offset)
             ? range(offset[0], offset[1] + 1)
             : [offset]

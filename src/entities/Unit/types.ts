@@ -1,10 +1,13 @@
+import { RangeConstraintConfig } from '../../services'
+import { ConstraintMergeStrategy } from '../../services/UnitMovement/types'
+
 export interface UnitConfig {
   team: Team
   movement?: {
     steps?: number
-    range?: RangeConstraint
     canPassThroughUnit?: (otherUnit: Unit) => boolean
-    contiguous?: boolean
+    constraints?: RangeConstraintConfig[]
+    mergeStrategy?: ConstraintMergeStrategy
   }
   health?: number
   actions?: number

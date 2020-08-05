@@ -1,6 +1,8 @@
 import Coords from '../Coords'
 import Graph from './Dijkstra/Graph'
 import { GraphNodeNeighbour } from './Dijkstra/types'
+import * as mergeStrategies from '@automaton/services/RangeConstraint/utils'
+import { stringify } from 'querystring'
 
 export default class Pathfinder {
   readonly grid: Grid
@@ -88,45 +90,15 @@ export default class Pathfinder {
     return result.path?.map(Coords.parse).slice(1) || []
   }
 
-  getReachable = (
-    fromCoords = this.coordinates,
-    stepsLeft = this.unit.movement.steps,
-    accumulator = {
-      accessible: new Set<string>(),
-      inaccessible: new Set<string>(),
-    }
-  ) =>
-    [
-      ...this.unit.movement.range
-        .adjacent(fromCoords)
-        .filter(this.grid.withinBounds)
-        .reduce((acc, coordinates) => {
-          if (
-            stepsLeft === 0 ||
-            acc.inaccessible.has(fromCoords.hash) ||
-            this.coordinates.hash === coordinates.hash
-          ) {
-            return acc
-          }
+  getReachable = (fromCoords = this.coordinates) => {
+    const { constraints } = this.unit.movement
 
-          const tileData = this.grid.getData(coordinates)!
-          const movementCost = tileData.tile.terrain.cost(this.unit)
-          const tileUnit = tileData.pathfinder?.unit
+    const allReachableTiles = constraints.map(constraint =>
+      this.getReachableForConstraint(constraint, fromCoords)
+    )
 
-          if (movementCost > stepsLeft) return acc
-          if (tileUnit && !this.unit.movement.canPassThroughUnit(tileUnit)) {
-            acc.inaccessible.add(coordinates.hash)
-            return acc
-          }
-
-          acc.accessible.add(coordinates.hash)
-          if (stepsLeft - movementCost > 0) {
-            this.getReachable(coordinates, stepsLeft - movementCost, acc)
-          }
-
-          return acc
-        }, accumulator).accessible,
-    ].map(Coords.parse)
+    return this.merge(...allReachableTiles).map(hash => Coords.parse(hash))
+  }
 
   getTargetable = (fromCoords = this.coordinates) =>
     this.unit.weapon?.range.adjacent(fromCoords).filter(coords => {
@@ -142,19 +114,101 @@ export default class Pathfinder {
 
   private buildGraph() {
     const graph = new Graph()
+
+    let neighbours: string[][] = []
     this.grid.mapTiles(tile => {
-      const neighbours: GraphNodeNeighbour = {}
-      this.unit.movement.range
-        .adjacent(tile.coords)
-        .filter(coords => coords.withinBounds(this.grid))
-        .forEach(({ x, y }) => {
-          const neighbour = this.grid.graph[y]?.[x]
-          if (neighbour) {
-            neighbours[neighbour.coords.hash] = neighbour.tile.terrain
-          }
-        })
-      graph.addNode(tile.coords.hash, neighbours)
+      const constraintNeighbours = this.unit.movement.constraints.reduce(
+        (acc, constraint) => {
+          acc.push(
+            ...constraint
+              .adjacent(tile.coords)
+              .filter(coords => coords.withinBounds(this.grid))
+              .map(({ x, y }) => {
+                const neighbour = this.grid.graph[y][x]
+                return `${tile.coords.hash}|${neighbour.coords.hash}`
+              })
+          )
+          return acc
+        },
+        [] as string[]
+      )
+      neighbours.push(constraintNeighbours)
     })
+
+    const neighbourMap: { [key: string]: GraphNodeNeighbour } = {}
+    const merged = this.merge(...neighbours)
+    merged
+      .map(hash => {
+        const [tileHash, neighbourHash] = hash.split('|')
+        const t = Coords.parse(tileHash)
+        const n = Coords.parse(neighbourHash)
+
+        return {
+          tile: this.grid.graph[t.y][t.x],
+          neighbour: this.grid.graph[n.y][n.x],
+        }
+      })
+      .forEach(({ tile, neighbour }) => {
+        if (!neighbourMap[tile.coords.hash]) {
+          neighbourMap[tile.coords.hash] = {}
+        }
+        neighbourMap[tile.coords.hash][neighbour.coords.hash] =
+          neighbour.tile.terrain
+      })
+
+    Object.keys(neighbourMap).forEach(hash => {
+      graph.addNode(hash, neighbourMap[hash])
+    })
+
     return graph
+  }
+
+  private getReachableForConstraint = (
+    constraint: RangeConstraint,
+    fromCoords = this.coordinates,
+    stepsLeft = this.unit.movement.steps,
+    accumulator = {
+      accessible: new Set<string>(),
+      inaccessible: new Set<string>(),
+    }
+  ) => [
+    ...constraint
+      .adjacent(fromCoords)
+      .filter(this.grid.withinBounds)
+      .reduce((acc, coordinates) => {
+        if (
+          stepsLeft === 0 ||
+          acc.inaccessible.has(fromCoords.hash) ||
+          this.coordinates.hash === coordinates.hash
+        ) {
+          return acc
+        }
+
+        const tileData = this.grid.getData(coordinates)!
+        const movementCost = tileData.tile.terrain.cost(this.unit)
+        const tileUnit = tileData.pathfinder?.unit
+
+        if (movementCost > stepsLeft) return acc
+        if (tileUnit && !this.unit.movement.canPassThroughUnit(tileUnit)) {
+          acc.inaccessible.add(coordinates.hash)
+          return acc
+        }
+
+        acc.accessible.add(coordinates.hash)
+        if (stepsLeft - movementCost > 0) {
+          this.getReachableForConstraint(
+            constraint,
+            coordinates,
+            stepsLeft - movementCost,
+            acc
+          )
+        }
+
+        return acc
+      }, accumulator).accessible,
+  ]
+
+  private get merge() {
+    return mergeStrategies[this.unit.movement.mergeStrategy]
   }
 }

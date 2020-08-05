@@ -92,7 +92,7 @@ describe('Pathfinder', () => {
       const unit = new Unit({
         team,
         movement: {
-          range: new RangeConstraint(SIMPLE_DIAGONAL_CONSTRAINT),
+          constraints: [SIMPLE_DIAGONAL_CONSTRAINT],
           steps: 2,
         },
       })
@@ -131,7 +131,7 @@ describe('Pathfinder', () => {
       const unit = new Unit({
         team,
         movement: {
-          range: new RangeConstraint(SIMPLE_DIAGONAL_CONSTRAINT),
+          constraints: [SIMPLE_DIAGONAL_CONSTRAINT],
           steps: 3,
         },
       })
@@ -210,7 +210,7 @@ describe('Pathfinder', () => {
       const unit = new Unit({
         team,
         movement: {
-          range: new RangeConstraint(SIMPLE_DIAGONAL_CONSTRAINT),
+          constraints: [SIMPLE_DIAGONAL_CONSTRAINT],
         },
       })
       const terrain = new Terrain({ cost: () => 2 })
