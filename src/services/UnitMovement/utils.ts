@@ -1,4 +1,4 @@
-import { GraphNodeMap } from './Dijkstra/types'
+import { GraphNodeMap } from '../Pathfinder/Dijkstra/types'
 
 export function difference(...nodeMaps: GraphNodeMap[]) {
   return nodeMaps.reduce((acc, nodeMap, index) => {

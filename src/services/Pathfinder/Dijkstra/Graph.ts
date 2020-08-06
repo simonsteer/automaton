@@ -2,11 +2,22 @@ import Queue from './PriorityQueue'
 import removeDeepFromMap from './removeDeepFromMap'
 import toDeepMap from './toDeepMap'
 import validateDeep from './validateDeep'
-import { DeepMap, GraphNodeNeighbour } from './types'
+import { DeepMap, GraphNodeNeighbour, GraphNodeMap } from './types'
 
 /** Creates and manages a graph */
 export default class Graph {
-  graph = new Map() as DeepMap
+  graph: DeepMap = new Map()
+
+  constructor(graph?: DeepMap | GraphNodeMap) {
+    if (graph instanceof Map) {
+      validateDeep(graph)
+      this.graph = graph
+    } else if (graph) {
+      this.graph = toDeepMap(graph)
+    } else {
+      this.graph = new Map()
+    }
+  }
 
   addNode(name: string, neighbors: GraphNodeNeighbour) {
     let nodes: DeepMap

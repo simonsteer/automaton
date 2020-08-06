@@ -1,18 +1,12 @@
-import RangeConstraint from '@automaton/services/RangeConstraint'
 import { SIMPLE_ORTHOGONAL_CONSTRAINT } from '../../recipes/constraints'
 import { UnitConfig } from './types'
 import Game from '../Game'
-import { ConstraintMergeStrategy } from '@automaton/services/UnitMovement/types'
+import UnitMovement from '../../services/UnitMovement'
 
 export default class Unit {
   readonly id = Symbol()
   _team!: Team
-  movement: {
-    constraints: RangeConstraint[]
-    mergeStrategy: ConstraintMergeStrategy
-    steps: number
-    canPassThroughUnit: (otherUnit: Unit) => boolean
-  }
+  movement: UnitMovement
   actions: number
   maxHealth: number
   currentHealth: number
@@ -38,12 +32,12 @@ export default class Unit {
     }
     this.setTeam(team)
     this.actions = actions
-    this.movement = {
-      constraints: constraints.map(config => new RangeConstraint(config)),
+    this.movement = new UnitMovement({
+      constraints,
       steps,
       canPassThroughUnit,
       mergeStrategy,
-    }
+    })
     this.maxHealth = health
     this.currentHealth = this.maxHealth
     if ('weapon' in rest) {

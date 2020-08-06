@@ -1,7 +1,6 @@
 import Coords from '../Coords'
 import Graph from './Dijkstra/Graph'
-import { GraphNodeNeighbour } from './Dijkstra/types'
-import * as mergeStrategies from '@automaton/services/RangeConstraint/utils'
+import * as mergeStrategies from '../RangeConstraint/utils'
 
 export default class Pathfinder {
   readonly grid: Grid
@@ -21,7 +20,7 @@ export default class Pathfinder {
     this.grid = grid
     this.unit = unit
     this._coordinates = new Coords(coordinates)
-    this.graph = this.buildGraph()
+    this.graph = new Graph(this.unit.movement.buildPathfinderGraph(this.grid))
   }
 
   get coordinates() {
@@ -107,55 +106,6 @@ export default class Pathfinder {
         otherTeam?.isWildcard(this.unit.team)
       )
     }) || []
-
-  private buildGraph() {
-    const graph = new Graph()
-
-    const constraintNeighbours = this.unit.movement.constraints.map(
-      constraint => {
-        const neighbours: string[] = []
-        this.grid.mapTiles(tile => {
-          neighbours.push(
-            ...constraint
-              .adjacent(tile.coords)
-              .filter(coords => coords.withinBounds(this.grid))
-              .map(({ x, y }) => {
-                const neighbour = this.grid.graph[y][x]
-                return `${tile.coords.hash}|${neighbour.coords.hash}`
-              })
-          )
-        })
-        return neighbours
-      }
-    )
-
-    const neighbourMap: { [key: string]: GraphNodeNeighbour } = {}
-    const merged = this.merge(...constraintNeighbours)
-    merged
-      .map(hash => {
-        const [tileHash, neighbourHash] = hash.split('|')
-        const t = Coords.parse(tileHash)
-        const n = Coords.parse(neighbourHash)
-
-        return {
-          tile: this.grid.graph[t.y][t.x],
-          neighbour: this.grid.graph[n.y][n.x],
-        }
-      })
-      .forEach(({ tile, neighbour }) => {
-        if (!neighbourMap[tile.coords.hash]) {
-          neighbourMap[tile.coords.hash] = {}
-        }
-        neighbourMap[tile.coords.hash][neighbour.coords.hash] =
-          neighbour.tile.terrain
-      })
-
-    Object.keys(neighbourMap).forEach(hash => {
-      graph.addNode(hash, neighbourMap[hash])
-    })
-
-    return graph
-  }
 
   private getReachableForConstraint = (
     constraint: RangeConstraint,

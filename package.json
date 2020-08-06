@@ -2,7 +2,11 @@
   "name": "automaton",
   "version": "1.0.0",
   "description": "An extensible state machine for turn-based strategy games",
-  "main": "dist",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "test": "jest src",
     "dependencies": "rm -rf node_modules && npm i",
@@ -19,13 +23,13 @@
     "@babel/preset-typescript": "^7.10.4",
     "@types/jest": "^26.0.4",
     "@types/lodash": "^4.14.157",
+    "babel-cli": "^6.26.0",
     "babel-jest": "^26.1.0",
+    "babel-plugin-transform-class-properties": "^6.24.1",
     "ts-node": "^8.10.2",
     "typescript": "^3.9.6"
   },
   "dependencies": {
-    "@automaton/entities": "file:src/entities",
-    "@automaton/services": "file:src/services",
     "jest": "^26.1.0",
     "lodash": "^4.17.19"
   }

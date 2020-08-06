@@ -1,6 +1,6 @@
 import { difference, union, intersect } from './utils'
-import { GraphNodeMap } from './Dijkstra/types'
-import { Terrain } from '../../entities'
+import { GraphNodeMap } from '../Pathfinder/Dijkstra/types'
+import Terrain from '../../entities/Terrain'
 
 describe('GraphNodeMap merge strategies', () => {
   const terrain = new Terrain()

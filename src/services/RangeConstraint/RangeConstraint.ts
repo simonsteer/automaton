@@ -2,7 +2,7 @@ import range from 'lodash/range'
 import { RangeConstraintConfig } from './types'
 import Coords from '../Coords'
 import Graph from '../Pathfinder/Dijkstra/Graph'
-import { GraphNodeNeighbour } from '../Pathfinder/Dijkstra/types'
+import { GraphNodeNeighbour, GraphNodeMap } from '../Pathfinder/Dijkstra/types'
 
 export default class RangeConstraint {
   private constraint: RangeConstraintConfig
@@ -37,6 +37,24 @@ export default class RangeConstraint {
       }
     }
     return coordinates.map(hash => Coords.parse(hash))
+  }
+
+  buildPathfinderGraph = (grid: Grid) => {
+    const graph: GraphNodeMap = {}
+
+    grid.mapTiles(tile => {
+      const nodeNeighbour = this.adjacent(tile.coords).reduce((acc, coords) => {
+        if (coords.withinBounds(grid)) {
+          if (!acc) acc = {}
+          const neighbour = grid.graph[coords.y][coords.x]
+          acc[coords.hash] = neighbour.tile.terrain
+        }
+        return acc
+      }, undefined as undefined | GraphNodeNeighbour)
+      if (nodeNeighbour) graph[tile.coords.hash] = nodeNeighbour
+    })
+
+    return graph
   }
 
   private buildOffsets = () =>

@@ -1,21 +1,34 @@
-import { RangeConstraintConfig } from '../RangeConstraint/types'
-import { ConstraintMergeStrategy } from './types'
+import { ConstraintMergeStrategy, UnitMovementConfig } from './types'
 import { RangeConstraint } from '..'
-import Graph from '../Pathfinder/Dijkstra/Graph'
-import { GraphNodeNeighbour } from '../Pathfinder/Dijkstra/types'
+import { TileInteractionCallback } from '../../entities'
+import * as mergeStrategies from './utils'
 
 export default class UnitMovement {
   constraints: RangeConstraint[]
-  strategy: ConstraintMergeStrategy
+  mergeStrategy: ConstraintMergeStrategy
+  steps: number
+  canPassThroughUnit: TileInteractionCallback<boolean>
 
   constructor({
     constraints,
-    strategy,
-  }: {
-    constraints: RangeConstraintConfig[]
-    strategy: ConstraintMergeStrategy
-  }) {
+    mergeStrategy,
+    steps,
+    canPassThroughUnit,
+  }: UnitMovementConfig) {
     this.constraints = constraints.map(config => new RangeConstraint(config))
-    this.strategy = strategy
+    this.mergeStrategy = mergeStrategy
+    this.steps = steps
+    this.canPassThroughUnit = canPassThroughUnit
+  }
+
+  buildPathfinderGraph = (grid: Grid) =>
+    this.merge(
+      ...this.constraints.map(constraint =>
+        constraint.buildPathfinderGraph(grid)
+      )
+    )
+
+  private get merge() {
+    return mergeStrategies[this.mergeStrategy]
   }
 }
