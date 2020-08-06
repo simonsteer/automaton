@@ -1,4 +1,6 @@
 import ConflictManager from './ConflictManager'
+import { Pathfinder, BattleManager } from '../..'
+import { Unit, Team } from '../../../entities'
 
 export default class TurnManager {
   battle: BattleManager

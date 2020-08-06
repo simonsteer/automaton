@@ -1,3 +1,5 @@
+import { Grid } from '../../entities'
+
 export type RawCoords = { x: number; y: number }
 
 export default class Coords {
@@ -16,6 +18,18 @@ export default class Coords {
   static parse(hash: string): Coords {
     const [x, y] = hash.split(',').map(Number)
     return new Coords({ x, y })
+  }
+
+  static hashMany(coords: RawCoords[]): string[] {
+    return coords.map(Coords.hash)
+  }
+
+  static parseMany(hashes: string[]): Coords[] {
+    return hashes.map(Coords.parse)
+  }
+
+  get raw() {
+    return { x: this.x, y: this.y }
   }
 
   get hash() {

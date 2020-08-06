@@ -7,12 +7,9 @@ export default class Weapon {
   range: RangeConstraint
 
   constructor(
-    {
-      power = 1,
-      range = new RangeConstraint(SIMPLE_ORTHOGONAL_CONSTRAINT),
-    } = {} as WeaponConfig
+    { power = 1, range = SIMPLE_ORTHOGONAL_CONSTRAINT } = {} as WeaponConfig
   ) {
     this.power = power
-    this.range = range
+    this.range = new RangeConstraint(range)
   }
 }

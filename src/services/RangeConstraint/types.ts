@@ -1,3 +1,5 @@
+import { RawCoords } from '../Coords'
+
 export type RangeConstraintException = (coordinates: RawCoords) => boolean
 
 export type RangeConstraintOffset = (number | [number, number])[]

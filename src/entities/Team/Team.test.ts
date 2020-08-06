@@ -1,10 +1,7 @@
 import Team from './Team'
-import Game from '../Game'
 import Unit from '../Unit'
 
 describe('Team', () => {
-  const game = new Game()
-
   const team_1 = new Team()
   const team_2 = new Team()
   const team_1_unit = new Unit({ team: team_1 })

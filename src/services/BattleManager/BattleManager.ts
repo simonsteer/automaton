@@ -1,4 +1,5 @@
 import { TurnManager } from './services'
+import { Grid, Team } from '../../entities'
 
 type BattleManagerCallback<T = void> = (battle: BattleManager) => T
 

@@ -1,4 +1,5 @@
 import { UnitMovementConfig } from '../../services/UnitMovement/types'
+import { Team, Weapon } from '..'
 
 export interface UnitConfig {
   team: Team

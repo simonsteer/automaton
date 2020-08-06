@@ -1,8 +1,8 @@
 import range from 'lodash/range'
 import { RangeConstraintConfig } from './types'
 import Coords from '../Coords'
-import Graph from '../Pathfinder/Dijkstra/Graph'
 import { GraphNodeNeighbour, GraphNodeMap } from '../Pathfinder/Dijkstra/types'
+import { Grid } from '../../entities'
 
 export default class RangeConstraint {
   private constraint: RangeConstraintConfig

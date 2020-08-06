@@ -1,4 +1,5 @@
 import { TileConfig, TileInteractionCallback } from './types'
+import { Terrain } from '..'
 
 export default class Tile {
   readonly id = Symbol()

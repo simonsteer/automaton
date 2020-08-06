@@ -1,3 +1,5 @@
+import { Unit } from '../../../entities'
+
 type ConflictCalculator = (unitA: Unit, unitB: Unit) => number
 
 export default class ConflictManager {

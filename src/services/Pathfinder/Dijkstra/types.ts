@@ -1,3 +1,5 @@
+import { Terrain } from '../../../entities'
+
 export type DeepMap = Map<string, Terrain | DeepMap>
 
 export type GraphNodeNeighbour = { [neighbour: string]: Terrain }

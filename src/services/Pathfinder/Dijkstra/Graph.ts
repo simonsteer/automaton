@@ -3,6 +3,7 @@ import removeDeepFromMap from './removeDeepFromMap'
 import toDeepMap from './toDeepMap'
 import validateDeep from './validateDeep'
 import { DeepMap, GraphNodeNeighbour, GraphNodeMap } from './types'
+import { Unit, Terrain } from '../../../entities'
 
 /** Creates and manages a graph */
 export default class Graph {

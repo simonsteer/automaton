@@ -1,5 +1,6 @@
 import compact from 'lodash/compact'
 import { TeamSplitConfig, TeamConfig, TeamRelationshipType } from './types'
+import { Unit, Grid } from '..'
 
 export default class Team {
   readonly id = Symbol()

@@ -4,6 +4,11 @@ export {
   RangeConstraintException,
   RangeConstraintOffset,
 } from './RangeConstraint/types'
+export { default as UnitMovement } from './UnitMovement'
+export {
+  ConstraintMergeStrategy,
+  UnitMovementConfig,
+} from './UnitMovement/types'
 export { default as Coords, RawCoords } from './Coords'
 export { default as BattleManager } from './BattleManager'
 export { default as ConflictManager } from './BattleManager/services/ConflictManager'

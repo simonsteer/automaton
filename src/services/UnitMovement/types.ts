@@ -1,4 +1,5 @@
 import { RangeConstraintConfig } from '../RangeConstraint/types'
+import { Unit } from '../../entities'
 
 export type ConstraintMergeStrategy = 'union' | 'intersect' | 'difference'
 

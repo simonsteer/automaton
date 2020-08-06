@@ -1,6 +1,6 @@
-import Coords from '../Coords'
+import Coords, { RawCoords } from '../Coords'
 import Graph from './Dijkstra/Graph'
-import * as mergeStrategies from '../RangeConstraint/utils'
+import { Grid, Unit } from '../../entities'
 
 export default class Pathfinder {
   readonly grid: Grid
@@ -20,7 +20,7 @@ export default class Pathfinder {
     this.grid = grid
     this.unit = unit
     this._coordinates = new Coords(coordinates)
-    this.graph = new Graph(this.unit.movement.buildPathfinderGraph(this.grid))
+    this.graph = this.unit.movement.buildPathfinderGraph(this.grid)
   }
 
   get coordinates() {
@@ -88,12 +88,7 @@ export default class Pathfinder {
     return result.path?.map(Coords.parse).slice(1) || []
   }
 
-  getReachable = (fromCoords = this.coordinates) =>
-    this.merge(
-      ...this.unit.movement.constraints.map(constraint =>
-        this.getReachableForConstraint(constraint, fromCoords)
-      )
-    ).map(hash => Coords.parse(hash))
+  getReachable = () => this.unit.movement.getReachableCoordinates(this)
 
   getTargetable = (fromCoords = this.coordinates) =>
     this.unit.weapon?.range.adjacent(fromCoords).filter(coords => {
@@ -106,53 +101,4 @@ export default class Pathfinder {
         otherTeam?.isWildcard(this.unit.team)
       )
     }) || []
-
-  private getReachableForConstraint = (
-    constraint: RangeConstraint,
-    fromCoords = this.coordinates,
-    stepsLeft = this.unit.movement.steps,
-    accumulator = {
-      accessible: new Set<string>(),
-      inaccessible: new Set<string>(),
-    }
-  ) => [
-    ...constraint
-      .adjacent(fromCoords)
-      .filter(this.grid.withinBounds)
-      .reduce((acc, coordinates) => {
-        if (
-          stepsLeft === 0 ||
-          acc.inaccessible.has(fromCoords.hash) ||
-          this.coordinates.hash === coordinates.hash
-        ) {
-          return acc
-        }
-
-        const tileData = this.grid.getData(coordinates)!
-        const movementCost = tileData.tile.terrain.cost(this.unit)
-        const tileUnit = tileData.pathfinder?.unit
-
-        if (movementCost > stepsLeft) return acc
-        if (tileUnit && !this.unit.movement.canPassThroughUnit(tileUnit)) {
-          acc.inaccessible.add(coordinates.hash)
-          return acc
-        }
-
-        acc.accessible.add(coordinates.hash)
-        if (stepsLeft - movementCost > 0) {
-          this.getReachableForConstraint(
-            constraint,
-            coordinates,
-            stepsLeft - movementCost,
-            acc
-          )
-        }
-
-        return acc
-      }, accumulator).accessible,
-  ]
-
-  private get merge() {
-    return mergeStrategies[this.unit.movement.mergeStrategy]
-  }
 }

@@ -2,7 +2,8 @@ import compact from 'lodash/compact'
 import { GridGraph, GridVectorData } from './types'
 import { mapGraph } from '../../utils'
 import Pathfinder from '../../services/Pathfinder'
-import Coords from '../../services/Coords'
+import Coords, { RawCoords } from '../../services/Coords'
+import { Unit, Tile, Team } from '..'
 
 export default class Grid {
   readonly id = Symbol()

@@ -1,3 +1,5 @@
+import { Team } from '..'
+
 export interface TeamConfig {
   hostile?: Team[]
   friendly?: Team[]

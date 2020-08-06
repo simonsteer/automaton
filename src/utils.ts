@@ -1,4 +1,6 @@
 import Game from './entities/Game'
+import { RawCoords } from './services'
+import { Tile } from './entities'
 
 export function createSimpleGraph(size: number) {
   return Array(size)

@@ -1,4 +1,6 @@
-export interface WeaponConfig {
+import { RangeConstraintConfig } from '../../services'
+
+export type WeaponConfig = {
   power?: number
-  range?: RangeConstraint
+  range?: RangeConstraintConfig
 }

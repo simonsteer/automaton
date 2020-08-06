@@ -1,4 +1,5 @@
 import { TerrainConfig } from './types'
+import { Unit } from '..'
 
 export default class Terrain {
   readonly id = Symbol()
