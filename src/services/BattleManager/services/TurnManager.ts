@@ -26,20 +26,14 @@ export default class TurnManager {
   getActionableUnits = () =>
     [...this.unitData].reduce(
       (acc, [pathfinder, { actionsTaken, maxActions }]) => {
-        if (actionsTaken >= maxActions) {
-          return acc
+        if (actionsTaken < maxActions && !pathfinder.unit.isDead) {
+          acc.push(
+            this.mapActionsToPathfinder(pathfinder, {
+              maxActions,
+              actionsTaken,
+            })
+          )
         }
-
-        if (pathfinder.unit.isDead) {
-          return acc
-        }
-
-        acc.push(
-          this.mapActionsToPathfinder(pathfinder, {
-            maxActions,
-            actionsTaken,
-          })
-        )
         return acc
       },
       [] as ReturnType<TurnManager['mapActionsToPathfinder']>[]
@@ -49,6 +43,7 @@ export default class TurnManager {
     pathfinder: Pathfinder,
     { actionsTaken, maxActions }: { actionsTaken: number; maxActions: number }
   ) => ({
+    unit: pathfinder.unit,
     pathfinder,
     actionsTaken,
     maxActions,
