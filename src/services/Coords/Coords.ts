@@ -44,7 +44,7 @@ export default class Coords {
   }
 
   outOfBounds = (grid: Grid) =>
-    this.x < 0 || this.x >= grid.size.x || this.y < 0 || this.y >= grid.size.y
+    this.x < 0 || this.y < 0 || this.x >= grid.size.x || this.y >= grid.size.y
 
   withinBounds = (grid: Grid) => !this.outOfBounds(grid)
 
