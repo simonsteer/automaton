@@ -8,7 +8,7 @@ const DEFAULT_END_CONDITION = (battle: BattleManager) =>
 
 type Regenerator = Generator<
   {
-    turn: number
+    turnIndex: number
     team: Team
     units: ReturnType<TurnManager['getActionableUnits']>
   },
@@ -18,7 +18,7 @@ type Regenerator = Generator<
 
 export default class BattleManager {
   private didStart = false
-  turn = -1
+  turnIndex = -1
   grid: Grid
   endCondition: BattleManagerCallback<boolean>
   regenerator?: ReturnType<BattleManager['start']>
@@ -40,10 +40,10 @@ export default class BattleManager {
   *start(): Regenerator {
     while (!this.didStart || this.inProgress) {
       if (!this.didStart) this.didStart = true
-      this.turn++
+      this.turnIndex++
       const turn = new TurnManager(this)
       this.regenerator = yield {
-        turn: this.turn,
+        turnIndex: this.turnIndex,
         team: turn.team,
         units: turn.getActionableUnits(),
       }

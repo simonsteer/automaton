@@ -8,8 +8,8 @@ import { Unit, Tile, Team } from '..'
 export default class Grid {
   readonly id = Symbol()
   graph: GridGraph
-  pathfinders = new Map<Unit, Pathfinder>()
-  coordinates = new Map<string, Unit>()
+  pathfinders = new Map<Symbol, Pathfinder>()
+  coordinates = new Map<string, Symbol>()
 
   constructor({
     graph,
@@ -48,7 +48,7 @@ export default class Grid {
 
   getTile = ({ x, y }: RawCoords) => this.graph[y]?.[x]?.tile
 
-  getPathfinder = (unit: Unit) => this.pathfinders.get(unit)
+  getPathfinder = (unitId: Symbol) => this.pathfinders.get(unitId)
 
   getPathfinders = (ids = [...this.pathfinders.keys()]) =>
     compact(ids.map(this.getPathfinder))
@@ -67,10 +67,10 @@ export default class Grid {
 
   addUnit = (unit: Unit, coordinates: RawCoords) => {
     this.pathfinders.set(
-      unit,
+      unit.id,
       new Pathfinder({ grid: this, unit, coordinates })
     )
-    this.coordinates.set(Coords.hash(coordinates), unit)
+    this.coordinates.set(Coords.hash(coordinates), unit.id)
     return this
   }
 
@@ -79,13 +79,17 @@ export default class Grid {
     return this
   }
 
-  removeUnit = (unit: Unit) => {
-    this.pathfinders.delete(unit)
+  removeUnit = (unitId: Symbol) => {
+    const pathfinder = this.pathfinders.get(unitId)
+    if (pathfinder) {
+      this.coordinates.delete(pathfinder.coordinates.hash)
+      this.pathfinders.delete(unitId)
+    }
     return this
   }
 
-  removeUnits = (units: Unit[]) => {
-    units.forEach(this.removeUnit)
+  removeUnits = (unitIds: Symbol[]) => {
+    unitIds.forEach(this.removeUnit)
     return this
   }
 

@@ -28,8 +28,8 @@ describe('BattleManager', () => {
   it('increments turns when iterated through', () => {
     const battle = new BattleManager(grid)
     const generator = battle.start()
-    expect(battle.turn).toBe(-1)
+    expect(battle.turnIndex).toBe(-1)
     const iterator = generator.next()
-    expect(iterator.value?.turn).toBe(0)
+    expect(iterator.value?.turnIndex).toBe(0)
   })
 })

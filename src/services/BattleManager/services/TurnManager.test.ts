@@ -20,7 +20,7 @@ describe('TurnManager', () => {
 
   const battle = new BattleManager(grid)
 
-  beforeEach(() => (battle.turn = 0))
+  beforeEach(() => (battle.turnIndex = 0))
 
   it('gets the correct units for each turn that passes', () => {
     const turn1 = new TurnManager(battle)
@@ -28,7 +28,7 @@ describe('TurnManager', () => {
     expect(unitsTurn1[0].pathfinder.unit.id).toBe(unit1.id)
     expect(unitsTurn1.length).toBe(1)
 
-    battle.turn++
+    battle.turnIndex++
 
     const turn2 = new TurnManager(battle)
     const unitsTurn2 = turn2.getActionableUnits()

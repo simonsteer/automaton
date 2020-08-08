@@ -158,14 +158,14 @@ export default class Team {
   }
 
   getPathfinders = (grid: Grid, recursive = false) => {
-    let units = [...this.units.keys()]
+    let units = [...this.units]
     if (recursive) {
       units = [...this.getChildren(true)].reduce((acc, team) => {
-        acc.push(...team.units.keys())
+        acc.push(...team.units)
         return acc
       }, units)
     }
-    return compact(units.map(unitId => grid.getPathfinder(unitId)))
+    return compact(units.map(unit => grid.getPathfinder(unit.id)))
   }
 
   getSize = (recursive = false) => {
