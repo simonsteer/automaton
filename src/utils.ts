@@ -1,10 +1,10 @@
-import Game from './entities/Game'
 import { RawCoords } from './services'
 import { Tile } from './entities'
+import { DEFAULT_TILE } from './defaults'
 
 export function createSimpleGraph(size: number) {
   return Array(size)
-    .fill(Game.defaults.tile)
+    .fill(DEFAULT_TILE)
     .map(t => Array(size).fill(t)) as Tile[][]
 }
 

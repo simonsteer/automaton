@@ -1,6 +1,5 @@
 import { SIMPLE_ORTHOGONAL_CONSTRAINT } from '../../recipes/constraints'
 import { UnitConfig } from './types'
-import Game from '../Game'
 import UnitMovement from '../../services/UnitMovement'
 import { Team, Weapon } from '..'
 
@@ -44,7 +43,7 @@ export default class Unit {
     if ('weapon' in rest) {
       this.weapon = rest.weapon
     } else {
-      this.weapon = Game.defaults.weapon
+      this.weapon = new Weapon()
     }
   }
 
