@@ -1,27 +1,40 @@
 import { TurnManager } from './services'
-import { Grid, Team } from '../../entities'
+import { Grid } from '../../entities'
+import { EventEmitter } from 'events'
+import { BattleEvents } from './types'
 
 type BattleManagerCallback<T = void> = (battle: BattleManager) => T
 
 const DEFAULT_END_CONDITION = (battle: BattleManager) =>
   battle.grid.getTeams().length === 1
 
-type Regenerator = Generator<
-  {
-    turnIndex: number
-    team: Team
-    units: ReturnType<TurnManager['getActionableUnits']>
-  },
-  null,
-  Regenerator
->
-
 export default class BattleManager {
-  private didStart = false
   turnIndex = -1
   grid: Grid
   endCondition: BattleManagerCallback<boolean>
-  regenerator?: ReturnType<BattleManager['start']>
+  private emitter = new EventEmitter()
+  private isDone = false
+
+  on<EventName extends keyof BattleEvents>(
+    event: EventName,
+    callback: BattleEvents[EventName]
+  ) {
+    this.emitter.on(event, callback)
+  }
+
+  off<EventName extends keyof BattleEvents>(
+    event: EventName,
+    callback: BattleEvents[EventName]
+  ) {
+    this.emitter.off(event, callback)
+  }
+
+  emit<EventName extends keyof BattleEvents>(
+    event: EventName,
+    ...args: Parameters<BattleEvents[EventName]>
+  ) {
+    this.emitter.emit(event, ...args)
+  }
 
   constructor(
     grid: Grid,
@@ -33,22 +46,30 @@ export default class BattleManager {
     this.endCondition = endCondition
   }
 
-  get inProgress() {
-    return this.didStart && !this.endCondition(this)
+  advance() {
+    if (this.isDone) {
+      return
+    }
+    if (this.turnIndex >= 0 && !this.inProgress) {
+      this.isDone = true
+      this.emit('battleEnd')
+      return
+    }
+    if (this.turnIndex === -1) this.emit('battleStart')
+    this.emit('nextTurn', this.getNextTurn())
   }
 
-  *start(): Regenerator {
-    while (!this.didStart || this.inProgress) {
-      if (!this.didStart) this.didStart = true
-      this.turnIndex++
-      const turn = new TurnManager(this)
-      this.regenerator = yield {
-        turnIndex: this.turnIndex,
-        team: turn.team,
-        units: turn.getActionableUnits(),
-      }
-    }
+  get inProgress() {
+    return this.turnIndex !== -1 && !this.endCondition(this)
+  }
 
-    return null
+  private getNextTurn = () => {
+    this.turnIndex++
+    const turn = new TurnManager(this)
+    return {
+      turnIndex: this.turnIndex,
+      team: turn.team,
+      actionableUnits: turn.getActionableUnits(),
+    }
   }
 }

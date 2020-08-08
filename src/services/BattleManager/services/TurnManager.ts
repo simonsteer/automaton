@@ -7,7 +7,6 @@ export type ActionableUnit = ReturnType<TurnManager['mapActionsToPathfinder']>
 export default class TurnManager {
   battle: BattleManager
   team: Team
-  actionableUnits: ActionableUnit[]
 
   private unitData = new Map<
     Pathfinder,
@@ -16,53 +15,27 @@ export default class TurnManager {
 
   constructor(battle: BattleManager) {
     this.battle = battle
-    const teams = battle.grid.getTeams()
+    const teams = this.battle.grid.getTeams()
     this.team = teams[battle.turnIndex % teams.length]
-    this.team.getPathfinders(this.battle.grid).forEach(pathfinder =>
-      this.unitData.set(pathfinder, {
-        actionsTaken: 0,
-        maxActions: pathfinder.unit.actions,
-      })
-    )
-    this.actionableUnits = this.getActionableUnits()
+
+    this.battle.grid.on('addUnits', pathfinders => {
+      const didTeamUnitsChange = pathfinders.reduce((acc, pathfinder) => {
+        if (pathfinder.unit.team.id === this.team.id) {
+          acc = true
+          this.initUnitData(pathfinder)
+        }
+        return acc
+      }, false)
+
+      if (didTeamUnitsChange)
+        this.battle.emit('actionableUnitsChanged', this.getActionableUnits())
+    })
+
+    this.team.getPathfinders(this.battle.grid).forEach(this.initUnitData)
   }
 
-  restoreUnitActions(
-    identifier: Symbol | Pathfinder | Unit,
-    numActionsToRestore: number
-  ) {
-    let pathfinder: undefined | Pathfinder
-    if (typeof identifier === 'symbol')
-      pathfinder = this.battle.grid.getPathfinder(identifier)
-    else if (identifier instanceof Unit)
-      pathfinder = this.battle.grid.getPathfinder(identifier.id)
-    else if (identifier instanceof Pathfinder) pathfinder = identifier
-
-    if (pathfinder)
-      Array(numActionsToRestore)
-        .fill(0)
-        .forEach(() => this.decrementActionsTaken(pathfinder!))
-
-    this.bustActionableUnitsCache()
-    return this
-  }
-
-  getActionableUnits = (): ActionableUnit[] => {
-    if (!this.actionableUnits) {
-      this.bustActionableUnitsCache()
-    }
-    return this.actionableUnits
-  }
-
-  private updateActionableUnits = () => {
-    this.actionableUnits = this.actionableUnits.filter(
-      ({ maxActions, actionsTaken }) => actionsTaken < maxActions
-    )
-    return this.actionableUnits
-  }
-
-  private bustActionableUnitsCache = () => {
-    this.actionableUnits = [...this.unitData].reduce(
+  getActionableUnits = (): ActionableUnit[] =>
+    [...this.unitData].reduce(
       (acc, [pathfinder, { actionsTaken, maxActions }]) => {
         if (actionsTaken < maxActions && !pathfinder.unit.isDead) {
           acc.push(this.mapActionsToPathfinder(this, pathfinder))
@@ -71,7 +44,6 @@ export default class TurnManager {
       },
       [] as ReturnType<TurnManager['mapActionsToPathfinder']>[]
     )
-  }
 
   private mapActionsToPathfinder = (
     turn: TurnManager,
@@ -86,48 +58,43 @@ export default class TurnManager {
       return turn.unitData.get(pathfinder)!.maxActions
     },
     actions: {
-      move: this.createAction(this, pathfinder, pathfinder.move),
-      engage: this.createAction(this, pathfinder, (otherUnit: Unit) =>
+      move: this.createAction(pathfinder, pathfinder.move),
+      engage: this.createAction(pathfinder, (otherUnit: Unit) =>
         new ConflictManager(pathfinder.unit, otherUnit).process()
       ),
-      wait: this.createAction(this, pathfinder, () => {
+      wait: this.createAction(pathfinder, () => {
         const unitData = this.unitData.get(pathfinder)
         if (unitData) {
           unitData.actionsTaken = unitData.maxActions - 1
         }
       }),
       custom: <M>(callback: () => M) => {
-        return this.createAction(this, pathfinder, callback)()
+        return this.createAction(pathfinder, callback)()
       },
     },
   })
 
   private createAction = <Callback extends (...args: any) => any>(
-    ctx: TurnManager,
     pathfinder: Pathfinder,
     callback: Callback
   ) => (...args: Parameters<Callback>) => {
-    const sideEffect = callback(...args) as ReturnType<Callback>
     this.incrementActionsTaken(pathfinder)
-    this.updateActionableUnits()
-
-    return {
-      endTurn: () =>
-        this.battle.regenerator?.next(this.battle.regenerator).value,
-      get actionableUnits() {
-        return ctx.getActionableUnits()
-      },
-      sideEffect,
-    }
+    this.battle.emit(
+      'actionableUnitChanged',
+      pathfinder.unit.id,
+      this.mapActionsToPathfinder(this, pathfinder)
+    )
+    return callback(...args) as ReturnType<Callback>
   }
+
+  private initUnitData = (pathfinder: Pathfinder) =>
+    this.unitData.set(pathfinder, {
+      actionsTaken: 0,
+      maxActions: pathfinder.unit.actions,
+    })
 
   private incrementActionsTaken = (pathfinder: Pathfinder) => {
     const unitData = this.unitData.get(pathfinder)
     if (unitData) unitData.actionsTaken++
-  }
-
-  private decrementActionsTaken = (pathfinder: Pathfinder) => {
-    const unitData = this.unitData.get(pathfinder)
-    if (unitData) unitData.actionsTaken--
   }
 }

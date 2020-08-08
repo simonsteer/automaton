@@ -15,14 +15,4 @@ export default class Game {
     tile: defaultTile,
     weapon: defaultWeapon,
   }
-
-  startBattle = (grid: Grid) => {
-    return this.__startBattle(grid).value
-  }
-
-  private __startBattle(grid: Grid) {
-    const battle = new BattleManager(grid)
-    const generator = battle.start()
-    return generator.next(generator)
-  }
 }

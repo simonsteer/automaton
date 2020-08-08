@@ -1,15 +1,38 @@
 import compact from 'lodash/compact'
-import { GridGraph, GridVectorData } from './types'
+import { GridGraph, GridVectorData, GridEvents } from './types'
 import { mapGraph } from '../../utils'
 import Pathfinder from '../../services/Pathfinder'
 import Coords, { RawCoords } from '../../services/Coords'
 import { Unit, Tile, Team } from '..'
+import { EventEmitter } from 'events'
 
 export default class Grid {
   readonly id = Symbol()
   graph: GridGraph
   pathfinders = new Map<Symbol, Pathfinder>()
   coordinates = new Map<string, Symbol>()
+  private emitter = new EventEmitter()
+
+  on<EventName extends keyof GridEvents>(
+    event: EventName,
+    callback: GridEvents[EventName]
+  ) {
+    this.emitter.on(event, callback)
+  }
+
+  off<EventName extends keyof GridEvents>(
+    event: EventName,
+    callback: GridEvents[EventName]
+  ) {
+    this.emitter.off(event, callback)
+  }
+
+  private emit<EventName extends keyof GridEvents>(
+    event: EventName,
+    ...args: Parameters<GridEvents[EventName]>
+  ) {
+    this.emitter.emit(event, ...args)
+  }
 
   constructor({
     graph,
@@ -65,36 +88,50 @@ export default class Grid {
   getUnits = (ids = [...this.pathfinders.keys()]) =>
     this.getPathfinders(ids).map(p => p.unit)
 
-  addUnit = (unit: Unit, coordinates: RawCoords) => {
-    this.pathfinders.set(
-      unit.id,
-      new Pathfinder({ grid: this, unit, coordinates })
-    )
+  private addUnit = (
+    unit: Unit,
+    coordinates: RawCoords
+  ): [false, undefined] | [true, Pathfinder] => {
+    if (this.pathfinders.get(unit.id)) {
+      return [false, undefined]
+    }
+    const pathfinder = new Pathfinder({ grid: this, unit, coordinates })
+    this.pathfinders.set(unit.id, pathfinder)
     this.coordinates.set(Coords.hash(coordinates), unit.id)
-    return this
+    return [true, pathfinder]
   }
 
   addUnits = (units: [Unit, RawCoords][]) => {
-    units.forEach(args => this.addUnit(...args))
+    this.emit(
+      'addUnits',
+      units
+        .map(args => this.addUnit(...args))
+        .filter(([success]) => success)
+        .map(([_, pathfinder]) => pathfinder!)
+    )
     return this
   }
 
-  removeUnit = (unitId: Symbol) => {
+  private removeUnit = (unitId: Symbol) => {
     const pathfinder = this.pathfinders.get(unitId)
     if (pathfinder) {
       this.coordinates.delete(pathfinder.coordinates.hash)
       this.pathfinders.delete(unitId)
     }
-    return this
+    return [unitId, !!pathfinder] as const
   }
 
   removeUnits = (unitIds: Symbol[]) => {
-    unitIds.forEach(this.removeUnit)
+    const results = unitIds.map(this.removeUnit)
+    this.emit(
+      'removeUnits',
+      results.filter(([_, success]) => success).map(([id]) => id)
+    )
     return this
   }
 
   clear = () => {
-    this.pathfinders.clear()
+    this.removeUnits([...this.pathfinders.keys()])
     return this
   }
 

@@ -183,7 +183,7 @@ describe('Pathfinder', () => {
       const graph = createSimpleGraph(5)
       graph[1][1] = new Tile(terrain)
       graph[1][2] = new Tile(terrain)
-      const grid = new Grid({ graph }).addUnit(unit, { x: 0, y: 0 })
+      const grid = new Grid({ graph }).addUnits([[unit, { x: 0, y: 0 }]])
 
       //  __ __ __ __ __
       // |U_|__|__|__|__|
@@ -220,7 +220,7 @@ describe('Pathfinder', () => {
       const terrain = new Terrain({ cost: () => 2 })
       const graph = createSimpleGraph(5)
       graph[1][3] = new Tile(terrain)
-      const grid = new Grid({ graph }).addUnit(unit, { x: 0, y: 0 })
+      const grid = new Grid({ graph }).addUnits([[unit, { x: 0, y: 0 }]])
 
       //  __ __ __ __ __
       // |U_|__|__|__|__|

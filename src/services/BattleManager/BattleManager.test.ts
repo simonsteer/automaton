@@ -20,16 +20,14 @@ describe('BattleManager', () => {
   it('can correctly tell when the battle has started', () => {
     const battle = new BattleManager(grid)
     expect(battle.inProgress).toBe(false)
-    const generator = battle.start()
-    generator.next()
+    battle.advance()
     expect(battle.inProgress).toBe(true)
   })
 
   it('increments turns when iterated through', () => {
     const battle = new BattleManager(grid)
-    const generator = battle.start()
     expect(battle.turnIndex).toBe(-1)
-    const iterator = generator.next()
-    expect(iterator.value?.turnIndex).toBe(0)
+    battle.advance()
+    expect(battle.turnIndex).toBe(0)
   })
 })

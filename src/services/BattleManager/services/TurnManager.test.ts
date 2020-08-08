@@ -25,14 +25,13 @@ describe('TurnManager', () => {
   it('gets the correct units for each turn that passes', () => {
     const turn1 = new TurnManager(battle)
     const unitsTurn1 = turn1.getActionableUnits()
-    expect(unitsTurn1[0].pathfinder.unit.id).toBe(unit1.id)
+    expect(unitsTurn1[0].unit.id).toBe(unit1.id)
     expect(unitsTurn1.length).toBe(1)
 
     battle.turnIndex++
-
     const turn2 = new TurnManager(battle)
     const unitsTurn2 = turn2.getActionableUnits()
-    expect(unitsTurn2[0].pathfinder.unit.id).toBe(unit2.id)
+    expect(unitsTurn2[0].unit.id).toBe(unit2.id)
     expect(unitsTurn2.length).toBe(1)
   })
 
@@ -40,34 +39,14 @@ describe('TurnManager', () => {
     const turn = new TurnManager(battle)
 
     let units = turn.getActionableUnits()
+    expect(turn.getActionableUnits().length).toBe(1)
 
     expect(units[0].actionsTaken).toBe(0)
-    let nextState = units[0].actions.custom(() => {})
-    units = nextState.actionableUnits
-
+    units[0].actions.custom(() => {})
     expect(units[0].actionsTaken).toBe(1)
-    nextState = units[0].actions.custom(() => {})
-    units = nextState.actionableUnits
+    units[0].actions.custom(() => {})
+    expect(units[0].actionsTaken).toBe(2)
 
-    expect(units.length).toBe(0)
-  })
-
-  it('allows users to pass in custom actions with custom side effects', () => {
-    const turn = new TurnManager(battle)
-    const units = turn.getActionableUnits()
-
-    let count = 0
-    const increment = () => {
-      count++
-      return count % 2 === 0
-    }
-
-    let nextState = units[0].actions.custom(increment)
-    expect(count).toBe(1)
-    expect(nextState.sideEffect).toBe(false)
-
-    nextState = nextState.actionableUnits[0].actions.custom(increment)
-    expect(count).toBe(2)
-    expect(nextState.sideEffect).toBe(true)
+    expect(turn.getActionableUnits().length).toBe(0)
   })
 })
