@@ -52,7 +52,7 @@ export default class ConflictManager {
     return actions
   }
 
-  private processTurn = (unitA: Unit, unitB: Unit) => {
+  processTurn = (unitA: Unit, unitB: Unit) => {
     const didHit = this.calculators.accuracy(unitA, unitB) > Math.random()
 
     let damageDealt = didHit ? this.calculators.damage(unitA, unitB) : 0

@@ -13,7 +13,7 @@ export default class BattleManager {
   grid: Grid
   endCondition: BattleManagerCallback<boolean>
   private emitter = new EventEmitter()
-  private isDone = false
+  isDone = false
 
   on<EventName extends keyof BattleEvents>(
     event: EventName,
@@ -63,7 +63,7 @@ export default class BattleManager {
     return this.turnIndex !== -1 && !this.endCondition(this)
   }
 
-  private getNextTurn = () => {
+  getNextTurn = () => {
     this.turnIndex++
     const turn = new TurnManager(this)
     return {

@@ -45,10 +45,7 @@ export default class TurnManager {
       [] as ReturnType<TurnManager['mapActionsToPathfinder']>[]
     )
 
-  private mapActionsToPathfinder = (
-    turn: TurnManager,
-    pathfinder: Pathfinder
-  ) => ({
+  mapActionsToPathfinder = (turn: TurnManager, pathfinder: Pathfinder) => ({
     unit: pathfinder.unit,
     pathfinder,
     get actionsTaken() {
@@ -74,7 +71,7 @@ export default class TurnManager {
     },
   })
 
-  private createAction = <Callback extends (...args: any) => any>(
+  createAction = <Callback extends (...args: any) => any>(
     pathfinder: Pathfinder,
     callback: Callback
   ) => (...args: Parameters<Callback>) => {
@@ -87,14 +84,14 @@ export default class TurnManager {
     return callback(...args) as ReturnType<Callback>
   }
 
+  private incrementActionsTaken = (pathfinder: Pathfinder) => {
+    const unitData = this.unitData.get(pathfinder)
+    if (unitData) unitData.actionsTaken++
+  }
+
   private initUnitData = (pathfinder: Pathfinder) =>
     this.unitData.set(pathfinder, {
       actionsTaken: 0,
       maxActions: pathfinder.unit.actions,
     })
-
-  private incrementActionsTaken = (pathfinder: Pathfinder) => {
-    const unitData = this.unitData.get(pathfinder)
-    if (unitData) unitData.actionsTaken++
-  }
 }

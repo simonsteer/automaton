@@ -4,11 +4,11 @@ import { Unit, Grid } from '..'
 
 export default class Team {
   readonly id = Symbol()
-  private hostile = new Set<Team>()
-  private friendly = new Set<Team>()
-  private parent?: Team
-  private units = new Set<Unit>()
-  private children = new Set<Team>()
+  hostile = new Set<Team>()
+  friendly = new Set<Team>()
+  parent?: Team
+  units = new Set<Unit>()
+  children = new Set<Team>()
 
   constructor(
     {
@@ -234,7 +234,7 @@ export default class Team {
   }
 
   /*
-  The methods below are intentionally private and unused in this class
+  The methods below are intentionally and unused in this class
   
   Unit.ts accesses these methods using strings as indexes. This is because
   units need to be aware of these methods for the purpose of updating what
@@ -243,11 +243,11 @@ export default class Team {
   inconsistent game data.
   */
 
-  private __addUnit = (unit: Unit) => {
+  __addUnit = (unit: Unit) => {
     this.units.add(unit)
     return this
   }
-  private __removeUnit = (unit: Unit) => {
+  __removeUnit = (unit: Unit) => {
     this.units.delete(unit)
     return this
   }

@@ -27,7 +27,7 @@ export default class Grid {
     this.emitter.off(event, callback)
   }
 
-  private emit<EventName extends keyof GridEvents>(
+  emit<EventName extends keyof GridEvents>(
     event: EventName,
     ...args: Parameters<GridEvents[EventName]>
   ) {
