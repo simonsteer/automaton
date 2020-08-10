@@ -76,12 +76,12 @@ export default class TurnManager {
     callback: Callback
   ) => (...args: Parameters<Callback>) => {
     this.incrementActionsTaken(pathfinder)
+    const result = callback(...args) as ReturnType<Callback>
     this.battle.emit(
       'actionableUnitChanged',
-      pathfinder.unit.id,
       this.mapActionsToPathfinder(this, pathfinder)
     )
-    return callback(...args) as ReturnType<Callback>
+    return result
   }
 
   private incrementActionsTaken = (pathfinder: Pathfinder) => {

@@ -10,7 +10,6 @@ export type BattleEvents = {
     actionableUnits,
   }: ReturnType<BattleManager['getNextTurn']>) => void
   actionableUnitChanged: (
-    id: Symbol,
     actionableUnit: ReturnType<TurnManager['mapActionsToPathfinder']>
   ) => void
   actionableUnitsChanged: (actionableUnits: ActionableUnit[]) => void

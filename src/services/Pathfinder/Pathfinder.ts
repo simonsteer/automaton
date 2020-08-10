@@ -35,7 +35,7 @@ export default class Pathfinder {
       return []
     }
 
-    return path.reduce(
+    const result = path.reduce(
       (acc, coordinates, index) => {
         if (acc.abort || this.unit.isDead) {
           return acc
@@ -75,6 +75,12 @@ export default class Pathfinder {
       },
       { path: [] as RawCoords[], abort: false }
     ).path
+
+    if (result.length) {
+      this._coordinates.update(result[result.length - 1])
+    }
+
+    return result
   }
 
   getRoute = (toCoords: RawCoords) => {

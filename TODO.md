@@ -1,3 +1,2 @@
 - Make Pathfinder respect whether a unit can be passed through or not when calculating routes
-- Write more unit tests for Pathfinder class to cover edge cases
-- Write tests for RangeConstraint
+- Refactor to no longer use event emitters (BattleManager, Grid)
