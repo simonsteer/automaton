@@ -15,8 +15,8 @@ export type ConstraintMergeStrategy = 'union' | 'intersect' | 'difference'
 
 export type RangeConstraintConfig = {
   constraints: ConstraintConfig[]
-  preMerge?: RangeConstraint['preMerge']
   mergeStrategy: ConstraintMergeStrategy
   steps: number
   canPassThroughUnit: (otherUnit: Unit) => boolean
+  unitPassThroughLimit: number
 }

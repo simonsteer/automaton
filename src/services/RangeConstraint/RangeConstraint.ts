@@ -10,20 +10,20 @@ export default class RangeConstraint {
   mergeStrategy: ConstraintMergeStrategy
   steps: number
   canPassThroughUnit: TileInteractionCallback<boolean>
-  preMerge?: (coordinateHashes: Coords[]) => Coords[]
+  unitPassThroughLimit: number
 
   constructor({
     constraints = [],
     mergeStrategy = 'union',
     steps = 1,
-    preMerge,
     canPassThroughUnit = () => false,
+    unitPassThroughLimit = Infinity,
   }: Partial<RangeConstraintConfig>) {
     this.constraints = constraints.map(config => new Constraint(config))
-    if (preMerge) this.preMerge = preMerge
     this.mergeStrategy = mergeStrategy
     this.steps = steps
     this.canPassThroughUnit = canPassThroughUnit
+    this.unitPassThroughLimit = unitPassThroughLimit
   }
 
   buildPathfinderGraph = (grid: Grid) =>
@@ -37,19 +37,15 @@ export default class RangeConstraint {
 
   getReachableCoordinates = (pathfinder: Pathfinder) =>
     this.mergeReachableCoordinates(
-      ...this.constraints.map(constraint => {
-        const hashes = this.getReachableCoordinatesForConstraint({
+      ...this.constraints.map(constraint =>
+        this.getReachableCoordinatesForConstraint({
           unit: pathfinder.unit,
           grid: pathfinder.grid,
           constraint,
           fromCoords: pathfinder.coordinates,
           stepsLeft: this.steps,
         })
-        if (this.preMerge) {
-          return this.preMerge(Coords.parseMany(hashes)).map(Coords.hash)
-        }
-        return hashes
-      })
+      )
     )
 
   adjacent = (fromCoords: Coords) => [
@@ -82,6 +78,7 @@ export default class RangeConstraint {
       stepsLeft: number
     },
     accumulator = {
+      passThroughCount: 0,
       accessible: new Set<string>(),
       inaccessible: new Set<string>(),
     }
@@ -90,7 +87,11 @@ export default class RangeConstraint {
       .adjacent(fromCoords)
       .filter(grid.withinBounds)
       .reduce((acc, coordinates) => {
-        if (stepsLeft === 0 || acc.inaccessible.has(fromCoords.hash)) {
+        if (
+          stepsLeft === 0 ||
+          acc.inaccessible.has(fromCoords.hash) ||
+          acc.passThroughCount >= this.unitPassThroughLimit
+        ) {
           return acc
         }
 
@@ -99,9 +100,12 @@ export default class RangeConstraint {
         const tileUnit = tileData.pathfinder?.unit
 
         if (movementCost > stepsLeft) return acc
-        if (tileUnit && !this.canPassThroughUnit(tileUnit)) {
-          acc.inaccessible.add(coordinates.hash)
-          return acc
+        if (tileUnit && tileUnit.id !== unit.id) {
+          if (!this.canPassThroughUnit(tileUnit)) {
+            acc.inaccessible.add(coordinates.hash)
+            return acc
+          }
+          acc.passThroughCount++
         }
 
         acc.accessible.add(coordinates.hash)

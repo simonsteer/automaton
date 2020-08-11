@@ -20,6 +20,7 @@ export default class Unit {
       steps = 1,
       canPassThroughUnit = ({ team }: Unit) =>
         team.isFriendly(this.team) || team.isNeutral(this.team),
+      unitPassThroughLimit,
     } = {},
     health = 1,
     team,
@@ -37,11 +38,12 @@ export default class Unit {
       steps,
       canPassThroughUnit,
       mergeStrategy,
+      unitPassThroughLimit,
     })
     this.maxHealth = health
     this.currentHealth = this.maxHealth
     if ('weapon' in rest) {
-      this.weapon = new Weapon(rest.weapon)
+      if (rest.weapon !== undefined) this.weapon = new Weapon(rest.weapon)
     } else {
       this.weapon = new Weapon()
     }

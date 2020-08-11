@@ -14,6 +14,7 @@ export default class Weapon {
         constraints: [SIMPLE_ORTHOGONAL_CONSTRAINT],
         mergeStrategy: 'union',
         steps: 1,
+        unitPassThroughLimit: 1,
       },
     } = {} as WeaponConfig
   ) {
