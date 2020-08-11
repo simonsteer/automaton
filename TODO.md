@@ -1,2 +1,2 @@
 - Make Pathfinder respect whether a unit can be passed through or not when calculating routes
-- Refactor to no longer use event emitters (BattleManager, Grid)
+- Refactor to no longer use event emitters (?) (BattleManager, Grid)
