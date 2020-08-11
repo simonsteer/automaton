@@ -1,5 +1,6 @@
-import { RawCoords } from '../Coords'
+import Coords, { RawCoords } from '../Coords'
 import { Unit } from '../../entities'
+import { RangeConstraint } from '..'
 
 export type RangeConstraintException = (coordinates: RawCoords) => boolean
 
@@ -14,6 +15,7 @@ export type ConstraintMergeStrategy = 'union' | 'intersect' | 'difference'
 
 export type RangeConstraintConfig = {
   constraints: ConstraintConfig[]
+  preMerge?: RangeConstraint['preMerge']
   mergeStrategy: ConstraintMergeStrategy
   steps: number
   canPassThroughUnit: (otherUnit: Unit) => boolean

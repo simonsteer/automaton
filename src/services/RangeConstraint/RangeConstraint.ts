@@ -10,14 +10,17 @@ export default class RangeConstraint {
   mergeStrategy: ConstraintMergeStrategy
   steps: number
   canPassThroughUnit: TileInteractionCallback<boolean>
+  preMerge?: (coordinateHashes: Coords[]) => Coords[]
 
   constructor({
     constraints = [],
     mergeStrategy = 'union',
     steps = 1,
+    preMerge,
     canPassThroughUnit = () => false,
   }: Partial<RangeConstraintConfig>) {
     this.constraints = constraints.map(config => new Constraint(config))
+    if (preMerge) this.preMerge = preMerge
     this.mergeStrategy = mergeStrategy
     this.steps = steps
     this.canPassThroughUnit = canPassThroughUnit
@@ -34,15 +37,19 @@ export default class RangeConstraint {
 
   getReachableCoordinates = (pathfinder: Pathfinder) =>
     this.mergeReachableCoordinates(
-      ...this.constraints.map(constraint =>
-        this.getReachableCoordinatesForConstraint({
+      ...this.constraints.map(constraint => {
+        const hashes = this.getReachableCoordinatesForConstraint({
           unit: pathfinder.unit,
           grid: pathfinder.grid,
           constraint,
           fromCoords: pathfinder.coordinates,
           stepsLeft: this.steps,
         })
-      )
+        if (this.preMerge) {
+          return this.preMerge(Coords.parseMany(hashes)).map(Coords.hash)
+        }
+        return hashes
+      })
     )
 
   adjacent = (fromCoords: Coords) => [
