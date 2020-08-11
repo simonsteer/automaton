@@ -3,9 +3,10 @@ import Graph from './Dijkstra/Graph'
 import { Grid, Unit } from '../../entities'
 
 export default class Pathfinder {
+  timestamp: number
   readonly grid: Grid
   readonly unit: Unit
-  readonly graph: Graph
+  graph!: Graph
   private _coordinates: Coords
 
   constructor({
@@ -17,10 +18,11 @@ export default class Pathfinder {
     unit: Unit
     coordinates: RawCoords
   }) {
+    this.timestamp = grid.timestamp
     this.grid = grid
     this.unit = unit
     this._coordinates = new Coords(coordinates)
-    this.graph = this.unit.movement.buildPathfinderGraph(this.grid)
+    this.initGraph()
   }
 
   get coordinates() {
@@ -77,6 +79,7 @@ export default class Pathfinder {
     ).path
 
     if (result.length) {
+      this.grid.timestamp++
       this._coordinates.update(result[result.length - 1])
     }
 
@@ -84,6 +87,7 @@ export default class Pathfinder {
   }
 
   getRoute = (toCoords: RawCoords) => {
+    this.checkCache()
     const result = this.graph.path(
       this.unit,
       this.coordinates.hash,
@@ -107,4 +111,15 @@ export default class Pathfinder {
         otherTeam?.isWildcard(this.unit.team)
       )
     }) || []
+
+  private checkCache() {
+    if (this.timestamp !== this.grid.timestamp) {
+      this.initGraph()
+      this.timestamp = this.grid.timestamp
+    }
+  }
+
+  private initGraph() {
+    this.graph = this.unit.movement.buildPathfinderGraph(this.grid)
+  }
 }

@@ -7,6 +7,7 @@ import { Unit, Tile, Team } from '..'
 import { EventEmitter } from 'events'
 
 export default class Grid {
+  timestamp = Date.now()
   readonly id = Symbol()
   graph: GridGraph
   pathfinders = new Map<Symbol, Pathfinder>()
@@ -17,14 +18,14 @@ export default class Grid {
     event: EventName,
     callback: GridEvents[EventName]
   ) {
-    this.emitter.on(event, callback)
+    this.emitter.addListener(event, callback)
   }
 
   off<EventName extends keyof GridEvents>(
     event: EventName,
     callback: GridEvents[EventName]
   ) {
-    this.emitter.off(event, callback)
+    this.emitter.removeListener(event, callback)
   }
 
   emit<EventName extends keyof GridEvents>(
