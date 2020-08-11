@@ -80,7 +80,13 @@ export default class Pathfinder {
 
     if (result.length) {
       this.grid.timestamp++
+
+      const oldHash = this._coordinates.hash
       this._coordinates.update(result[result.length - 1])
+      const newHash = this._coordinates.hash
+
+      this.grid.coordinates.delete(oldHash)
+      this.grid.coordinates.set(newHash, this.unit.id)
     }
 
     return result
