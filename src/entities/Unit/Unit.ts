@@ -1,12 +1,12 @@
 import { SIMPLE_ORTHOGONAL_CONSTRAINT } from '../../recipes/constraints'
 import { UnitConfig } from './types'
-import UnitMovement from '../../services/UnitMovement'
 import { Team, Weapon } from '..'
+import { RangeConstraint } from '../../services'
 
 export default class Unit {
   readonly id = Symbol()
   _team!: Team
-  movement: UnitMovement
+  movement: RangeConstraint
   actions: number
   maxHealth: number
   currentHealth: number
@@ -32,7 +32,7 @@ export default class Unit {
     }
     this.setTeam(team)
     this.actions = actions
-    this.movement = new UnitMovement({
+    this.movement = new RangeConstraint({
       constraints,
       steps,
       canPassThroughUnit,
@@ -41,7 +41,7 @@ export default class Unit {
     this.maxHealth = health
     this.currentHealth = this.maxHealth
     if ('weapon' in rest) {
-      this.weapon = rest.weapon
+      this.weapon = new Weapon(rest.weapon)
     } else {
       this.weapon = new Weapon()
     }

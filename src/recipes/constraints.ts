@@ -1,6 +1,6 @@
-import { RangeConstraintConfig } from '../services/RangeConstraint/types'
+import { ConstraintConfig } from '../services/RangeConstraint/types'
 
-export const SIMPLE_ORTHOGONAL_CONSTRAINT: RangeConstraintConfig = {
+export const SIMPLE_ORTHOGONAL_CONSTRAINT: ConstraintConfig = {
   offsets: {
     x: [[-1, 1]],
     y: [[-1, 1]],
@@ -8,14 +8,14 @@ export const SIMPLE_ORTHOGONAL_CONSTRAINT: RangeConstraintConfig = {
   exceptions: [({ x, y }) => Math.abs(x) !== Math.abs(y)],
 }
 
-export const SIMPLE_DIAGONAL_CONSTRAINT: RangeConstraintConfig = {
+export const SIMPLE_DIAGONAL_CONSTRAINT: ConstraintConfig = {
   offsets: {
     x: [-1, 1],
     y: [-1, 1],
   },
 }
 
-export const SIMPLE_PANORAMIC_CONSTRAINT: RangeConstraintConfig = {
+export const SIMPLE_PANORAMIC_CONSTRAINT: ConstraintConfig = {
   offsets: {
     x: [[-1, 1]],
     y: [[-1, 1]],

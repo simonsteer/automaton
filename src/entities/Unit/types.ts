@@ -1,10 +1,11 @@
-import { UnitMovementConfig } from '../../services/UnitMovement/types'
-import { Team, Weapon } from '..'
+import { RangeConstraintConfig } from '../../services/RangeConstraint/types'
+import { Team } from '..'
+import { WeaponConfig } from '../Weapon/types'
 
 export interface UnitConfig {
   team: Team
-  movement?: Partial<UnitMovementConfig>
+  movement?: Partial<RangeConstraintConfig>
   health?: number
   actions?: number
-  weapon?: Weapon
+  weapon?: WeaponConfig
 }

@@ -3,7 +3,7 @@ import { GraphNodeMap } from '../Pathfinder/Dijkstra/types'
 import Terrain from '../../entities/Terrain'
 import { Coords } from '..'
 
-describe('UnitMovement/utils', () => {
+describe('RangeConstraint/utils', () => {
   describe('GraphNodeMap merge strategies', () => {
     const terrain = new Terrain()
     const map1: GraphNodeMap = {

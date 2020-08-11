@@ -1,76 +1,117 @@
-import range from 'lodash/range'
-import { RangeConstraintConfig } from './types'
-import Coords from '../Coords'
-import { GraphNodeNeighbour, GraphNodeMap } from '../Pathfinder/Dijkstra/types'
-import { Grid } from '../../entities'
+import { Pathfinder, Coords } from '..'
+import { TileInteractionCallback, Grid, Unit } from '../../entities'
+import { graphMergeStrategies, coordinatesHashesMergeStrategies } from './utils'
+import Graph from '../Pathfinder/Dijkstra/Graph'
+import { RangeConstraintConfig, ConstraintMergeStrategy } from './types'
+import Constraint from './Constraint'
 
 export default class RangeConstraint {
-  private constraint: RangeConstraintConfig
-  private offsets = {
-    x: new Set<number>(),
-    y: new Set<number>(),
+  constraints: Constraint[]
+  mergeStrategy: ConstraintMergeStrategy
+  steps: number
+  canPassThroughUnit: TileInteractionCallback<boolean>
+
+  constructor({
+    constraints = [],
+    mergeStrategy = 'union',
+    steps = 1,
+    canPassThroughUnit = () => false,
+  }: Partial<RangeConstraintConfig>) {
+    this.constraints = constraints.map(config => new Constraint(config))
+    this.mergeStrategy = mergeStrategy
+    this.steps = steps
+    this.canPassThroughUnit = canPassThroughUnit
   }
 
-  constructor(constraint: RangeConstraintConfig) {
-    this.constraint = constraint
-    this.offsets = this.buildOffsets()
-  }
-
-  /**
-   * get coordinates considered adjacent to the coordinates passed in
-   */
-  adjacent = (coordsA: Coords) => {
-    const coordinates: string[] = []
-    for (const xOffset of this.offsets.x) {
-      for (const yOffset of this.offsets.y) {
-        const coordsB = {
-          x: coordsA.x + xOffset,
-          y: coordsA.y + yOffset,
-        }
-        const deltas = coordsA.deltas(coordsB)
-        if (
-          !this.constraint.exceptions ||
-          this.constraint.exceptions.every(exception => exception(deltas))
-        ) {
-          coordinates.push(Coords.hash(coordsB))
-        }
-      }
-    }
-    return coordinates.map(hash => Coords.parse(hash))
-  }
-
-  buildPathfinderGraph = (grid: Grid) => {
-    const graph: GraphNodeMap = {}
-
-    grid.mapTiles(tile => {
-      const nodeNeighbour = this.adjacent(tile.coords).reduce((acc, coords) => {
-        if (coords.withinBounds(grid)) {
-          if (!acc) acc = {}
-          const neighbour = grid.graph[coords.y][coords.x]
-          acc[coords.hash] = neighbour.tile.terrain
-        }
-        return acc
-      }, undefined as undefined | GraphNodeNeighbour)
-      if (nodeNeighbour) graph[tile.coords.hash] = nodeNeighbour
-    })
-
-    return graph
-  }
-
-  private buildOffsets = () =>
-    (['x', 'y'] as const).reduce(
-      (acc, key) => {
-        this.constraint.offsets[key].forEach(offset => {
-          const offsetRange = Array.isArray(offset)
-            ? range(offset[0], offset[1] + 1)
-            : [offset]
-
-          offsetRange.forEach(value =>
-            acc[key as keyof RangeConstraintConfig['offsets']].add(value)
-          )
-        })
-        return acc
-      },
-      { x: new Set<number>(), y: new Set<number>() }
+  buildPathfinderGraph = (grid: Grid) =>
+    new Graph(
+      this.mergeGraph(
+        ...this.constraints.map(constraint =>
+          constraint.buildPathfinderGraph(grid)
+        )
+      )
     )
+
+  getReachableCoordinates = (pathfinder: Pathfinder) =>
+    this.mergeReachableCoordinates(
+      ...this.constraints.map(constraint =>
+        this.getReachableCoordinatesForConstraint({
+          unit: pathfinder.unit,
+          grid: pathfinder.grid,
+          constraint,
+          fromCoords: pathfinder.coordinates,
+          stepsLeft: this.steps,
+        })
+      )
+    )
+
+  adjacent = (fromCoords: Coords) => [
+    ...this.constraints.reduce((acc, constraint) => {
+      acc.push(...constraint.adjacent(fromCoords))
+      return acc
+    }, [] as Coords[]),
+  ]
+
+  private get mergeReachableCoordinates() {
+    return coordinatesHashesMergeStrategies[this.mergeStrategy]
+  }
+
+  private get mergeGraph() {
+    return graphMergeStrategies[this.mergeStrategy]
+  }
+
+  private getReachableCoordinatesForConstraint = (
+    {
+      unit,
+      grid,
+      constraint,
+      fromCoords,
+      stepsLeft,
+    }: {
+      unit: Unit
+      grid: Grid
+      constraint: Constraint
+      fromCoords: Coords
+      stepsLeft: number
+    },
+    accumulator = {
+      accessible: new Set<string>(),
+      inaccessible: new Set<string>(),
+    }
+  ) => [
+    ...constraint
+      .adjacent(fromCoords)
+      .filter(grid.withinBounds)
+      .reduce((acc, coordinates) => {
+        if (stepsLeft === 0 || acc.inaccessible.has(fromCoords.hash)) {
+          return acc
+        }
+
+        const tileData = grid.getData(coordinates)!
+        const movementCost = tileData.tile.terrain.cost(unit)
+        const tileUnit = tileData.pathfinder?.unit
+
+        if (movementCost > stepsLeft) return acc
+        if (tileUnit && !this.canPassThroughUnit(tileUnit)) {
+          acc.inaccessible.add(coordinates.hash)
+          return acc
+        }
+
+        acc.accessible.add(coordinates.hash)
+        if (stepsLeft - movementCost > 0) {
+          this.getReachableCoordinatesForConstraint(
+            {
+              unit,
+              grid,
+              constraint,
+              fromCoords: coordinates,
+              stepsLeft: stepsLeft - movementCost,
+            },
+            acc
+          )
+        }
+
+        return acc
+      }, accumulator).accessible,
+  ]
 }
