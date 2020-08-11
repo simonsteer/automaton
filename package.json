@@ -1,5 +1,5 @@
 {
-  "name": "automaton",
+  "name": "golem",
   "version": "1.0.0",
   "description": "An extensible state machine for turn-based strategy games",
   "main": "dist/index.js",
