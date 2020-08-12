@@ -44,7 +44,7 @@ export default class BattleManager {
 
   getNextTurn = () => {
     this.turnIndex++
-    if (this.turn) this.turn.teardown()
+    this.turn?.teardown()
     this.turn = new TurnManager(this)
     this.turn.setup()
     return {

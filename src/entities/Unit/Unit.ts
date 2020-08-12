@@ -1,7 +1,7 @@
 import { SIMPLE_ORTHOGONAL_CONSTRAINT } from '../../recipes/constraints'
 import { UnitConfig } from './types'
 import { Team, Weapon } from '..'
-import { RangeConstraint } from '../../services'
+import { RangeConstraint, Pathfinder } from '../../services'
 
 export default class Unit {
   readonly id = Symbol()
@@ -18,8 +18,9 @@ export default class Unit {
       constraints = [SIMPLE_ORTHOGONAL_CONSTRAINT],
       mergeStrategy = 'union',
       steps = 1,
-      canPassThroughUnit = ({ team }: Unit) =>
-        team.isFriendly(this.team) || team.isNeutral(this.team),
+      canPassThroughUnit = (pathfinder: Pathfinder) =>
+        pathfinder.unit.team.isFriendly(this.team) ||
+        pathfinder.unit.team.isNeutral(this.team),
       unitPassThroughLimit,
     } = {},
     health = 1,

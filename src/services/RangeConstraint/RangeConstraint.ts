@@ -95,13 +95,12 @@ export default class RangeConstraint {
           return acc
         }
 
-        const tileData = grid.getData(coordinates)!
-        const movementCost = tileData.tile.terrain.cost(unit)
-        const tileUnit = tileData.pathfinder?.unit
+        const { pathfinder, tile } = grid.getData(coordinates)!
+        const movementCost = tile.terrain.cost(unit)
 
         if (movementCost > stepsLeft) return acc
-        if (tileUnit && tileUnit.id !== unit.id) {
-          if (!this.canPassThroughUnit(tileUnit)) {
+        if (pathfinder?.unit && pathfinder.unit.id !== unit.id) {
+          if (!this.canPassThroughUnit(pathfinder, tile)) {
             acc.inaccessible.add(coordinates.hash)
             return acc
           }

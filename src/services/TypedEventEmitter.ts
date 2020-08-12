@@ -28,6 +28,6 @@ export default class TypedEventEmitter<
     event: EventName,
     callback: EventMap[EventName]
   ) {
-    this.emitter.on(event as string, callback)
+    this.emitter.off(event as string, callback)
   }
 }

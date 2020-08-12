@@ -37,6 +37,8 @@ export default class Pathfinder {
       return []
     }
 
+    const fromHash = this._coordinates.hash
+
     const result = path.reduce(
       (acc, coordinates, index) => {
         if (acc.abort || this.unit.isDead) {
@@ -63,6 +65,8 @@ export default class Pathfinder {
             this.grid.getData(prev)?.tile.events.emit('unitExit', this, tile)
 
           acc.path.push(coordinates)
+          this.coordinates.update(coordinates)
+          this.grid.timestamp++
           tile.events.emit('unitEnter', this, tile)
 
           if (isLastStep) {
@@ -79,17 +83,11 @@ export default class Pathfinder {
       { path: [] as RawCoords[], abort: false }
     ).path
 
-    if (result.length) {
-      this.grid.timestamp++
-
-      const oldHash = this._coordinates.hash
-      this._coordinates.update(result[result.length - 1])
-      const newHash = this._coordinates.hash
-
-      this.grid.coordinates.delete(oldHash)
-      this.grid.coordinates.set(newHash, this.unit.id)
+    const toHash = this._coordinates.hash
+    if (fromHash !== toHash) {
+      this.grid.coordinates.delete(fromHash)
+      this.grid.coordinates.set(toHash, this.unit.id)
     }
-
     return result
   }
 

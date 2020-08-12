@@ -1,5 +1,5 @@
 import { RawCoords } from '../Coords'
-import { Unit } from '../../entities'
+import { TileInteractionCallback } from '../../entities'
 
 export type RangeConstraintException = (coordinates: RawCoords) => boolean
 
@@ -16,6 +16,6 @@ export type RangeConstraintConfig = {
   constraints: ConstraintConfig[]
   mergeStrategy: ConstraintMergeStrategy
   steps: number
-  canPassThroughUnit: (otherUnit: Unit) => boolean
+  canPassThroughUnit: TileInteractionCallback<boolean>
   unitPassThroughLimit: number
 }
