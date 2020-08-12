@@ -4,7 +4,7 @@ import { mapGraph } from '../../utils'
 import Pathfinder from '../../services/Pathfinder'
 import Coords, { RawCoords } from '../../services/Coords'
 import { Unit, Tile, Team } from '..'
-import { EventEmitter } from 'events'
+import { TypedEventEmitter } from '../../services'
 
 export default class Grid {
   timestamp = Date.now()
@@ -12,28 +12,7 @@ export default class Grid {
   graph: GridGraph
   pathfinders = new Map<Symbol, Pathfinder>()
   coordinates = new Map<string, Symbol>()
-  private emitter = new EventEmitter()
-
-  on<EventName extends keyof GridEvents>(
-    event: EventName,
-    callback: GridEvents[EventName]
-  ) {
-    this.emitter.addListener(event, callback)
-  }
-
-  off<EventName extends keyof GridEvents>(
-    event: EventName,
-    callback: GridEvents[EventName]
-  ) {
-    this.emitter.removeListener(event, callback)
-  }
-
-  emit<EventName extends keyof GridEvents>(
-    event: EventName,
-    ...args: Parameters<GridEvents[EventName]>
-  ) {
-    this.emitter.emit(event, ...args)
-  }
+  events = new TypedEventEmitter<GridEvents>()
 
   constructor({
     graph,
@@ -96,14 +75,18 @@ export default class Grid {
     if (this.pathfinders.get(unit.id)) {
       return [false, undefined]
     }
-    const pathfinder = new Pathfinder({ grid: this, unit, coordinates })
+    const pathfinder = new Pathfinder({
+      grid: this,
+      unit,
+      coordinates,
+    })
     this.pathfinders.set(unit.id, pathfinder)
     this.coordinates.set(Coords.hash(coordinates), unit.id)
     return [true, pathfinder]
   }
 
   addUnits = (units: [Unit, RawCoords][]) => {
-    this.emit(
+    this.events.emit(
       'addUnits',
       units
         .map(args => this.addUnit(...args))
@@ -124,7 +107,7 @@ export default class Grid {
 
   removeUnits = (unitIds: Symbol[]) => {
     const results = unitIds.map(this.removeUnit)
-    this.emit(
+    this.events.emit(
       'removeUnits',
       results.filter(([_, success]) => success).map(([id]) => id)
     )

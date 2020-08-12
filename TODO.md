@@ -1,2 +1,3 @@
 - Make Pathfinder respect whether a unit can be passed through or not when calculating routes
-- Refactor to no longer use event emitters (?) (BattleManager, Grid)
+- Refactor to allow optional opting-into event emitters
+- Allow high level entity types to be passed in generically for better TS support

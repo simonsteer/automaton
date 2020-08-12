@@ -21,11 +21,11 @@ export default class TurnManager {
   }
 
   setup() {
-    this.battle.grid.on('addUnits', this.handleUnitsAdded)
+    this.battle.grid.events.on('addUnits', this.handleUnitsAdded)
   }
 
   teardown() {
-    this.battle.grid.off('addUnits', this.handleUnitsAdded)
+    this.battle.grid.events.off('addUnits', this.handleUnitsAdded)
   }
 
   private handleUnitsAdded = (pathfinders: Pathfinder[]) => {
@@ -37,7 +37,10 @@ export default class TurnManager {
       return acc
     }, false)
     if (didTeamUnitsChange)
-      this.battle.emit('actionableUnitsChanged', this.getActionableUnits())
+      this.battle.events.emit(
+        'actionableUnitsChanged',
+        this.getActionableUnits()
+      )
   }
 
   getActionableUnits = (): ActionableUnit[] =>
@@ -83,7 +86,7 @@ export default class TurnManager {
   ) => (...args: Parameters<Callback>) => {
     this.incrementActionsTaken(pathfinder)
     const result = callback(...args) as ReturnType<Callback>
-    this.battle.emit(
+    this.battle.events.emit(
       'actionableUnitChanged',
       this.mapActionsToPathfinder(this, pathfinder)
     )

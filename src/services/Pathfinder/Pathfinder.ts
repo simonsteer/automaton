@@ -53,23 +53,24 @@ export default class Pathfinder {
         const { pathfinder, tile } = data
         const isLastStep = index === path.length - 1
 
-        if (tile.guard.entry(this.unit)) {
+        if (tile.shouldGuardEntry(this, tile)) {
           acc.abort = true
-          tile.on.guard.entry(this.unit)
-          tile.on.unit.stop(this.unit)
+          tile.events.emit('guardEntry', this, tile)
+          tile.events.emit('unitStop', this, tile)
         } else {
           const prev = path[index - 1] as RawCoords | undefined
-          if (prev) this.grid.getData(prev)?.tile.on.unit.exit(this.unit)
+          if (prev)
+            this.grid.getData(prev)?.tile.events.emit('unitExit', this, tile)
 
           acc.path.push(coordinates)
-          tile.on.unit.enter(this.unit)
+          tile.events.emit('unitEnter', this, tile)
 
           if (isLastStep) {
-            tile.on.unit.stop(this.unit)
-          } else if (!pathfinder && tile.guard.crossover(this.unit)) {
+            tile.events.emit('unitStop', this, tile)
+          } else if (!pathfinder && tile.shouldGuardCrossover(this, tile)) {
             acc.abort = true
-            tile.on.guard.crossover(this.unit)
-            tile.on.unit.stop(this.unit)
+            tile.events.emit('guardCrossover', this, tile)
+            tile.events.emit('unitStop', this, tile)
           }
         }
 
