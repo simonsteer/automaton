@@ -66,7 +66,6 @@ export default class Pathfinder {
 
           acc.path.push(coordinates)
           this.coordinates.update(coordinates)
-          this.grid.timestamp++
           tile.events.emit('unitEnter', this, tile)
 
           if (isLastStep) {
@@ -78,6 +77,7 @@ export default class Pathfinder {
           }
         }
 
+        this.grid.timestamp++
         return acc
       },
       { path: [] as RawCoords[], abort: false }

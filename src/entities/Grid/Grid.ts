@@ -37,16 +37,12 @@ export default class Grid {
 
   getData = (coordinates: RawCoords) => {
     const tile = this.getTile(coordinates)
-    if (!tile) {
-      return null
-    }
+    if (!tile) return null
+
     const unitId = this.coordinates.get(Coords.hash(coordinates))
     const pathfinder = unitId && this.pathfinders.get(unitId)
 
-    return {
-      pathfinder,
-      tile,
-    }
+    return { pathfinder, tile }
   }
 
   getTile = ({ x, y }: RawCoords) => this.graph[y]?.[x]?.tile
