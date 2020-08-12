@@ -17,21 +17,27 @@ export default class TurnManager {
     this.battle = battle
     const teams = this.battle.grid.getTeams()
     this.team = teams[battle.turnIndex % teams.length]
-
-    this.battle.grid.on('addUnits', pathfinders => {
-      const didTeamUnitsChange = pathfinders.reduce((acc, pathfinder) => {
-        if (pathfinder.unit.team.id === this.team.id) {
-          acc = true
-          this.initUnitData(pathfinder)
-        }
-        return acc
-      }, false)
-
-      if (didTeamUnitsChange)
-        this.battle.emit('actionableUnitsChanged', this.getActionableUnits())
-    })
-
     this.team.getPathfinders(this.battle.grid).forEach(this.initUnitData)
+  }
+
+  setup() {
+    this.battle.grid.on('addUnits', this.handleUnitsAdded)
+  }
+
+  teardown() {
+    this.battle.grid.off('addUnits', this.handleUnitsAdded)
+  }
+
+  private handleUnitsAdded = (pathfinders: Pathfinder[]) => {
+    const didTeamUnitsChange = pathfinders.reduce((acc, pathfinder) => {
+      if (pathfinder.unit.team.id === this.team.id) {
+        acc = true
+        this.initUnitData(pathfinder)
+      }
+      return acc
+    }, false)
+    if (didTeamUnitsChange)
+      this.battle.emit('actionableUnitsChanged', this.getActionableUnits())
   }
 
   getActionableUnits = (): ActionableUnit[] =>
@@ -81,6 +87,7 @@ export default class TurnManager {
       'actionableUnitChanged',
       this.mapActionsToPathfinder(this, pathfinder)
     )
+    this.battle.lastTouchedPathfinder = pathfinder
     return result
   }
 

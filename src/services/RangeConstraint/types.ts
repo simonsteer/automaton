@@ -1,6 +1,5 @@
-import Coords, { RawCoords } from '../Coords'
+import { RawCoords } from '../Coords'
 import { Unit } from '../../entities'
-import { RangeConstraint } from '..'
 
 export type RangeConstraintException = (coordinates: RawCoords) => boolean
 

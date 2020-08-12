@@ -2,6 +2,7 @@ import { TurnManager } from './services'
 import { Grid } from '../../entities'
 import { EventEmitter } from 'events'
 import { BattleEvents } from './types'
+import { Pathfinder } from '..'
 
 type BattleManagerCallback<T = void> = (battle: BattleManager) => T
 
@@ -13,7 +14,9 @@ export default class BattleManager {
   grid: Grid
   endCondition: BattleManagerCallback<boolean>
   private emitter = new EventEmitter()
+  private turn?: TurnManager
   isDone = false
+  lastTouchedPathfinder?: Pathfinder
 
   on<EventName extends keyof BattleEvents>(
     event: EventName,
@@ -47,9 +50,7 @@ export default class BattleManager {
   }
 
   advance() {
-    if (this.isDone) {
-      return
-    }
+    if (this.isDone) return
     if (this.turnIndex >= 0 && !this.inProgress) {
       this.isDone = true
       this.emit('battleEnd')
@@ -65,11 +66,13 @@ export default class BattleManager {
 
   getNextTurn = () => {
     this.turnIndex++
-    const turn = new TurnManager(this)
+    if (this.turn) this.turn.teardown()
+    this.turn = new TurnManager(this)
+    this.turn.setup()
     return {
       turnIndex: this.turnIndex,
-      team: turn.team,
-      actionableUnits: turn.getActionableUnits(),
+      team: this.turn.team,
+      actionableUnits: this.turn.getActionableUnits(),
     }
   }
 }
