@@ -87,11 +87,7 @@ export default class RangeConstraint {
       .adjacent(fromCoords)
       .filter(grid.withinBounds)
       .reduce((acc, coordinates) => {
-        if (
-          stepsLeft === 0 ||
-          acc.inaccessible.has(fromCoords.hash) ||
-          acc.passThroughCount >= this.unitPassThroughLimit
-        ) {
+        if (stepsLeft <= 0 || acc.inaccessible.has(fromCoords.hash)) {
           return acc
         }
 
@@ -99,16 +95,23 @@ export default class RangeConstraint {
         const movementCost = tile.terrain.cost(unit)
 
         if (movementCost > stepsLeft) return acc
+
+        let didPassThroughUnit = false
         if (pathfinder?.unit && pathfinder.unit.id !== unit.id) {
           if (!this.canPassThroughUnit(pathfinder, tile)) {
             acc.inaccessible.add(coordinates.hash)
             return acc
           }
+          didPassThroughUnit = true
           acc.passThroughCount++
         }
 
         acc.accessible.add(coordinates.hash)
-        if (stepsLeft - movementCost > 0) {
+        if (
+          stepsLeft - movementCost > 0 &&
+          (!didPassThroughUnit ||
+            acc.passThroughCount < this.unitPassThroughLimit)
+        ) {
           this.getReachableCoordinatesForConstraint(
             {
               unit,
