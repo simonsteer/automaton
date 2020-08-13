@@ -8,6 +8,9 @@ export default class Pathfinder {
   readonly unit: Unit
   graph!: Graph
   private _coordinates: Coords
+  private routeCache: {
+    [startEndHash: string]: ReturnType<Pathfinder['getRoute']>
+  } = {}
 
   constructor({
     grid,
