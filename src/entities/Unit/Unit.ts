@@ -1,7 +1,11 @@
 import { SIMPLE_ORTHOGONAL_CONSTRAINT } from '../../recipes/constraints'
 import { UnitConfig } from './types'
 import { Team, Weapon } from '..'
-import { RangeConstraint, Pathfinder } from '../../services'
+import {
+  RangeConstraint,
+  Pathfinder,
+  GetReachableCooordinatesOptions,
+} from '../../services'
 
 export default class Unit {
   readonly id = Symbol()
@@ -11,6 +15,7 @@ export default class Unit {
   maxHealth: number
   currentHealth: number
   weapon?: Weapon
+  pathfinderOptions: GetReachableCooordinatesOptions
 
   constructor({
     actions = 2,
@@ -21,7 +26,7 @@ export default class Unit {
       canPassThroughUnit = (pathfinder: Pathfinder) =>
         pathfinder.unit.team.isFriendly(this.team) ||
         pathfinder.unit.team.isNeutral(this.team),
-      unitPassThroughLimit,
+      unitPassThroughLimit = Infinity,
     } = {},
     health = 1,
     team,
@@ -32,17 +37,19 @@ export default class Unit {
         `Unit health must be greater than 0. Received value: ${health}`
       )
     }
+
     this.setTeam(team)
     this.actions = actions
+    this.pathfinderOptions = { canPassThroughUnit, unitPassThroughLimit }
     this.movement = new RangeConstraint({
       constraints,
       steps,
-      canPassThroughUnit,
       mergeStrategy,
-      unitPassThroughLimit,
     })
+
     this.maxHealth = health
     this.currentHealth = this.maxHealth
+
     if ('weapon' in rest) {
       if (rest.weapon !== undefined) this.weapon = new Weapon(rest.weapon)
     } else {

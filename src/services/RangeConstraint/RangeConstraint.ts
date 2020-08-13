@@ -1,5 +1,5 @@
 import { Pathfinder, Coords } from '..'
-import { TileInteractionCallback, Grid, Unit } from '../../entities'
+import { Grid, Unit } from '../../entities'
 import { graphMergeStrategies, coordinatesHashesMergeStrategies } from './utils'
 import Graph from '../Pathfinder/Dijkstra/Graph'
 import { RangeConstraintConfig, ConstraintMergeStrategy } from './types'
@@ -9,21 +9,14 @@ export default class RangeConstraint {
   constraints: Constraint[]
   mergeStrategy: ConstraintMergeStrategy
   steps: number
-  canPassThroughUnit: TileInteractionCallback<boolean>
-  unitPassThroughLimit: number
-
   constructor({
     constraints = [],
     mergeStrategy = 'union',
     steps = 1,
-    canPassThroughUnit = () => false,
-    unitPassThroughLimit = Infinity,
   }: Partial<RangeConstraintConfig>) {
     this.constraints = constraints.map(config => new Constraint(config))
     this.mergeStrategy = mergeStrategy
     this.steps = steps
-    this.canPassThroughUnit = canPassThroughUnit
-    this.unitPassThroughLimit = unitPassThroughLimit
   }
 
   buildPathfinderGraph = (grid: Grid) =>
@@ -35,14 +28,14 @@ export default class RangeConstraint {
       )
     )
 
-  getReachableCoordinates = (pathfinder: Pathfinder) =>
+  getReachableCoordinates = (fromCoords: Coords, grid: Grid, unit?: Unit) =>
     this.mergeReachableCoordinates(
       ...this.constraints.map(constraint =>
         this.getReachableCoordinatesForConstraint({
-          unit: pathfinder.unit,
-          grid: pathfinder.grid,
+          unit,
+          grid,
           constraint,
-          fromCoords: pathfinder.coordinates,
+          fromCoords,
           stepsLeft: this.steps,
         })
       )
@@ -71,7 +64,7 @@ export default class RangeConstraint {
       fromCoords,
       stepsLeft,
     }: {
-      unit: Unit
+      unit?: Unit
       grid: Grid
       constraint: Constraint
       fromCoords: Coords
@@ -92,13 +85,13 @@ export default class RangeConstraint {
         }
 
         const { pathfinder, tile } = grid.getData(coordinates)!
-        const movementCost = tile.terrain.cost(unit)
+        const movementCost = unit ? tile.terrain.cost(unit) : 1
 
         if (movementCost > stepsLeft) return acc
 
         let didPassThroughUnit = false
-        if (pathfinder?.unit && pathfinder.unit.id !== unit.id) {
-          if (!this.canPassThroughUnit(pathfinder, tile)) {
+        if (unit && pathfinder?.unit && pathfinder.unit.id !== unit.id) {
+          if (!unit.pathfinderOptions.canPassThroughUnit(pathfinder, tile)) {
             acc.inaccessible.add(coordinates.hash)
             return acc
           }
@@ -110,7 +103,7 @@ export default class RangeConstraint {
         if (
           stepsLeft - movementCost > 0 &&
           (!didPassThroughUnit ||
-            acc.passThroughCount < this.unitPassThroughLimit)
+            acc.passThroughCount < unit!.pathfinderOptions.unitPassThroughLimit)
         ) {
           this.getReachableCoordinatesForConstraint(
             {

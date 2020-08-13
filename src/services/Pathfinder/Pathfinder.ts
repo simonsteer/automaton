@@ -106,19 +106,26 @@ export default class Pathfinder {
     return result.path?.map(Coords.parse).slice(1) || []
   }
 
-  getReachable = () => this.unit.movement.getReachableCoordinates(this)
+  getReachable = () =>
+    this.unit.movement.getReachableCoordinates(
+      this.coordinates,
+      this.grid,
+      this.unit
+    )
 
-  getTargetable = (fromCoords = this.coordinates) =>
-    this.unit.weapon?.range.adjacent(fromCoords).filter(coords => {
-      if (!this.grid.withinBounds(coords)) {
-        return false
-      }
-      const otherTeam = this.grid.getData(coords)?.pathfinder?.unit?.team
-      return !!(
-        otherTeam?.isHostile(this.unit.team) ||
-        otherTeam?.isWildcard(this.unit.team)
-      )
-    }) || []
+  getTargetable = () =>
+    this.unit.weapon?.range
+      .getReachableCoordinates(this.coordinates, this.grid)
+      .filter(coords => {
+        if (!this.grid.withinBounds(coords)) {
+          return false
+        }
+        const otherTeam = this.grid.getData(coords)?.pathfinder?.unit?.team
+        return !!(
+          otherTeam?.isHostile(this.unit.team) ||
+          otherTeam?.isWildcard(this.unit.team)
+        )
+      }) || []
 
   private checkCache() {
     if (this.timestamp !== this.grid.timestamp) {
