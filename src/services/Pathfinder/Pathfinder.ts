@@ -9,7 +9,7 @@ export default class Pathfinder {
   graph!: Graph
   private _coordinates: Coords
   private routeCache: {
-    [startEndHash: string]: ReturnType<Pathfinder['getRoute']>
+    [startEndHash: string]: Coords[]
   } = {}
 
   constructor({
@@ -47,7 +47,6 @@ export default class Pathfinder {
         if (acc.abort || this.unit.isDead) {
           return acc
         }
-
         const data = this.grid.getData(coordinates)
         if (!data) {
           throw new Error(
@@ -95,7 +94,15 @@ export default class Pathfinder {
   }
 
   getRoute = (toCoords: RawCoords) => {
+    const fromHash = this.coordinates.hash
+    const toHash = Coords.hash(toCoords)
+    const queryHash = `${fromHash}-${toHash}`
+
     this.checkCache()
+    if (this.routeCache[queryHash]) {
+      return this.routeCache[queryHash]
+    }
+
     const result = this.graph.path(
       this.unit,
       this.coordinates.hash,
@@ -117,9 +124,6 @@ export default class Pathfinder {
     this.unit.weapon?.range
       .getReachableCoordinates(this.coordinates, this.grid)
       .filter(coords => {
-        if (!this.grid.withinBounds(coords)) {
-          return false
-        }
         const otherTeam = this.grid.getData(coords)?.pathfinder?.unit?.team
         return !!(
           otherTeam?.isHostile(this.unit.team) ||
@@ -127,14 +131,15 @@ export default class Pathfinder {
         )
       }) || []
 
+  private initGraph() {
+    this.graph = this.unit.movement.buildPathfinderGraph(this.grid)
+  }
+
   private checkCache() {
     if (this.timestamp !== this.grid.timestamp) {
       this.initGraph()
+      this.routeCache = {}
       this.timestamp = this.grid.timestamp
     }
-  }
-
-  private initGraph() {
-    this.graph = this.unit.movement.buildPathfinderGraph(this.grid)
   }
 }
