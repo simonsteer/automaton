@@ -28,21 +28,6 @@ export default class TurnManager {
     this.battle.grid.events.off('addUnits', this.handleUnitsAdded)
   }
 
-  private handleUnitsAdded = (pathfinders: Pathfinder[]) => {
-    const didTeamUnitsChange = pathfinders.reduce((acc, pathfinder) => {
-      if (pathfinder.unit.team.id === this.team.id) {
-        acc = true
-        this.initUnitData(pathfinder)
-      }
-      return acc
-    }, false)
-    if (didTeamUnitsChange)
-      this.battle.events.emit(
-        'actionableUnitsChanged',
-        this.getActionableUnits()
-      )
-  }
-
   getActionableUnits = (): ActionableUnit[] =>
     [...this.unitData].reduce(
       (acc, [pathfinder, { actionsTaken, maxActions }]) => {
@@ -65,14 +50,19 @@ export default class TurnManager {
     },
     actions: {
       move: this.createAction(pathfinder, pathfinder.move),
-      engage: this.createAction(pathfinder, (otherUnit: Unit) =>
-        new ConflictManager(pathfinder.unit, otherUnit).process()
-      ),
+      engage: this.createAction(pathfinder, (otherUnit: Unit) => {
+        const outcome = new ConflictManager(
+          pathfinder.unit,
+          otherUnit
+        ).process()
+        outcome.forEach(({ actor }) => {
+          if (actor.isDead) this.battle.grid.removeUnits([actor.id])
+        })
+        return outcome
+      }),
       wait: this.createAction(pathfinder, () => {
         const unitData = this.unitData.get(pathfinder)
-        if (unitData) {
-          unitData.actionsTaken = unitData.maxActions - 1
-        }
+        if (unitData) unitData.actionsTaken = 0
       }),
       custom: <M>(callback: () => M) => {
         return this.createAction(pathfinder, callback)()
@@ -92,6 +82,21 @@ export default class TurnManager {
     )
     this.battle.lastTouchedPathfinder = pathfinder
     return result
+  }
+
+  private handleUnitsAdded = (pathfinders: Pathfinder[]) => {
+    const didTeamUnitsChange = pathfinders.reduce((acc, pathfinder) => {
+      if (pathfinder.unit.team.id === this.team.id) {
+        acc = true
+        this.initUnitData(pathfinder)
+      }
+      return acc
+    }, false)
+    if (didTeamUnitsChange)
+      this.battle.events.emit(
+        'actionableUnitsChanged',
+        this.getActionableUnits()
+      )
   }
 
   private incrementActionsTaken = (pathfinder: Pathfinder) => {
