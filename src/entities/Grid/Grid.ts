@@ -81,19 +81,19 @@ export default class Grid {
     this.pathfinders.set(unit.id, pathfinder)
     this.coordinates.set(Coords.hash(coordinates), unit.id)
 
-    this.timestamp++
-
     return [true, pathfinder]
   }
 
   addUnits = (units: [Unit, RawCoords][]) => {
-    this.events.emit(
-      'addUnits',
-      units
-        .map(args => this.addUnit(...args))
-        .filter(([success]) => success)
-        .map(([_, pathfinder]) => pathfinder!)
-    )
+    const successfulAdditions = units
+      .map(args => this.addUnit(...args))
+      .filter(([success]) => success)
+      .map(([_, pathfinder]) => pathfinder!)
+
+    if (successfulAdditions.length) {
+      this.timestamp++
+      this.events.emit('addUnits', successfulAdditions)
+    }
     return this
   }
 
@@ -111,17 +111,19 @@ export default class Grid {
 
   removeUnits = (unitIds: Symbol[]) => {
     const results = unitIds.map(this.removeUnit)
-    this.events.emit(
-      'removeUnits',
-      results.filter(([_, success]) => success).map(([id]) => id)
-    )
+    const successfulRemovals = results
+      .filter(([_, success]) => success)
+      .map(([id]) => id)
+
+    if (successfulRemovals.length) {
+      this.timestamp++
+      this.events.emit('removeUnits', successfulRemovals)
+    }
+
     return this
   }
 
-  clear = () => {
-    this.removeUnits([...this.pathfinders.keys()])
-    return this
-  }
+  clear = () => this.removeUnits([...this.pathfinders.keys()])
 
   mapTiles<R>(callback: (item: GridVectorData, coordinates: RawCoords) => R) {
     return mapGraph(this.graph, callback)
