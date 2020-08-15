@@ -1,4 +1,4 @@
-import { Pathfinder, Coords } from '..'
+import { Coords } from '..'
 import { Grid, Unit } from '../../entities'
 import { graphMergeStrategies, coordinatesHashesMergeStrategies } from './utils'
 import Graph from '../Pathfinder/Dijkstra/Graph'
