@@ -7,8 +7,9 @@ import { Unit, Tile, Team } from '..'
 import { TypedEventEmitter } from '../../services'
 
 export default class Grid {
-  timestamp = Date.now()
   readonly id = Symbol()
+
+  timestamp = Date.now()
   graph: GridGraph
   pathfinders = new Map<Symbol, Pathfinder>()
   coordinates = new Map<string, Symbol>()
@@ -36,16 +37,16 @@ export default class Grid {
     x >= 0 && x < this.size.x && y >= 0 && y < this.size.y
 
   getData = (coordinates: RawCoords) => {
-    const tile = this.getTile(coordinates)
-    if (!tile) return null
+    if (!this.withinBounds(coordinates)) return null
 
+    const tile = this.getTile(coordinates)!
     const unitId = this.coordinates.get(Coords.hash(coordinates))
     const pathfinder = unitId && this.pathfinders.get(unitId)
 
     return { pathfinder, tile }
   }
 
-  getTile = ({ x, y }: RawCoords) => this.graph[y]?.[x]?.tile
+  getTile = ({ x, y }: RawCoords): Tile | undefined => this.graph[y]?.[x]?.tile
 
   getPathfinder = (unitId: Symbol) => this.pathfinders.get(unitId)
 
@@ -71,6 +72,7 @@ export default class Grid {
     if (this.pathfinders.get(unit.id)) {
       return [false, undefined]
     }
+
     const pathfinder = new Pathfinder({
       grid: this,
       unit,
@@ -78,6 +80,9 @@ export default class Grid {
     })
     this.pathfinders.set(unit.id, pathfinder)
     this.coordinates.set(Coords.hash(coordinates), unit.id)
+
+    this.timestamp++
+
     return [true, pathfinder]
   }
 
@@ -98,6 +103,9 @@ export default class Grid {
       this.coordinates.delete(pathfinder.coordinates.hash)
       this.pathfinders.delete(unitId)
     }
+
+    this.timestamp++
+
     return [unitId, !!pathfinder] as const
   }
 
