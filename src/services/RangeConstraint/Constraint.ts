@@ -1,10 +1,11 @@
 import range from 'lodash/range'
 import { ConstraintConfig } from './types'
-import Coords from '../Coords'
+import Coords, { RawCoords } from '../Coords'
 import { GraphNodeNeighbour, GraphNodeMap } from '../Pathfinder/Dijkstra/types'
 import { Grid } from '../../entities'
 
 export default class Constraint {
+  private cache: { adjacent: { [hash: string]: Coords[] } } = { adjacent: {} }
   private constraint: ConstraintConfig
   private offsets = {
     x: new Set<number>(),
@@ -20,23 +21,27 @@ export default class Constraint {
    * get coordinates considered adjacent to the coordinates passed in
    */
   adjacent = (coordsA: Coords) => {
-    const coordinates: string[] = []
-    for (const xOffset of this.offsets.x) {
-      for (const yOffset of this.offsets.y) {
-        const coordsB = {
-          x: coordsA.x + xOffset,
-          y: coordsA.y + yOffset,
-        }
-        const deltas = coordsA.deltas(coordsB)
-        if (
-          !this.constraint.exceptions ||
-          this.constraint.exceptions.every(exception => exception(deltas))
-        ) {
-          coordinates.push(Coords.hash(coordsB))
+    if (!this.cache.adjacent[coordsA.hash]) {
+      const coordinates: Coords[] = []
+      for (const xOffset of this.offsets.x) {
+        for (const yOffset of this.offsets.y) {
+          const coordsB = {
+            x: coordsA.x + xOffset,
+            y: coordsA.y + yOffset,
+          }
+          const deltas = coordsA.deltas(coordsB)
+          if (
+            !this.constraint.exceptions ||
+            this.constraint.exceptions.every(exception => exception(deltas))
+          ) {
+            coordinates.push(new Coords(coordsB))
+          }
         }
       }
+      this.cache.adjacent[coordsA.hash] = coordinates
     }
-    return coordinates.map(hash => Coords.parse(hash))
+
+    return this.cache.adjacent[coordsA.hash]
   }
 
   buildPathfinderGraph = (grid: Grid) => {
