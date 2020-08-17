@@ -28,7 +28,7 @@ export default class RangeConstraint {
       )
     )
 
-  getReachableCoordinates = (fromCoords: Coords, grid: Grid, unit?: Unit) =>
+  getApplicableCoordinates = (fromCoords: Coords, grid: Grid, unit?: Unit) =>
     this.mergeReachableCoordinates(
       ...this.constraints.map(constraint =>
         this.getReachableCoordinatesForConstraint({

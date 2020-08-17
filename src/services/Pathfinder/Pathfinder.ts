@@ -114,7 +114,7 @@ export default class Pathfinder {
   }
 
   getReachable = () =>
-    this.unit.movement.getReachableCoordinates(
+    this.unit.movement.getApplicableCoordinates(
       this.coordinates,
       this.grid,
       this.unit
@@ -122,7 +122,7 @@ export default class Pathfinder {
 
   getTargetable = () =>
     this.unit.weapon?.range
-      .getReachableCoordinates(this.coordinates, this.grid)
+      .getApplicableCoordinates(this.coordinates, this.grid)
       .filter(coords => {
         const otherTeam = this.grid.getData(coords)?.pathfinder?.unit?.team
         return !!(
