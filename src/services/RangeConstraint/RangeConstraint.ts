@@ -9,6 +9,7 @@ export default class RangeConstraint {
   constraints: Constraint[]
   mergeStrategy: ConstraintMergeStrategy
   steps: number
+
   constructor({
     constraints = [],
     mergeStrategy = 'union',
