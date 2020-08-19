@@ -17,30 +17,31 @@ export default class Constraint {
     this.offsets = this.buildOffsets()
   }
 
+  applies = (coordsA: Coords, coordsB: Coords) => {
+    const deltas = coordsA.deltas(coordsB)
+    return (
+      !this.constraint.exceptions ||
+      this.constraint.exceptions.every(exception => exception(deltas))
+    )
+  }
+
   /**
    * get coordinates considered adjacent to the coordinates passed in
    */
   adjacent = (coordsA: Coords) => {
     if (!this.cache.adjacent[coordsA.hash]) {
-      const coordinates: Coords[] = []
+      const adjacent: Coords[] = []
       for (const xOffset of this.offsets.x) {
         for (const yOffset of this.offsets.y) {
-          const coordsB = {
+          const coordsB = new Coords({
             x: coordsA.x + xOffset,
             y: coordsA.y + yOffset,
-          }
-          const deltas = coordsA.deltas(coordsB)
-          if (
-            !this.constraint.exceptions ||
-            this.constraint.exceptions.every(exception => exception(deltas))
-          ) {
-            coordinates.push(new Coords(coordsB))
-          }
+          })
+          if (this.applies(coordsA, coordsB)) adjacent.push(new Coords(coordsB))
         }
       }
-      this.cache.adjacent[coordsA.hash] = coordinates
+      this.cache.adjacent[coordsA.hash] = adjacent
     }
-
     return this.cache.adjacent[coordsA.hash]
   }
 

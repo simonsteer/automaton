@@ -6,15 +6,24 @@ export default class TypedEventEmitter<
   }
 > {
   private emitter: EventEmitter
+  private disabled = false
   constructor() {
     this.emitter = new EventEmitter()
+  }
+
+  disable() {
+    this.disabled = true
+  }
+
+  enable() {
+    this.disabled = false
   }
 
   emit<EventName extends keyof EventMap>(
     event: EventName,
     ...args: Parameters<EventMap[EventName]>
   ) {
-    this.emitter.emit(event as string, ...args)
+    if (!this.disabled) this.emitter.emit(event as string, ...args)
   }
 
   on<EventName extends keyof EventMap>(

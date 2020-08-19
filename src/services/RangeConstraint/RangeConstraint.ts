@@ -20,6 +20,9 @@ export default class RangeConstraint {
     this.steps = steps
   }
 
+  applies = (coordsA: Coords, coordsB: Coords) =>
+    this.constraints.every(constraint => constraint.applies(coordsA, coordsB))
+
   buildPathfinderGraph = (grid: Grid) =>
     new Graph(
       this.mergeGraph(

@@ -7,7 +7,7 @@ export default class Pathfinder {
   readonly grid: Grid
   readonly unit: Unit
   graph!: Graph
-  private _coordinates: Coords
+  coordinates: Coords
   private routeCache: {
     [startEndHash: string]: Coords[]
   } = {}
@@ -24,15 +24,11 @@ export default class Pathfinder {
     this.timestamp = grid.timestamp
     this.grid = grid
     this.unit = unit
-    this._coordinates = new Coords(coordinates)
+    this.coordinates = new Coords(coordinates)
     this.initGraph()
   }
 
-  get coordinates() {
-    return this._coordinates
-  }
-
-  move = (path: RawCoords[]) => {
+  move = (path: RawCoords[], noEmit = false) => {
     if (path.length < 1) {
       console.error(
         `Paths must contain at least one set of coordinates. Pathfinder#move receieved a path with a length of 0.`
@@ -40,7 +36,7 @@ export default class Pathfinder {
       return []
     }
 
-    const fromHash = this._coordinates.hash
+    const fromHash = this.coordinates.hash
 
     const result = path.reduce(
       (acc, coordinates, index) => {
@@ -85,7 +81,7 @@ export default class Pathfinder {
       { path: [] as RawCoords[], abort: false }
     ).path
 
-    const toHash = this._coordinates.hash
+    const toHash = this.coordinates.hash
     if (fromHash !== toHash) {
       this.grid.coordinates.delete(fromHash)
       this.grid.coordinates.set(toHash, this.unit.id)
