@@ -1,16 +1,16 @@
-import { TemporaryGridModifications } from './types'
+import { HypotheticalGridModifications } from './types'
 import { Grid, Unit } from '../../entities'
 import { RawCoords } from '../Coords'
 import { Pathfinder } from '..'
 
-export default class HypotheticalGridModifier {
-  private hypotheticals: TemporaryGridModifications
+export default class HypotheticalGridModificationsManager {
+  private hypotheticals: HypotheticalGridModifications
   private grid: Grid
   private moved = new Map<Pathfinder, RawCoords>()
   private added = new Set<Symbol>()
   private removed = new Map<Unit, RawCoords>()
 
-  constructor(grid: Grid, hypotheticals: TemporaryGridModifications) {
+  constructor(grid: Grid, hypotheticals: HypotheticalGridModifications) {
     this.hypotheticals = hypotheticals
     this.grid = grid
   }

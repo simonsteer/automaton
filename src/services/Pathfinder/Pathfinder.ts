@@ -1,8 +1,8 @@
 import Coords, { RawCoords } from '../Coords'
 import Graph from './Dijkstra/Graph'
 import { Grid, Unit } from '../../entities'
-import HypotheticalGridModifier from '../HypotheticalGridModifier'
-import { TemporaryGridModifications } from '../HypotheticalGridModifier/types'
+import HypotheticalGridModificationsManager from '../HypotheticalGridModificationsManager'
+import { HypotheticalGridModifications } from '../HypotheticalGridModificationsManager/types'
 
 export default class Pathfinder {
   timestamp: number
@@ -93,11 +93,14 @@ export default class Pathfinder {
 
   getRoute = (
     toCoords: RawCoords,
-    modifications?: TemporaryGridModifications
+    modifications?: HypotheticalGridModifications
   ) => {
-    let hypotheticals: HypotheticalGridModifier | undefined
+    let hypotheticals: HypotheticalGridModificationsManager | undefined
     if (modifications) {
-      hypotheticals = new HypotheticalGridModifier(this.grid, modifications)
+      hypotheticals = new HypotheticalGridModificationsManager(
+        this.grid,
+        modifications
+      )
       hypotheticals.setup()
     }
 
@@ -113,10 +116,13 @@ export default class Pathfinder {
     return result.path?.map(Coords.parse).slice(1) || []
   }
 
-  getReachable = (modifications?: TemporaryGridModifications) => {
-    let hypotheticals: HypotheticalGridModifier | undefined
+  getReachable = (modifications?: HypotheticalGridModifications) => {
+    let hypotheticals: HypotheticalGridModificationsManager | undefined
     if (modifications) {
-      hypotheticals = new HypotheticalGridModifier(this.grid, modifications)
+      hypotheticals = new HypotheticalGridModificationsManager(
+        this.grid,
+        modifications
+      )
       hypotheticals.setup()
     }
 
@@ -130,10 +136,13 @@ export default class Pathfinder {
     return result
   }
 
-  getTargetable = (modifications?: TemporaryGridModifications) => {
-    let hypotheticals: HypotheticalGridModifier | undefined
+  getTargetable = (modifications?: HypotheticalGridModifications) => {
+    let hypotheticals: HypotheticalGridModificationsManager | undefined
     if (modifications) {
-      hypotheticals = new HypotheticalGridModifier(this.grid, modifications)
+      hypotheticals = new HypotheticalGridModificationsManager(
+        this.grid,
+        modifications
+      )
       hypotheticals.setup()
     }
 
