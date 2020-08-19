@@ -1,6 +1,8 @@
 import Coords, { RawCoords } from '../Coords'
 import Graph from './Dijkstra/Graph'
 import { Grid, Unit } from '../../entities'
+import HypotheticalGridModifier from '../HypotheticalGridModifier'
+import { TemporaryGridModifications } from '../HypotheticalGridModifier/types'
 
 export default class Pathfinder {
   timestamp: number
@@ -28,7 +30,7 @@ export default class Pathfinder {
     this.initGraph()
   }
 
-  move = (path: RawCoords[], noEmit = false) => {
+  move = (path: RawCoords[]) => {
     if (path.length < 1) {
       console.error(
         `Paths must contain at least one set of coordinates. Pathfinder#move receieved a path with a length of 0.`
@@ -89,14 +91,14 @@ export default class Pathfinder {
     return result
   }
 
-  getRoute = (toCoords: RawCoords) => {
-    const fromHash = this.coordinates.hash
-    const toHash = Coords.hash(toCoords)
-    const queryHash = `${fromHash}-${toHash}`
-
-    this.checkCache()
-    if (this.routeCache[queryHash]) {
-      return this.routeCache[queryHash]
+  getRoute = (
+    toCoords: RawCoords,
+    modifications?: TemporaryGridModifications
+  ) => {
+    let hypotheticals: HypotheticalGridModifier | undefined
+    if (modifications) {
+      hypotheticals = new HypotheticalGridModifier(this.grid, modifications)
+      hypotheticals.setup()
     }
 
     const result = this.graph.path(
@@ -106,26 +108,49 @@ export default class Pathfinder {
       { cost: true }
     ) as { path: null | string[]; cost: number }
 
+    if (hypotheticals) hypotheticals.teardown()
+
     return result.path?.map(Coords.parse).slice(1) || []
   }
 
-  getReachable = () =>
-    this.unit.movement.getApplicableCoordinates(
+  getReachable = (modifications?: TemporaryGridModifications) => {
+    let hypotheticals: HypotheticalGridModifier | undefined
+    if (modifications) {
+      hypotheticals = new HypotheticalGridModifier(this.grid, modifications)
+      hypotheticals.setup()
+    }
+
+    const result = this.unit.movement.getApplicableCoordinates(
       this.coordinates,
       this.grid,
       this.unit
     )
 
-  getTargetable = () =>
-    this.unit.weapon?.range
-      .getApplicableCoordinates(this.coordinates, this.grid)
-      .filter(coords => {
-        const otherTeam = this.grid.getData(coords)?.pathfinder?.unit?.team
-        return !!(
-          otherTeam?.isHostile(this.unit.team) ||
-          otherTeam?.isWildcard(this.unit.team)
-        )
-      }) || []
+    if (hypotheticals) hypotheticals.teardown()
+    return result
+  }
+
+  getTargetable = (modifications?: TemporaryGridModifications) => {
+    let hypotheticals: HypotheticalGridModifier | undefined
+    if (modifications) {
+      hypotheticals = new HypotheticalGridModifier(this.grid, modifications)
+      hypotheticals.setup()
+    }
+
+    const result =
+      this.unit.weapon?.range
+        .getApplicableCoordinates(this.coordinates, this.grid)
+        .filter(coords => {
+          const otherTeam = this.grid.getData(coords)?.pathfinder?.unit?.team
+          return !!(
+            otherTeam?.isHostile(this.unit.team) ||
+            otherTeam?.isWildcard(this.unit.team)
+          )
+        }) || []
+
+    if (hypotheticals) hypotheticals.teardown()
+    return result
+  }
 
   private initGraph() {
     this.graph = this.unit.movement.buildPathfinderGraph(this.grid)
