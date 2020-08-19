@@ -15,9 +15,8 @@ export default class TemporaryGridModification {
     this.grid = grid
   }
 
-  setup() {
+  apply() {
     const { add = [], remove = [], move = [] } = this.hypotheticals
-    this.grid.mapTiles(({ tile }) => tile.events.disable())
 
     remove.forEach(id => {
       const pathfinder = this.grid.getPathfinder(id)
@@ -39,12 +38,11 @@ export default class TemporaryGridModification {
     })
   }
 
-  teardown() {
+  revoke() {
     ;[...this.moved.entries()].forEach(([pathfinder, originalCoords]) => {
       pathfinder.move([originalCoords])
     })
     this.grid.removeUnits([...this.added.values()])
     this.grid.addUnits([...this.removed.entries()])
-    this.grid.mapTiles(({ tile }) => tile.events.enable())
   }
 }
