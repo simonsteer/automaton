@@ -1,8 +1,6 @@
 import Coords, { RawCoords } from '../Coords'
 import Graph from './Dijkstra/Graph'
 import { Grid, Unit } from '../../entities'
-import HypotheticalGridModificationsManager from '../HypotheticalGridModificationsManager'
-import { HypotheticalGridModifications } from '../HypotheticalGridModificationsManager/types'
 
 export default class Pathfinder {
   timestamp: number
@@ -91,19 +89,7 @@ export default class Pathfinder {
     return result
   }
 
-  getRoute = (
-    toCoords: RawCoords,
-    modifications?: HypotheticalGridModifications
-  ) => {
-    let hypotheticals: HypotheticalGridModificationsManager | undefined
-    if (modifications) {
-      hypotheticals = new HypotheticalGridModificationsManager(
-        this.grid,
-        modifications
-      )
-      hypotheticals.setup()
-    }
-
+  getRoute = (toCoords: RawCoords) => {
     const result = this.graph.path(
       this.unit,
       this.coordinates.hash,
@@ -111,41 +97,20 @@ export default class Pathfinder {
       { cost: true }
     ) as { path: null | string[]; cost: number }
 
-    if (hypotheticals) hypotheticals.teardown()
-
     return result.path?.map(Coords.parse).slice(1) || []
   }
 
-  getReachable = (modifications?: HypotheticalGridModifications) => {
-    let hypotheticals: HypotheticalGridModificationsManager | undefined
-    if (modifications) {
-      hypotheticals = new HypotheticalGridModificationsManager(
-        this.grid,
-        modifications
-      )
-      hypotheticals.setup()
-    }
-
+  getReachable = () => {
     const result = this.unit.movement.getApplicableCoordinates(
       this.coordinates,
       this.grid,
       this.unit
     )
 
-    if (hypotheticals) hypotheticals.teardown()
     return result
   }
 
-  getTargetable = (modifications?: HypotheticalGridModifications) => {
-    let hypotheticals: HypotheticalGridModificationsManager | undefined
-    if (modifications) {
-      hypotheticals = new HypotheticalGridModificationsManager(
-        this.grid,
-        modifications
-      )
-      hypotheticals.setup()
-    }
-
+  getTargetable = () => {
     const result =
       this.unit.weapon?.range
         .getApplicableCoordinates(this.coordinates, this.grid)
@@ -157,7 +122,6 @@ export default class Pathfinder {
           )
         }) || []
 
-    if (hypotheticals) hypotheticals.teardown()
     return result
   }
 
