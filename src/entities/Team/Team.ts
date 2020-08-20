@@ -1,6 +1,6 @@
-import compact from 'lodash/compact'
 import { TeamSplitConfig, TeamConfig, TeamRelationshipType } from './types'
 import { Unit, Grid } from '..'
+import { Pathfinder } from '../../services'
 
 export default class Team {
   readonly id = Symbol()
@@ -147,14 +147,12 @@ export default class Team {
 
   getUnits = (recursive = false) => {
     const thisUnits = [...this.units.values()]
-    return compact(
-      recursive
-        ? [...this.getChildren(true)].reduce((units, team) => {
-            units.push(...team.getUnits())
-            return units
-          }, thisUnits)
-        : thisUnits
-    )
+    return recursive
+      ? [...this.getChildren(true)].reduce((units, team) => {
+          units.push(...team.getUnits())
+          return units
+        }, thisUnits)
+      : thisUnits
   }
 
   getPathfinders = (grid: Grid, recursive = false) => {
@@ -165,7 +163,9 @@ export default class Team {
         return acc
       }, units)
     }
-    return compact(units.map(unit => grid.getPathfinder(unit.id)))
+    return units
+      .map(unit => grid.getPathfinder(unit.id))
+      .filter(Boolean) as Pathfinder[]
   }
 
   getSize = (recursive = false) => {

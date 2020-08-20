@@ -1,4 +1,3 @@
-import compact from 'lodash/compact'
 import { GridGraph, GridVectorData, GridEvents } from './types'
 import { mapGraph } from '../../utils'
 import Pathfinder from '../../services/Pathfinder'
@@ -51,7 +50,7 @@ export default class Grid {
   getPathfinder = (unitId: Symbol) => this.pathfinders.get(unitId)
 
   getPathfinders = (ids = [...this.pathfinders.keys()]) =>
-    compact(ids.map(this.getPathfinder))
+    ids.map(this.getPathfinder).filter(Boolean) as Pathfinder[]
 
   getTeams = () => [
     ...this.getUnits().reduce((acc, { team }) => {

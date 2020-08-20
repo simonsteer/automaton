@@ -1,6 +1,6 @@
 import range from 'lodash/range'
 import { ConstraintConfig } from './types'
-import Coords, { RawCoords } from '../Coords'
+import Coords from '../Coords'
 import { GraphNodeNeighbour, GraphNodeMap } from '../Pathfinder/Dijkstra/types'
 import { Grid } from '../../entities'
 
