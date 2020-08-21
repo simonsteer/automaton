@@ -8,11 +8,11 @@ export default class RevocableGridModification {
   private modifications: GridModifications
   private revocations: (
     | {
-        type: 'move'
+        type: 'moveUnit'
         payload: [Pathfinder, RawCoords]
       }
-    | { type: 'add'; payload: Symbol }
-    | { type: 'remove'; payload: [Unit, RawCoords] }
+    | { type: 'addUnit'; payload: Symbol }
+    | { type: 'removeUnit'; payload: [Unit, RawCoords] }
   )[] = []
 
   constructor(grid: Grid, modifications: GridModifications) {
@@ -25,7 +25,7 @@ export default class RevocableGridModification {
 
     this.modifications.forEach(modification => {
       switch (modification.type) {
-        case 'add':
+        case 'addUnit':
           const [unit, coords] = modification.payload
           this.revocations.unshift({
             type: modification.type,
@@ -33,7 +33,7 @@ export default class RevocableGridModification {
           })
           this.grid.addUnits([[unit, coords]])
           break
-        case 'move':
+        case 'moveUnit':
           const [id, path] = modification.payload
           const pathfinderToMove = this.grid.getPathfinder(id)
           if (pathfinderToMove) {
@@ -44,7 +44,7 @@ export default class RevocableGridModification {
             pathfinderToMove.move(path)
           }
           break
-        case 'remove':
+        case 'removeUnit':
           const pathfinderToRemove = this.grid.getPathfinder(
             modification.payload
           )
@@ -69,14 +69,14 @@ export default class RevocableGridModification {
     while (this.revocations.length) {
       const revocation = this.revocations[0]
       switch (revocation.type) {
-        case 'add':
+        case 'addUnit':
           this.grid.removeUnits([revocation.payload])
           break
-        case 'move':
+        case 'moveUnit':
           const [pathfinder, originalCoords] = revocation.payload
           pathfinder.move([originalCoords])
           break
-        case 'remove':
+        case 'removeUnit':
           this.grid.addUnits([revocation.payload])
           break
         default:
