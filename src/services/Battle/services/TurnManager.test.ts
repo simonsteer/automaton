@@ -1,7 +1,7 @@
 import TurnManager from './TurnManager'
 import Team from '../../../entities/Team'
 import { createSimpleGraph } from '../../../utils'
-import BattleManager from '../../BattleManager'
+import Battle from '..'
 import Unit from '../../../entities/Unit'
 import Grid from '../../../entities/Grid'
 
@@ -18,7 +18,7 @@ describe('TurnManager', () => {
     [unit2, { x: 1, y: 0 }],
   ])
 
-  const battle = new BattleManager(grid)
+  const battle = new Battle(grid)
 
   beforeEach(() => (battle.turnIndex = 0))
 

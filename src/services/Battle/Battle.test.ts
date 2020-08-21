@@ -1,10 +1,10 @@
-import BattleManager from './BattleManager'
+import Battle from './Battle'
 import { createSimpleGraph } from '../../utils'
 import Team from '../../entities/Team'
 import Unit from '../../entities/Unit'
 import Grid from '../../entities/Grid'
 
-describe('BattleManager', () => {
+describe('Battle', () => {
   const [team1, team2] = new Team()
     .split({ branches: 2, siblingRelationship: 'hostile' })
     .getChildren()
@@ -18,14 +18,14 @@ describe('BattleManager', () => {
   ])
 
   it('can correctly tell when the battle has started', () => {
-    const battle = new BattleManager(grid)
+    const battle = new Battle(grid)
     expect(battle.inProgress).toBe(false)
     battle.advance()
     expect(battle.inProgress).toBe(true)
   })
 
   it('increments turns when iterated through', () => {
-    const battle = new BattleManager(grid)
+    const battle = new Battle(grid)
     expect(battle.turnIndex).toBe(-1)
     battle.advance()
     expect(battle.turnIndex).toBe(0)

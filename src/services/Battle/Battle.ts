@@ -3,15 +3,15 @@ import { Grid } from '../../entities'
 import { BattleEvents } from './types'
 import { Pathfinder, TypedEventEmitter } from '..'
 
-type BattleManagerCallback<T = void> = (battle: BattleManager) => T
+type BattleCallback<T = void> = (battle: Battle) => T
 
-const DEFAULT_END_CONDITION = (battle: BattleManager) =>
+const DEFAULT_END_CONDITION = (battle: Battle) =>
   battle.grid.getTeams().length === 1
 
-export default class BattleManager {
+export default class Battle {
   turnIndex = -1
   grid: Grid
-  endCondition: BattleManagerCallback<boolean>
+  endCondition: BattleCallback<boolean>
   events = new TypedEventEmitter<BattleEvents>()
   private turn?: TurnManager
   isDone = false
@@ -20,7 +20,7 @@ export default class BattleManager {
   constructor(
     grid: Grid,
     { endCondition = DEFAULT_END_CONDITION } = {} as {
-      endCondition?: BattleManagerCallback<boolean>
+      endCondition?: BattleCallback<boolean>
     }
   ) {
     this.grid = grid

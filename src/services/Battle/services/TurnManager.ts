@@ -1,11 +1,11 @@
 import ConflictManager from './ConflictManager'
-import { Pathfinder, BattleManager } from '../..'
+import { Pathfinder, Battle } from '../..'
 import { Unit, Team } from '../../../entities'
 
 export type ActionableUnit = ReturnType<TurnManager['mapActionsToPathfinder']>
 
 export default class TurnManager {
-  battle: BattleManager
+  battle: Battle
   team: Team
 
   private unitData = new Map<
@@ -13,7 +13,7 @@ export default class TurnManager {
     { maxActions: number; actionsTaken: number }
   >()
 
-  constructor(battle: BattleManager) {
+  constructor(battle: Battle) {
     this.battle = battle
     const teams = this.battle.grid.getTeams()
     this.team = teams[battle.turnIndex % teams.length]

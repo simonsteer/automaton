@@ -1,4 +1,4 @@
-import { BattleManager } from '..'
+import { Battle } from '..'
 import TurnManager, { ActionableUnit } from './services/TurnManager'
 
 export type BattleEvents = {
@@ -8,7 +8,7 @@ export type BattleEvents = {
     team,
     turnIndex,
     actionableUnits,
-  }: ReturnType<BattleManager['getNextTurn']>) => void
+  }: ReturnType<Battle['getNextTurn']>) => void
   actionableUnitChanged: (
     actionableUnit: ReturnType<TurnManager['mapActionsToPathfinder']>
   ) => void
