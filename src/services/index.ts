@@ -7,5 +7,5 @@ export { default as ConflictManager } from './BattleManager/services/ConflictMan
 export { default as TurnManager } from './BattleManager/services/TurnManager'
 export { default as Pathfinder } from './Pathfinder'
 export { default as TypedEventEmitter } from './TypedEventEmitter'
-export { default as TemporaryGridModification } from './TemporaryGridModification'
-export * from './TemporaryGridModification/types'
+export { default as RevocableGridModification } from './RevocableGridModification'
+export * from './RevocableGridModification/types'
