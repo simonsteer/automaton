@@ -1,6 +1,6 @@
 import { Grid, Unit } from '../../entities'
 import { RawCoords } from '../Coords'
-import { Pathfinder } from '..'
+import { Deployment } from '..'
 import { GridModifications } from './types'
 
 export default class RevocableGridModification {
@@ -9,10 +9,10 @@ export default class RevocableGridModification {
   private revocations: (
     | {
         type: 'moveUnit'
-        payload: [Pathfinder, RawCoords]
+        payload: [Deployment, RawCoords]
       }
-    | { type: 'addUnit'; payload: Symbol }
-    | { type: 'removeUnit'; payload: [Unit, RawCoords] }
+    | { type: 'deployUnit'; payload: Symbol }
+    | { type: 'withdrawUnit'; payload: [Unit, RawCoords] }
   )[] = []
 
   constructor(grid: Grid, modifications: GridModifications) {
@@ -25,38 +25,38 @@ export default class RevocableGridModification {
 
     this.modifications.forEach(modification => {
       switch (modification.type) {
-        case 'addUnit':
+        case 'deployUnit':
           const [unit, coords] = modification.payload
           this.revocations.unshift({
             type: modification.type,
             payload: unit.id,
           })
-          this.grid.addUnits([[unit, coords]])
+          this.grid.deployUnits([[unit, coords]])
           break
         case 'moveUnit':
           const [id, path] = modification.payload
-          const pathfinderToMove = this.grid.getPathfinder(id)
-          if (pathfinderToMove) {
+          const deploymentToMove = this.grid.getDeployment(id)
+          if (deploymentToMove) {
             this.revocations.unshift({
               type: modification.type,
-              payload: [pathfinderToMove, pathfinderToMove.coordinates.raw],
+              payload: [deploymentToMove, deploymentToMove.coordinates.raw],
             })
-            pathfinderToMove.move(path)
+            deploymentToMove.move(path)
           }
           break
-        case 'removeUnit':
-          const pathfinderToRemove = this.grid.getPathfinder(
+        case 'withdrawUnit':
+          const deploymentToRemove = this.grid.getDeployment(
             modification.payload
           )
-          if (pathfinderToRemove) {
+          if (deploymentToRemove) {
             this.revocations.unshift({
               type: modification.type,
               payload: [
-                pathfinderToRemove.unit,
-                pathfinderToRemove.coordinates.raw,
+                deploymentToRemove.unit,
+                deploymentToRemove.coordinates.raw,
               ],
             })
-            this.grid.removeUnits([modification.payload])
+            this.grid.withdrawUnits([modification.payload])
           }
           break
         default:
@@ -69,15 +69,15 @@ export default class RevocableGridModification {
     while (this.revocations.length) {
       const revocation = this.revocations[0]
       switch (revocation.type) {
-        case 'addUnit':
-          this.grid.removeUnits([revocation.payload])
+        case 'deployUnit':
+          this.grid.withdrawUnits([revocation.payload])
           break
         case 'moveUnit':
-          const [pathfinder, originalCoords] = revocation.payload
-          pathfinder.move([originalCoords])
+          const [deployment, originalCoords] = revocation.payload
+          deployment.move([originalCoords])
           break
-        case 'removeUnit':
-          this.grid.addUnits([revocation.payload])
+        case 'withdrawUnit':
+          this.grid.deployUnits([revocation.payload])
           break
         default:
           break

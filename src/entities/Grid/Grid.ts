@@ -1,6 +1,6 @@
-import { GridGraph, GridVectorData, GridEvents } from './types'
+import { GridGraph, GridVectorData, GridEvents, GridQuery } from './types'
 import { mapGraph } from '../../utils'
-import Pathfinder from '../../services/Pathfinder'
+import Deployment from '../../services/Deployment'
 import Coords, { RawCoords } from '../../services/Coords'
 import { Unit, Tile, Team } from '..'
 import { TypedEventEmitter } from '../../services'
@@ -10,7 +10,7 @@ export default class Grid {
 
   timestamp = Date.now()
   graph: GridGraph
-  pathfinders = new Map<Symbol, Pathfinder>()
+  deployments = new Map<Symbol, Deployment>()
   coordinates = new Map<string, Symbol>()
   events = new TypedEventEmitter<GridEvents>()
 
@@ -25,7 +25,7 @@ export default class Grid {
       coords: new Coords({ x, y }),
       tile,
     }))
-    if (units) this.addUnits(units)
+    if (units) this.deployUnits(units)
   }
 
   get size() {
@@ -35,96 +35,105 @@ export default class Grid {
   withinBounds = ({ x, y }: RawCoords) =>
     x >= 0 && x < this.size.x && y >= 0 && y < this.size.y
 
-  getData = (coordinates: RawCoords) => {
+  getCoordinateData = (coordinates: RawCoords) => {
     if (!this.withinBounds(coordinates)) return null
 
     const tile = this.getTile(coordinates)!
     const unitId = this.coordinates.get(Coords.hash(coordinates))
-    const pathfinder = unitId && this.pathfinders.get(unitId)
+    const deployment = unitId && this.deployments.get(unitId)
 
-    return { pathfinder, tile }
+    return { deployment, tile }
   }
 
   getTile = ({ x, y }: RawCoords): Tile | undefined => this.graph[y]?.[x]?.tile
 
-  getPathfinder = (unitId: Symbol) => this.pathfinders.get(unitId)
+  getDeployment = (query: GridQuery) => {
+    const unitId =
+      typeof query === 'symbol'
+        ? query
+        : this.coordinates.get(Coords.hash(query as RawCoords))
 
-  getPathfinders = (ids = [...this.pathfinders.keys()]) =>
-    ids.map(this.getPathfinder).filter(Boolean) as Pathfinder[]
+    return unitId && this.deployments.get(unitId)
+  }
+
+  getDeployments = (queries = [...this.deployments.keys()] as GridQuery[]) =>
+    queries.map(this.getDeployment).filter(Boolean) as Deployment[]
 
   getTeams = () => [
-    ...this.getUnits().reduce((acc, { team }) => {
-      if (!acc.has(team)) {
-        acc.add(team)
+    ...this.getDeployments().reduce((acc, deployment) => {
+      if (!acc.has(deployment.unit.team)) {
+        acc.add(deployment.unit.team)
       }
       return acc
     }, new Set<Team>()),
   ]
 
-  getUnits = (ids = [...this.pathfinders.keys()]) =>
-    this.getPathfinders(ids).map(p => p.unit)
+  deployUnit = (unit: Unit, coordinates: RawCoords) => {
+    const deployment = this.createDeployment(unit, coordinates)
+    if (deployment) this.events.emit('unitsDeployed', [deployment])
+  }
 
-  private addUnit = (
-    unit: Unit,
-    coordinates: RawCoords
-  ): [false, undefined] | [true, Pathfinder] => {
-    if (this.pathfinders.get(unit.id)) {
-      return [false, undefined]
+  deployUnits = (unitData: [Unit, RawCoords][]) => {
+    const deployments = unitData
+      .map(([unit, coordinates]) => this.createDeployment(unit, coordinates))
+      .filter(Boolean) as Deployment[]
+
+    if (deployments.length) this.events.emit('unitsDeployed', deployments)
+  }
+
+  withdrawUnit = (query: GridQuery) => {
+    const withdrawnDeployment = this.attemptWithdrawal(query)
+    if (withdrawnDeployment) {
+      this.events.emit('unitsWithdrawn', [withdrawnDeployment.unit.id])
+    }
+  }
+
+  withdrawUnits = (queries: GridQuery[]) => {
+    const withdrawals = queries
+      .map(this.attemptWithdrawal)
+      .filter(Boolean) as Deployment[]
+
+    if (withdrawals.length) {
+      this.events.emit(
+        'unitsWithdrawn',
+        withdrawals.map(withdrawn => withdrawn.unit.id)
+      )
+    }
+  }
+
+  clear = () => this.withdrawUnits([...this.deployments.keys()])
+
+  mapTiles<R>(callback: (item: GridVectorData, coordinates: RawCoords) => R) {
+    return mapGraph(this.graph, callback)
+  }
+
+  private createDeployment = (unit: Unit, coordinates: RawCoords) => {
+    if (this.deployments.get(unit.id)) {
+      return undefined
     }
 
-    const pathfinder = new Pathfinder({
+    const deployment = new Deployment({
       grid: this,
       unit,
       coordinates,
     })
-    this.pathfinders.set(unit.id, pathfinder)
+
+    this.deployments.set(unit.id, deployment)
     this.coordinates.set(Coords.hash(coordinates), unit.id)
-
-    return [true, pathfinder]
-  }
-
-  addUnits = (units: [Unit, RawCoords][]) => {
-    const successfulAdditions = units
-      .map(args => this.addUnit(...args))
-      .filter(([success]) => success)
-      .map(([_, pathfinder]) => pathfinder!)
-
-    if (successfulAdditions.length) {
-      this.timestamp++
-      this.events.emit('addUnits', successfulAdditions)
-    }
-    return this
-  }
-
-  private removeUnit = (unitId: Symbol) => {
-    const pathfinder = this.pathfinders.get(unitId)
-    if (pathfinder) {
-      this.coordinates.delete(pathfinder.coordinates.hash)
-      this.pathfinders.delete(unitId)
-    }
-
     this.timestamp++
 
-    return [unitId, !!pathfinder] as const
+    return deployment
   }
 
-  removeUnits = (unitIds: Symbol[]) => {
-    const results = unitIds.map(this.removeUnit)
-    const successfulRemovals = results
-      .filter(([_, success]) => success)
-      .map(([id]) => id)
+  private attemptWithdrawal = (query: GridQuery) => {
+    const deployment = this.getDeployment(query)
 
-    if (successfulRemovals.length) {
+    if (deployment) {
+      this.coordinates.delete(deployment.coordinates.hash)
+      this.deployments.delete(deployment.unit.id)
       this.timestamp++
-      this.events.emit('removeUnits', successfulRemovals)
     }
 
-    return this
-  }
-
-  clear = () => this.removeUnits([...this.pathfinders.keys()])
-
-  mapTiles<R>(callback: (item: GridVectorData, coordinates: RawCoords) => R) {
-    return mapGraph(this.graph, callback)
+    return deployment
   }
 }

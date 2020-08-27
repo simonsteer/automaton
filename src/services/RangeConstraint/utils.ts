@@ -1,4 +1,4 @@
-import { GraphNodeMap } from '../Pathfinder/Dijkstra/types'
+import { GraphNodeMap } from '../Deployment/Dijkstra/types'
 import { Coords } from '..'
 
 function differenceGraphs(...nodeMaps: GraphNodeMap[]) {

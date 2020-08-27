@@ -9,7 +9,7 @@ import Terrain from '../../entities/Terrain'
 import Tile from '../../entities/Tile'
 import Coords from '../Coords'
 
-describe('Pathfinder', () => {
+describe('Deployment', () => {
   const team = new Team()
 
   describe('getting reachable coordinates', () => {
@@ -17,7 +17,8 @@ describe('Pathfinder', () => {
       const unit = new Unit({ team, movement: { steps: 3 } })
       const grid = new Grid({
         graph: createSimpleGraph(5),
-      }).addUnits([[unit, { x: 0, y: 0 }]])
+      })
+      grid.deployUnit(unit, { x: 0, y: 0 })
 
       //  __ __ __ __ __
       // |U_|√_|√_|√_|__|
@@ -26,9 +27,9 @@ describe('Pathfinder', () => {
       // |√_|__|__|__|__|
       // |__|__|__|__|__|
 
-      const pathfinder = grid.getPathfinder(unit.id)!
+      const deployment = grid.getDeployment(unit.id)!
 
-      const reachable = pathfinder.getReachable()
+      const reachable = deployment.getReachable()
       const expected = [
         { x: 0, y: 0 },
         { x: 0, y: 1 },
@@ -59,7 +60,8 @@ describe('Pathfinder', () => {
       const graph = createSimpleGraph(5)
       graph[1][1] = new Tile(terrain)
       graph[2][1] = new Tile(terrain)
-      const grid = new Grid({ graph }).addUnits([[unit, { x: 0, y: 0 }]])
+      const grid = new Grid({ graph })
+      grid.deployUnit(unit, { x: 0, y: 0 })
 
       //  __ __ __ __ __
       // |U_|√_|√_|√_|__|
@@ -68,9 +70,9 @@ describe('Pathfinder', () => {
       // |√_|__|__|__|__|
       // |__|__|__|__|__|
 
-      const pathfinder = grid.getPathfinder(unit.id)!
+      const deployment = grid.getDeployment(unit.id)!
 
-      const reachable = pathfinder.getReachable()
+      const reachable = deployment.getReachable()
       const expected = [
         { x: 0, y: 0 },
         { x: 0, y: 1 },
@@ -99,7 +101,8 @@ describe('Pathfinder', () => {
         },
       })
       const graph = createSimpleGraph(5)
-      const grid = new Grid({ graph }).addUnits([[unit, { x: 1, y: 1 }]])
+      const grid = new Grid({ graph })
+      grid.deployUnit(unit, { x: 1, y: 1 })
 
       //  __ __ __ __ __
       // |√_|__|√_|__|__|
@@ -108,9 +111,9 @@ describe('Pathfinder', () => {
       // |__|√_|__|√_|__|
       // |__|__|__|__|__|
 
-      const pathfinder = grid.getPathfinder(unit.id)!
+      const deployment = grid.getDeployment(unit.id)!
 
-      const reachable = pathfinder.getReachable()
+      const reachable = deployment.getReachable()
       const expected = [
         { x: 0, y: 0 },
         { x: 0, y: 2 },
@@ -143,7 +146,8 @@ describe('Pathfinder', () => {
       graph[1][3] = new Tile(terrain)
       graph[3][1] = new Tile(terrain)
       graph[4][4] = new Tile(terrain)
-      const grid = new Grid({ graph }).addUnits([[unit, { x: 1, y: 1 }]])
+      const grid = new Grid({ graph })
+      grid.deployUnit(unit, { x: 1, y: 1 })
 
       //  __ __ __ __ __
       // |√_|__|√_|__|__|
@@ -152,9 +156,9 @@ describe('Pathfinder', () => {
       // |__|__|__|√_|__|
       // |__|__|√_|__|__|
 
-      const pathfinder = grid.getPathfinder(unit.id)!
+      const deployment = grid.getDeployment(unit.id)!
 
-      const reachable = pathfinder.getReachable()
+      const reachable = deployment.getReachable()
       const expected = [
         { x: 0, y: 0 },
         { x: 0, y: 2 },
@@ -183,7 +187,8 @@ describe('Pathfinder', () => {
       const graph = createSimpleGraph(5)
       graph[1][1] = new Tile(terrain)
       graph[1][2] = new Tile(terrain)
-      const grid = new Grid({ graph }).addUnits([[unit, { x: 0, y: 0 }]])
+      const grid = new Grid({ graph })
+      grid.deployUnit(unit, { x: 0, y: 0 })
 
       //  __ __ __ __ __
       // |U_|__|__|__|__|
@@ -192,9 +197,9 @@ describe('Pathfinder', () => {
       // |__|__|__|__|__|
       // |__|__|__|__|__|
 
-      const pathfinder = grid.getPathfinder(unit.id)!
+      const deployment = grid.getDeployment(unit.id)!
 
-      const path = pathfinder.getRoute({ x: 2, y: 2 })
+      const path = deployment.getRoute({ x: 2, y: 2 })
       const expected = [
         { x: 0, y: 1 },
         { x: 0, y: 2 },
@@ -220,7 +225,8 @@ describe('Pathfinder', () => {
       const terrain = new Terrain({ cost: () => 2 })
       const graph = createSimpleGraph(5)
       graph[1][3] = new Tile(terrain)
-      const grid = new Grid({ graph }).addUnits([[unit, { x: 0, y: 0 }]])
+      const grid = new Grid({ graph })
+      grid.deployUnit(unit, { x: 0, y: 0 })
 
       //  __ __ __ __ __
       // |U_|__|__|__|__|
@@ -229,9 +235,9 @@ describe('Pathfinder', () => {
       // |__|__|__|√_|__|
       // |__|__|__|__|__|
 
-      const pathfinder = grid.getPathfinder(unit.id)!
+      const deployment = grid.getDeployment(unit.id)!
 
-      const path = pathfinder.getRoute({ x: 4, y: 2 })!
+      const path = deployment.getRoute({ x: 4, y: 2 })!
       const expected = [
         { x: 1, y: 1 },
         { x: 2, y: 2 },

@@ -1,4 +1,4 @@
-import { Coords, Pathfinder, RawCoords } from '../../services'
+import { Coords, Deployment, RawCoords } from '../../services'
 import { Tile } from '..'
 
 export type GridVectorData = { coords: Coords; tile: Tile }
@@ -6,7 +6,9 @@ export type GridVectorData = { coords: Coords; tile: Tile }
 export type GridGraph = GridVectorData[][]
 
 export type GridEvents = {
-  addUnits: (pathfinders: Pathfinder[]) => void
-  unitMovement: (pathfinder: Pathfinder, path: RawCoords[]) => void
-  removeUnits: (unitIds: Symbol[]) => void
+  unitsDeployed: (deployments: Deployment[]) => void
+  unitMovement: (deployment: Deployment, path: RawCoords[]) => void
+  unitsWithdrawn: (unitIds: Symbol[]) => void
 }
+
+export type GridQuery = RawCoords | Symbol

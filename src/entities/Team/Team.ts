@@ -1,6 +1,6 @@
 import { TeamSplitConfig, TeamConfig, TeamRelationshipType } from './types'
 import { Unit, Grid } from '..'
-import { Pathfinder } from '../../services'
+import { Deployment } from '../../services'
 
 export default class Team {
   readonly id = Symbol()
@@ -155,7 +155,7 @@ export default class Team {
       : thisUnits
   }
 
-  getPathfinders = (grid: Grid, recursive = false) => {
+  getDeployments = (grid: Grid, recursive = false) => {
     let units = [...this.units]
     if (recursive) {
       units = [...this.getChildren(true)].reduce((acc, team) => {
@@ -164,8 +164,8 @@ export default class Team {
       }, units)
     }
     return units
-      .map(unit => grid.getPathfinder(unit.id))
-      .filter(Boolean) as Pathfinder[]
+      .map(unit => grid.getDeployment(unit.id))
+      .filter(Boolean) as Deployment[]
   }
 
   getSize = (recursive = false) => {

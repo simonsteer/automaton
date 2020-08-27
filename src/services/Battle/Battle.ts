@@ -5,7 +5,7 @@ import { TypedEventEmitter } from '..'
 type BattleCallback<T = void> = (battle: Battle) => T
 
 const DEFAULT_END_CONDITION = (battle: Battle) =>
-  battle.grid.getTeams().length === 1
+  battle.grid.getTeams().length <= 1
 
 export default class Battle {
   turnIndex = -1
@@ -24,12 +24,12 @@ export default class Battle {
     this.endCondition = endCondition
   }
 
-  private getActiveTeam() {
+  getActiveTeam() {
     const teams = this.grid.getTeams()
     return teams[this.turnIndex % teams.length] as Team | undefined
   }
 
-  advance() {
+  nextTurn() {
     if (this.isDone) return
     if (this.turnIndex >= 0 && !this.inProgress) {
       this.isDone = true

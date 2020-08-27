@@ -1,7 +1,7 @@
 import { Coords } from '..'
 import { Grid, Unit } from '../../entities'
 import { graphMergeStrategies, coordinatesHashesMergeStrategies } from './utils'
-import Graph from '../Pathfinder/Dijkstra/Graph'
+import Graph from '../Deployment/Dijkstra/Graph'
 import { RangeConstraintConfig, ConstraintMergeStrategy } from './types'
 import Constraint from './Constraint'
 
@@ -23,11 +23,11 @@ export default class RangeConstraint {
   applies = (coordsA: Coords, coordsB: Coords) =>
     this.constraints.every(constraint => constraint.applies(coordsA, coordsB))
 
-  buildPathfinderGraph = (grid: Grid) =>
+  buildDeploymentGraph = (grid: Grid) =>
     new Graph(
       this.mergeGraph(
         ...this.constraints.map(constraint =>
-          constraint.buildPathfinderGraph(grid)
+          constraint.buildDeploymentGraph(grid)
         )
       )
     )
@@ -88,14 +88,14 @@ export default class RangeConstraint {
           return acc
         }
 
-        const { pathfinder, tile } = grid.getData(coordinates)!
+        const { deployment, tile } = grid.getCoordinateData(coordinates)!
         const movementCost = unit ? tile.terrain.cost(unit) : 1
 
         if (movementCost > stepsLeft) return acc
 
         let didPassThroughUnit = false
-        if (unit && pathfinder?.unit && pathfinder.unit.id !== unit.id) {
-          if (!unit.pathfinderOptions.canPassThroughUnit(pathfinder, tile)) {
+        if (unit && deployment?.unit && deployment.unit.id !== unit.id) {
+          if (!unit.deploymentOptions.canPassThroughUnit(deployment, tile)) {
             acc.inaccessible.add(coordinates.hash)
             return acc
           }
@@ -107,7 +107,7 @@ export default class RangeConstraint {
         if (
           stepsLeft - movementCost > 0 &&
           (!didPassThroughUnit ||
-            acc.passThroughCount < unit!.pathfinderOptions.unitPassThroughLimit)
+            acc.passThroughCount < unit!.deploymentOptions.unitPassThroughLimit)
         ) {
           this.getReachableCoordinatesForConstraint(
             {

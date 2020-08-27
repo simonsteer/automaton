@@ -1,8 +1,8 @@
 import { Tile } from '..'
-import { Pathfinder } from '../../services'
+import { Deployment } from '../../services'
 
 export type TileInteractionCallback<D = void> = (
-  pathfinder: Pathfinder,
+  deployment: Deployment,
   tile: Tile
 ) => D
 

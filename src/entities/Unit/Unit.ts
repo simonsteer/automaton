@@ -3,7 +3,7 @@ import { UnitConfig } from './types'
 import { Team, Weapon } from '..'
 import {
   RangeConstraint,
-  Pathfinder,
+  Deployment,
   GetReachableCooordinatesOptions,
 } from '../../services'
 
@@ -15,7 +15,7 @@ export default class Unit {
   maxHealth: number
   currentHealth: number
   weapon?: Weapon
-  pathfinderOptions: GetReachableCooordinatesOptions
+  deploymentOptions: GetReachableCooordinatesOptions
 
   constructor({
     actions = 2,
@@ -23,9 +23,9 @@ export default class Unit {
       constraints = [SIMPLE_ORTHOGONAL_CONSTRAINT],
       mergeStrategy = 'union',
       steps = 1,
-      canPassThroughUnit = (pathfinder: Pathfinder) =>
-        pathfinder.unit.team.isFriendly(this.team) ||
-        pathfinder.unit.team.isNeutral(this.team),
+      canPassThroughUnit = (deployment: Deployment) =>
+        deployment.unit.team.isFriendly(this.team) ||
+        deployment.unit.team.isNeutral(this.team),
       unitPassThroughLimit = Infinity,
     } = {},
     health = 1,
@@ -40,7 +40,7 @@ export default class Unit {
 
     this.setTeam(team)
     this.actions = actions
-    this.pathfinderOptions = { canPassThroughUnit, unitPassThroughLimit }
+    this.deploymentOptions = { canPassThroughUnit, unitPassThroughLimit }
     this.movement = new RangeConstraint({
       constraints,
       steps,

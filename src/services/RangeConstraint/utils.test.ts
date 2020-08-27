@@ -1,5 +1,5 @@
 import { graphMergeStrategies, coordinatesHashesMergeStrategies } from './utils'
-import { GraphNodeMap } from '../Pathfinder/Dijkstra/types'
+import { GraphNodeMap } from '../Deployment/Dijkstra/types'
 import Terrain from '../../entities/Terrain'
 import { Coords } from '..'
 

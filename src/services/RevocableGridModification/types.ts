@@ -2,9 +2,9 @@ import { Unit } from '../..'
 import { RawCoords } from '../Coords'
 
 type GridModificationTypes = {
-  addUnit: [Unit, RawCoords]
+  deployUnit: [Unit, RawCoords]
   moveUnit: [Symbol, RawCoords[]]
-  removeUnit: Symbol
+  withdrawUnit: Symbol
 }
 
 export type GridModificationType = keyof GridModificationTypes
@@ -15,7 +15,7 @@ export type GridModification<Type extends GridModificationType> = {
 }
 
 export type GridModifications = (
-  | GridModification<'addUnit'>
-  | GridModification<'removeUnit'>
+  | GridModification<'deployUnit'>
+  | GridModification<'withdrawUnit'>
   | GridModification<'moveUnit'>
 )[]

@@ -2,15 +2,12 @@ import Coords, { RawCoords } from '../Coords'
 import Graph from './Dijkstra/Graph'
 import { Grid, Unit } from '../../entities'
 
-export default class Pathfinder {
+export default class Deployment {
   timestamp: number
   readonly grid: Grid
   readonly unit: Unit
   graph!: Graph
   coordinates: Coords
-  private routeCache: {
-    [startEndHash: string]: Coords[]
-  } = {}
 
   constructor({
     grid,
@@ -28,10 +25,15 @@ export default class Pathfinder {
     this.initGraph()
   }
 
+  private updateCoordinates = (val: Partial<RawCoords>) => {
+    this.grid.timestamp++
+    this.coordinates.update(val)
+  }
+
   move = (path: RawCoords[]) => {
     if (path.length < 1) {
       console.error(
-        `Paths must contain at least one set of coordinates. Pathfinder#move receieved a path with a length of 0.`
+        `Paths must contain at least one set of coordinates. Deployment#move receieved a path with a length of 0.`
       )
       return []
     }
@@ -43,14 +45,14 @@ export default class Pathfinder {
         if (acc.abort || this.unit.isDead) {
           return acc
         }
-        const data = this.grid.getData(coordinates)
+        const data = this.grid.getCoordinateData(coordinates)
         if (!data) {
           throw new Error(
             `No data was found at coordinates: { x: ${coordinates.x}; y: ${coordinates.y} }`
           )
         }
 
-        const { pathfinder, tile } = data
+        const { deployment, tile } = data
         const isLastStep = index === path.length - 1
 
         if (tile.shouldGuardEntry(this, tile)) {
@@ -60,22 +62,23 @@ export default class Pathfinder {
         } else {
           const prev = path[index - 1] as RawCoords | undefined
           if (prev)
-            this.grid.getData(prev)?.tile.events.emit('unitExit', this, tile)
+            this.grid
+              .getCoordinateData(prev)
+              ?.tile.events.emit('unitExit', this, tile)
 
           acc.path.push(coordinates)
-          this.coordinates.update(coordinates)
+          this.updateCoordinates(coordinates)
           tile.events.emit('unitEnter', this, tile)
 
           if (isLastStep) {
             tile.events.emit('unitStop', this, tile)
-          } else if (!pathfinder && tile.shouldGuardCrossover(this, tile)) {
+          } else if (!deployment && tile.shouldGuardCrossover(this, tile)) {
             acc.abort = true
             tile.events.emit('guardCrossover', this, tile)
             tile.events.emit('unitStop', this, tile)
           }
         }
 
-        this.grid.timestamp++
         return acc
       },
       { path: [] as RawCoords[], abort: false }
@@ -116,7 +119,8 @@ export default class Pathfinder {
       this.unit.weapon?.range
         .getApplicableCoordinates(this.coordinates, this.grid)
         .filter(coords => {
-          const otherTeam = this.grid.getData(coords)?.pathfinder?.unit?.team
+          const otherTeam = this.grid.getCoordinateData(coords)?.deployment
+            ?.unit?.team
           return !!(
             otherTeam?.isHostile(this.unit.team) ||
             otherTeam?.isWildcard(this.unit.team)
@@ -127,14 +131,6 @@ export default class Pathfinder {
   }
 
   private initGraph() {
-    this.graph = this.unit.movement.buildPathfinderGraph(this.grid)
-  }
-
-  private checkCache() {
-    if (this.timestamp !== this.grid.timestamp) {
-      this.initGraph()
-      this.routeCache = {}
-      this.timestamp = this.grid.timestamp
-    }
+    this.graph = this.unit.movement.buildDeploymentGraph(this.grid)
   }
 }

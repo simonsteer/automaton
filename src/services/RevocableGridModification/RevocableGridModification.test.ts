@@ -19,26 +19,28 @@ describe('RevocableGridModification', () => {
 
   const modification = new RevocableGridModification(grid, [
     { type: 'moveUnit', payload: [unit.id, [toCoords]] },
-    { type: 'addUnit', payload: [unitToAdd, unitToAddCoords] },
+    { type: 'deployUnit', payload: [unitToAdd, unitToAddCoords] },
   ])
 
   it('can apply modifications to a grid', () => {
-    expect(grid.getData(fromCoords)?.pathfinder).not.toBe(undefined)
-    expect(grid.getData(toCoords)?.pathfinder).toBe(undefined)
-    expect(grid.getData(unitToAddCoords)?.pathfinder).toBe(undefined)
+    expect(grid.getCoordinateData(fromCoords)?.deployment).not.toBe(undefined)
+    expect(grid.getCoordinateData(toCoords)?.deployment).toBe(undefined)
+    expect(grid.getCoordinateData(unitToAddCoords)?.deployment).toBe(undefined)
 
     modification.apply()
 
-    expect(grid.getData(fromCoords)?.pathfinder).toBe(undefined)
-    expect(grid.getData(toCoords)?.pathfinder).not.toBe(undefined)
-    expect(grid.getData(unitToAddCoords)?.pathfinder).not.toBe(undefined)
+    expect(grid.getCoordinateData(fromCoords)?.deployment).toBe(undefined)
+    expect(grid.getCoordinateData(toCoords)?.deployment).not.toBe(undefined)
+    expect(grid.getCoordinateData(unitToAddCoords)?.deployment).not.toBe(
+      undefined
+    )
   })
 
   it('can revoke modifications from the grid', () => {
     modification.revoke()
 
-    expect(grid.getData(fromCoords)?.pathfinder).not.toBe(undefined)
-    expect(grid.getData(toCoords)?.pathfinder).toBe(undefined)
-    expect(grid.getData(unitToAddCoords)?.pathfinder).toBe(undefined)
+    expect(grid.getCoordinateData(fromCoords)?.deployment).not.toBe(undefined)
+    expect(grid.getCoordinateData(toCoords)?.deployment).toBe(undefined)
+    expect(grid.getCoordinateData(unitToAddCoords)?.deployment).toBe(undefined)
   })
 })

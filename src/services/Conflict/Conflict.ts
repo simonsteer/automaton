@@ -1,8 +1,8 @@
-import { Unit } from '../entities'
+import Unit from '../../entities/Unit'
 
 type ConflictCalculator = (unitA: Unit, unitB: Unit) => number
 
-export default class ConflictManager {
+export default class Conflict {
   aggressor: Unit
   defender: Unit
   constructor(aggressor: Unit, defender: Unit) {
