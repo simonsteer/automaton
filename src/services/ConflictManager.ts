@@ -1,4 +1,4 @@
-import { Unit } from '../../../entities'
+import { Unit } from '../entities'
 
 type ConflictCalculator = (unitA: Unit, unitB: Unit) => number
 
