@@ -82,9 +82,10 @@ export default class Pathfinder {
     ).path
 
     const toHash = this.coordinates.hash
-    if (fromHash !== toHash) {
+    if (result.length) {
       this.grid.coordinates.delete(fromHash)
       this.grid.coordinates.set(toHash, this.unit.id)
+      this.grid.events.emit('unitMovement', this, result)
     }
     return result
   }
