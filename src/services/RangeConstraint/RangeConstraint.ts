@@ -95,7 +95,7 @@ export default class RangeConstraint {
 
         let didPassThroughUnit = false
         if (unit && deployment?.unit && deployment.unit.id !== unit.id) {
-          if (!unit.deploymentOptions.canPassThroughUnit(deployment, tile)) {
+          if (!unit.extraMovementOptions.canPassThroughUnit(deployment, tile)) {
             acc.inaccessible.add(coordinates.hash)
             return acc
           }
@@ -107,7 +107,8 @@ export default class RangeConstraint {
         if (
           stepsLeft - movementCost > 0 &&
           (!didPassThroughUnit ||
-            acc.passThroughCount < unit!.deploymentOptions.unitPassThroughLimit)
+            acc.passThroughCount <
+              unit!.extraMovementOptions.unitPassThroughLimit)
         ) {
           this.getReachableCoordinatesForConstraint(
             {

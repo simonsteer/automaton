@@ -1,5 +1,5 @@
 import { SIMPLE_ORTHOGONAL_CONSTRAINT } from '../../recipes/constraints'
-import { UnitConfig } from './types'
+import { UnitConfig, ExtraMovementOptions } from './types'
 import { Team, Weapon } from '..'
 import {
   RangeConstraint,
@@ -15,7 +15,7 @@ export default class Unit {
   maxHealth: number
   currentHealth: number
   weapon?: Weapon
-  deploymentOptions: GetReachableCooordinatesOptions
+  extraMovementOptions: ExtraMovementOptions
 
   constructor({
     actions = 2,
@@ -27,6 +27,7 @@ export default class Unit {
         deployment.unit.team.isFriendly(this.team) ||
         deployment.unit.team.isNeutral(this.team),
       unitPassThroughLimit = Infinity,
+      getSpecialCoordinates = () => [],
     } = {},
     health = 1,
     team,
@@ -40,7 +41,11 @@ export default class Unit {
 
     this.setTeam(team)
     this.actions = actions
-    this.deploymentOptions = { canPassThroughUnit, unitPassThroughLimit }
+    this.extraMovementOptions = {
+      canPassThroughUnit,
+      unitPassThroughLimit,
+      getSpecialCoordinates,
+    }
     this.movement = new RangeConstraint({
       constraints,
       steps,

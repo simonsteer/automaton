@@ -104,15 +104,14 @@ export default class Deployment {
     return result.path?.map(Coords.parse).slice(1) || []
   }
 
-  getReachable = () => {
-    const result = this.unit.movement.getApplicableCoordinates(
-      this.coordinates,
-      this.grid,
-      this.unit
-    )
-
-    return result
-  }
+  getReachable = () =>
+    this.unit.movement
+      .getApplicableCoordinates(this.coordinates, this.grid, this.unit)
+      .concat(
+        this.unit.extraMovementOptions
+          .getSpecialCoordinates(this)
+          .map(c => new Coords(c))
+      )
 
   getTargetable = () => {
     const result =
