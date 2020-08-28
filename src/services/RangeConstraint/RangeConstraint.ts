@@ -21,7 +21,9 @@ export default class RangeConstraint {
   }
 
   applies = (coordsA: Coords, coordsB: Coords) =>
-    this.constraints.every(constraint => constraint.applies(coordsA, coordsB))
+    this.constraints.every(constraint => {
+      constraint.applies(coordsA, coordsB)
+    })
 
   buildDeploymentGraph = (grid: Grid) =>
     new Graph(

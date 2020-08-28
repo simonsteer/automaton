@@ -1,11 +1,7 @@
 import { SIMPLE_ORTHOGONAL_CONSTRAINT } from '../../recipes/constraints'
 import { UnitConfig, ExtraMovementOptions } from './types'
 import { Team, Weapon } from '..'
-import {
-  RangeConstraint,
-  Deployment,
-  GetReachableCooordinatesOptions,
-} from '../../services'
+import { RangeConstraint, Deployment } from '../../services'
 
 export default class Unit {
   readonly id = Symbol()
