@@ -4,11 +4,12 @@ import { Deployment } from '../../services'
 
 export default class Team {
   readonly id = Symbol()
-  hostile = new Set<Team>()
-  friendly = new Set<Team>()
-  parent?: Team
-  units = new Set<Unit>()
-  children = new Set<Team>()
+
+  private hostile = new Set<Team>()
+  private friendly = new Set<Team>()
+  private parent?: Team
+  private units = new Set<Unit>()
+  private children = new Set<Team>()
 
   constructor(
     {
@@ -30,6 +31,20 @@ export default class Team {
     neutral.forEach(team => this.changeRelationship(team, 'neutral'))
   }
 
+  /**
+   * @function
+   * Declaratively creates child teams and their relationships at any level of nesting.
+   *
+   * @arguments
+   * `number` – n children will be created, which by default are friendly to the parent team and each other.
+   *
+   * `TeamRelationshipType` – a child will be created with the passed in relationship to the parent team.
+   *
+   * `TeamSplitConfig` – an object with the option to specify `parentRelationship` and `siblingRelationship` (default is friendly),
+   * as well as any further `splits` you wish to perform.
+   * @returns
+   * `Team` (self)
+   */
   split = (params = 1 as TeamSplitConfig) => {
     const newTeams: Team[] = []
 
@@ -60,24 +75,24 @@ export default class Team {
       }
       default: {
         const {
-          branches,
+          splits,
           parentRelationship = 'friendly',
           siblingRelationship = 'friendly',
         } = params
 
-        if (typeof branches === 'number') {
-          if (branches < 1)
+        if (typeof splits === 'number') {
+          if (splits < 1)
             throw new Error(
-              `Team Splits must have at least a single branch. Received value: ${branches}`
+              `Team Splits must have at least a single branch. Received value: ${splits}`
             )
 
-          for (let i = 0; i < branches; i++) {
+          for (let i = 0; i < splits; i++) {
             const newTeam = this.clone().changeRelationship(
               this,
               parentRelationship
             )
 
-            if (i === branches - 1)
+            if (i === splits - 1)
               newTeams.forEach(team =>
                 team.changeRelationship(newTeam, siblingRelationship)
               )
@@ -85,17 +100,17 @@ export default class Team {
             newTeams.push(newTeam)
           }
         } else {
-          if (branches.length < 1)
+          if (splits.length < 1)
             throw new Error(
-              `Team Splits must have at least a single branch. Received ${branches.length} branches.`
+              `Team Splits must have at least a single branch. Received ${splits.length} branches.`
             )
 
-          branches.forEach((config, i) => {
+          splits.forEach((config, i) => {
             const newTeam = this.clone()
               .changeRelationship(this, parentRelationship)
               .split(config)
 
-            if (i === branches.length - 1)
+            if (i === splits.length - 1)
               newTeams.forEach(team =>
                 team.changeRelationship(newTeam, siblingRelationship)
               )
@@ -111,40 +126,83 @@ export default class Team {
     return this
   }
 
+  /**
+   * @function
+   * Makes another team its child.
+   * @returns
+   * `Team` (self)
+   */
   addChild = (team: Team) => {
     team.parent = this
     this.children.add(team)
     return this
   }
 
+  /**
+   * @function
+   * Makes multiple teams its children.
+   * @returns
+   * `Team` (self)
+   */
   addChildren = (teams: Team[]) => {
     teams.forEach(this.addChild)
     return this
   }
 
+  /**
+   * @function
+   * Removes a team from its roster of children. The team in question will be parentless unless assigned a new parent team.
+   * @returns
+   * `Team` (self)
+   */
   removeChild = (team: Team) => {
-    team.parent = undefined
-    this.children.delete(team)
+    if (this.children.delete(team)) {
+      team.parent = undefined
+    }
     return this
   }
 
-  removeChildren = (teams?: Team[]) => {
-    const teamIds = teams?.map(team => team)
-    this.getChildren()
-      .filter(team => !teamIds || teamIds.includes(team))
-      .forEach(this.removeChild)
+  /**
+   * @function
+   * Removes multiple teams from its roster of children. The teams in question will be parentless unless assigned new parent teams.
+   * @returns
+   * `Team` (self)
+   */
+  removeChildren = (teams = this.getChildren(true)) => {
+    teams.forEach(this.removeChild)
     return this
   }
 
+  /**
+   * @function
+   * Returns the parent team.
+   * Passing `true` as a second argument will recursively search up the inheritance chain until the original parent is found.
+   * @returns
+   * `Team`
+   */
   getParent = (recursive = false): Team =>
     recursive ? this.parent?.getParent(true) || this : this.parent || this
 
+  /**
+   * @function
+   * Returns an array of teams which are children of the team.
+   * Passing `true` as a second argument will recursively include all the team's child teams in this array.
+   * @returns
+   * `Team[]`
+   */
   getChildren = (recursive = false) =>
     [...this.children.values()].reduce((acc, team) => {
       recursive ? acc.push(team, ...team.getChildren(true)) : acc.push(team)
       return acc
     }, [] as Team[])
 
+  /**
+   * @function
+   * Returns an array of units which belong to the team.
+   * Passing `true` as a second argument will recursively include all the team's children's units in this array.
+   * @returns
+   * `Unit[]`
+   */
   getUnits = (recursive = false) => {
     const thisUnits = [...this.units.values()]
     return recursive
@@ -155,6 +213,13 @@ export default class Team {
       : thisUnits
   }
 
+  /**
+   * @function
+   * Returns an array of deployments which belong to the team on a given grid.
+   * Passing `true` as a second argument will recursively include all the team's children's deployments in this array.
+   * @returns
+   * `Deployment[]`
+   */
   getDeployments = (grid: Grid, recursive = false) => {
     let units = [...this.units]
     if (recursive) {
@@ -168,16 +233,12 @@ export default class Team {
       .filter(Boolean) as Deployment[]
   }
 
-  getSize = (recursive = false) => {
-    let size = this.units.size
-    if (recursive) {
-      size =
-        size +
-        this.getChildren(true).reduce((acc, child) => acc + child.units.size, 0)
-    }
-    return size
-  }
-
+  /**
+   * @function
+   * Change the relationship between another team.
+   * @returns
+   * `Team` (self)
+   */
   changeRelationship = (team: Team, relationship: TeamRelationshipType) => {
     switch (relationship) {
       case 'friendly':
@@ -208,30 +269,47 @@ export default class Team {
     return this
   }
 
-  isNeutral = (team: Team) => !this.isFriendly(team) && !this.isHostile(team)
+  /**
+   * @function
+   * Check to see if another team is a child or parent, or if they are neutral/hostile/etc.
+   * Passing `true` or `false` as a third argument affects whether to recursively check for child/parent relationships only
+   * @returns
+   * `boolean`
+   */
+  is = (
+    relationshipType: TeamRelationshipType | 'parent' | 'child',
+    team: Team,
+    recursive?: boolean
+  ): boolean => {
+    switch (relationshipType) {
+      case 'neutral':
+        return !this.is('friendly', team) && !this.is('hostile', team)
+      case 'wildcard':
+        return this.is('friendly', team) && this.is('hostile', team)
+      case 'hostile':
+        return this.hostile.has(team) || !!this.parent?.is('hostile', team)
+      case 'friendly':
+        return this.friendly.has(team) || !!this.parent?.is('friendly', team)
+      case 'parent':
+        return team.getParent(recursive).id === this.id
+      default:
+        return this.getChildren(recursive).some(child => child.id === team.id)
+    }
+  }
 
-  isWildcard = (team: Team) => this.isFriendly(team) && this.isHostile(team)
-
-  isHostile = (team: Team): boolean =>
-    this.hostile.has(team) || !!this.parent?.isHostile(team)
-
-  isFriendly = (team: Team): boolean =>
-    this.friendly.has(team) || !!this.parent?.isFriendly(team)
-
-  isParent = (team: Team, recursive = false) =>
-    team.getParent(recursive).id === this.id
-
-  isChild = (team: Team, recursive = false) =>
-    this.getChildren(recursive).some(child => child.id === team.id)
-
-  clone = (overrides = {} as TeamConfig) => {
-    return new Team({
+  /**
+   * @function
+   * Clone the team with optional constructor overrides.
+   * @returns
+   * `Team` (new)
+   */
+  clone = (overrides = {} as TeamConfig) =>
+    new Team({
       parent: this.parent,
       hostile: [...this.hostile],
       friendly: [...this.friendly],
       ...overrides,
     })
-  }
 
   /*
   The methods below are intentionally and unused in this class
@@ -242,12 +320,11 @@ export default class Team {
   using the framework, since using them on their own may lead to
   inconsistent game data.
   */
-
-  __addUnit = (unit: Unit) => {
+  private __addUnit = (unit: Unit) => {
     this.units.add(unit)
     return this
   }
-  __removeUnit = (unit: Unit) => {
+  private __removeUnit = (unit: Unit) => {
     this.units.delete(unit)
     return this
   }

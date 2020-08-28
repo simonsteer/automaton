@@ -9,10 +9,11 @@ export default class Grid {
   readonly id = Symbol()
 
   timestamp = Date.now()
-  graph: GridGraph
-  deployments = new Map<Symbol, Deployment>()
-  coordinates = new Map<string, Symbol>()
   events = new TypedEventEmitter<GridEvents>()
+
+  private graph: GridGraph
+  private deployments = new Map<Symbol, Deployment>()
+  private coordinates = new Map<string, Symbol>()
 
   constructor({
     graph,
