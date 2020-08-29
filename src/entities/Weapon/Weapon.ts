@@ -20,17 +20,13 @@ export default class Weapon {
   }
 
   /**
-   * @function
    * Returns an array of `Coords` which represent tiles housing `Deployment`s who's `Unit`
    * can be targeted by the subject's Weapon from the subject's current coordinates.
    * */
-  getTargetableCoords = ({
-    deployment,
-    fromCoords,
-  }: {
-    deployment: Deployment
-    fromCoords: RawCoords
-  }) =>
+  getTargetableCoords = (
+    deployment: Deployment,
+    fromCoords = deployment.coordinates.raw
+  ) =>
     this.range
       .getApplicableCoordinates(fromCoords, deployment.grid)
       .filter(coords => {

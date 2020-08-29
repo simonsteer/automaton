@@ -12,7 +12,7 @@ export default class Battle {
   grid: Grid
   endCondition: BattleCallback<boolean>
   events = new TypedEventEmitter<BattleEvents>()
-  isDone = false
+  private isDone = false
 
   constructor(
     grid: Grid,
@@ -24,11 +24,17 @@ export default class Battle {
     this.endCondition = endCondition
   }
 
+  /**
+   * Returns the active `Team` according to the `Battle`'s `turnIndex`.
+   * */
   getActiveTeam() {
     const teams = this.grid.getTeams()
     return teams[this.turnIndex % teams.length] as Team | undefined
   }
 
+  /**
+   * Advances the `Battle`'s `turnIndex`. Emits all `BattleEvents`.
+   * */
   nextTurn() {
     if (this.isDone) return
     if (this.turnIndex >= 0 && !this.inProgress) {
@@ -44,5 +50,9 @@ export default class Battle {
 
   get inProgress() {
     return this.turnIndex !== -1 && !this.endCondition(this)
+  }
+
+  get didEnd() {
+    return this.isDone
   }
 }

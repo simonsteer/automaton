@@ -38,14 +38,12 @@ export default class Grid {
   }
 
   /**
-   * @function
    * Determines whether a given set of `RawCoords` is within bounds of the `Grid`.
    *  */
   withinBounds = ({ x, y }: RawCoords) =>
     x >= 0 && x < this.size.x && y >= 0 && y < this.size.y
 
   /**
-   * @function
    * Retrieve data relevant to a given set of `RawCoords`.
    *  */
   getCoordinateData = (coordinates: RawCoords) => {
@@ -59,7 +57,6 @@ export default class Grid {
   }
 
   /**
-   * @function
    * Returns a `Deployment` given the query passed in, or `undefined` if no `Deployment` can be found.
    *
    * @arguments
@@ -75,7 +72,6 @@ export default class Grid {
   }
 
   /**
-   * @function
    * Returns an array of `Deployment`s given the queries passed in. An empty array is returned if no `Deployment`s are found.
    *
    * @arguments
@@ -85,7 +81,6 @@ export default class Grid {
     queries.map(this.getDeployment).filter(Boolean) as Deployment[]
 
   /**
-   * @function
    * Returns an array of `Team`s with active `Deployment`s on the `Grid`.
    * */
   getTeams = () => [
@@ -98,7 +93,6 @@ export default class Grid {
   ]
 
   /**
-   * @function
    * Attempt to create a `Deployment` on the grid. If a `Deployment` who's `Unit.id` already
    * exists on the `Grid`, or if a `Unit` already exists at the given set of `RawCoords`,
    * no `Deployment` will be created. Emits `GridEvents.unitsDeployed` if a `Deployment` is
@@ -110,7 +104,6 @@ export default class Grid {
   }
 
   /**
-   * @function
    * Attempt to create multiple `Deployment`s on the grid. If a `Deployment` who's `Unit.id` already
    * exists on the `Grid`, or if a `Unit` already exists at the given set of `RawCoords`,
    * no `Deployment` will be created. Emits `GridEvents.unitsDeployed` if at least one `Deployment` is
@@ -125,7 +118,6 @@ export default class Grid {
   }
 
   /**
-   * @function
    * Attempt to remove a `Deployment` from the `Grid`. If there is no `Deployment` to be found via the given
    * `GridQuery`, no `Deployment` is withdrawn. If a deployment is successfully removed,
    * emits `GridEvents.unitsWithdrawn`.
@@ -138,7 +130,6 @@ export default class Grid {
   }
 
   /**
-   * @function
    * Attempt to remove multiple `Deployment`s from the `Grid`. If there is no `Deployment` to be found via the given
    * `GridQuery`s, no `Deployment` is withdrawn. If at least one deployment is successfully removed,
    * emits `GridEvents.unitsWithdrawn`.
@@ -157,13 +148,11 @@ export default class Grid {
   }
 
   /**
-   * @function
    * Withdraw all `Deployments` from the `Grid`. Emits `GridEvents.unitsWithdrawn` if at least one `Deployment` is withdrawn.
    * */
   clear = () => this.withdrawUnits([...this.deployments.keys()])
 
   /**
-   * @function
    * Map over each column of each row of the `Grid`, optionally returning a value.
    * */
 

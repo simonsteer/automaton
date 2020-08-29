@@ -1,7 +1,7 @@
 import { SIMPLE_ORTHOGONAL_CONSTRAINT } from '../../recipes/constraints'
 import { UnitConfig, ExtraMovementOptions } from './types'
-import { Team, Weapon } from '..'
-import { RangeConstraint, Deployment } from '../../services'
+import { Team, Weapon, Grid } from '..'
+import { RangeConstraint, Deployment, RawCoords } from '../../services'
 
 export default class Unit {
   readonly id = Symbol()
@@ -67,16 +67,26 @@ export default class Unit {
     return this._team
   }
 
+  /**
+   * Equips the `Unit` in question with a `Weapon` and returns the instance.
+   */
   equip = (weapon: Weapon) => {
     this.weapon = weapon
     return this
   }
 
+  /**
+   * Unequips the active weapon from the `Unit` in question and returns the instance.
+   */
   disarm = () => {
     this.weapon = undefined
     return this
   }
 
+  /**
+   * Updates the `Unit` in question to be a part of the given `Team`.
+   * @returns `Unit` (itself)
+   */
   setTeam = (team: Team) => {
     this._team?.['__removeUnit'](this)
     this._team = team

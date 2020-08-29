@@ -32,7 +32,6 @@ export default class Team {
   }
 
   /**
-   * @function
    * Declaratively creates child teams and their relationships at any level of nesting.
    *
    * @arguments
@@ -127,7 +126,6 @@ export default class Team {
   }
 
   /**
-   * @function
    * Makes another team its child.
    * @returns
    * `Team` (self)
@@ -139,7 +137,6 @@ export default class Team {
   }
 
   /**
-   * @function
    * Makes multiple teams its children.
    * @returns
    * `Team` (self)
@@ -150,7 +147,6 @@ export default class Team {
   }
 
   /**
-   * @function
    * Removes a team from its roster of children. The team in question will be parentless unless assigned a new parent team.
    * @returns
    * `Team` (self)
@@ -163,7 +159,6 @@ export default class Team {
   }
 
   /**
-   * @function
    * Removes multiple teams from its roster of children. The teams in question will be parentless unless assigned new parent teams.
    * @returns
    * `Team` (self)
@@ -174,7 +169,6 @@ export default class Team {
   }
 
   /**
-   * @function
    * Returns the parent team.
    * Passing `true` as a second argument will recursively search up the inheritance chain until the original parent is found.
    * @returns
@@ -184,7 +178,6 @@ export default class Team {
     recursive ? this.parent?.getParent(true) || this : this.parent || this
 
   /**
-   * @function
    * Returns an array of teams which are children of the team.
    * Passing `true` as a second argument will recursively include all the team's child teams in this array.
    * @returns
@@ -197,7 +190,6 @@ export default class Team {
     }, [] as Team[])
 
   /**
-   * @function
    * Returns an array of units which belong to the team.
    * Passing `true` as a second argument will recursively include all the team's children's units in this array.
    * @returns
@@ -214,7 +206,6 @@ export default class Team {
   }
 
   /**
-   * @function
    * Returns an array of deployments which belong to the team on a given grid.
    * Passing `true` as a second argument will recursively include all the team's children's deployments in this array.
    * @returns
@@ -234,7 +225,6 @@ export default class Team {
   }
 
   /**
-   * @function
    * Change the relationship between another team.
    * @returns
    * `Team` (self)
@@ -270,7 +260,6 @@ export default class Team {
   }
 
   /**
-   * @function
    * Check to see if another team is a child or parent, or if they are neutral/hostile/etc.
    * Passing `true` or `false` as a third argument affects whether to recursively check for child/parent relationships only
    * @returns
@@ -298,7 +287,6 @@ export default class Team {
   }
 
   /**
-   * @function
    * Clone the team with optional constructor overrides.
    * @returns
    * `Team` (new)

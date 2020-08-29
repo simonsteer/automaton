@@ -1,6 +1,7 @@
 import Coords, { RawCoords } from '../Coords'
 import Graph from './Dijkstra/Graph'
 import { Grid, Unit } from '../../entities'
+import { Conflict } from '..'
 
 export default class Deployment {
   timestamp: number
@@ -30,6 +31,29 @@ export default class Deployment {
     this.coordinates.update(val)
   }
 
+  get tile() {
+    return this.grid.getCoordinateData(this.coordinates.raw)!.tile
+  }
+
+  /**
+   * Emits `BattleEvents.unitsEngaged`, with the instance as the first unit, and the given `Deployment` as the second.
+   *
+   * Consider using in conjunction with `Deployment.getTargetableDeployments`.
+   */
+  engage = (otherDeployment: Deployment) =>
+    this.grid.events.emit('unitsEngaged', this, otherDeployment)
+
+  /**
+   * Move the `Deployment` along a given path - all `TileEvents` may be emitted
+   * as a result of this function. `GridEvents.unitMovement` will get emitted if
+   * the `Deployment` moves at least one space.
+   *
+   * This method should always be used over manually updating the `Deployment`'s
+   * coordinates, etc.
+   *
+   * Consider using in conjunction with `Deployment.getRoute` and/or
+   * `Deployment.getReachableCoords`.
+   */
   move = (path: RawCoords[]) => {
     if (path.length < 1) {
       console.error(
@@ -93,10 +117,25 @@ export default class Deployment {
     return result
   }
 
-  getRoute = (toCoords: RawCoords) => {
+  /**
+   * Attempts to find the route from a given set of coordinates (`fromCoords`) to
+   * another (`toCoords`), based on the configuration of `Deployment.unit.movement`.
+   *
+   * By default, value of `toCoords` is the instance's current coordinates.
+   * If no route is found, an empty array is returned.
+   *
+   * Consider using in conjunction with `Deployment.move`.
+   */
+  getRoute = ({
+    toCoords,
+    fromCoords = this.coordinates.raw,
+  }: {
+    toCoords: RawCoords
+    fromCoords?: RawCoords
+  }) => {
     const result = this.graph.path(
       this.unit,
-      this.coordinates.hash,
+      Coords.hash(fromCoords),
       Coords.hash(toCoords),
       { cost: true }
     ) as { path: null | string[]; cost: number }
@@ -104,14 +143,38 @@ export default class Deployment {
     return result.path?.map(Coords.parse).slice(1) || []
   }
 
-  getReachableCoords = () =>
+  /**
+   * Get all reachable coordinates from a given pair of `RawCoords`, based on
+   * the configuration of `Deployment.unit.movement`.
+   *
+   * By default, the instance's current coordinates are used as the
+   * given coordinates.
+   *
+   * Consider using in conjunction with `Deployment.move`.
+   */
+  getReachableCoords = (fromCoords = this.coordinates.raw) =>
     this.unit.movement
-      .getApplicableCoordinates(this.coordinates, this.grid, this.unit)
+      .getApplicableCoordinates(fromCoords, this.grid, this.unit)
       .concat(
         this.unit.extraMovementOptions
           .getSpecialCoordinates(this)
           .map(c => new Coords(c))
       )
+
+  /**
+   * Get all targetable hostile/wildcard `Deployment`s from a given pair of `RawCoords`,
+   * based on the configuration of `Deployment.unit.weapon`.
+   *
+   * By default, the instance's current coordinates are used as the
+   * given coordinates.
+   *
+   * Consider using in conjunction with `Deployment.engage`.
+   */
+  getTargetableDeployments = (fromCoords = this.coordinates.raw) =>
+    (this.unit.weapon
+      ?.getTargetableCoords(this, fromCoords)
+      .map(this.grid.getDeployment)
+      .filter(Boolean) as Deployment[]) || []
 
   private initGraph() {
     this.graph = this.unit.movement['buildDeploymentGraph'](this.grid)

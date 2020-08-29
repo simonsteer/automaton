@@ -23,7 +23,6 @@ export default class RangeConstraint {
 
   /**
    *
-   * @function
    * Check to see if the deltas between coordsA and coordsB
    */
   applies = (coordsA: RawCoords, coordsB: RawCoords) =>
