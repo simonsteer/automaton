@@ -1,14 +1,14 @@
 import { RawCoords } from './services'
 import { Tile } from './entities'
-import { DEFAULT_TILE } from './defaults'
 
 export function createSimpleGraph(size: number) {
+  const tile = new Tile()
   return Array(size)
-    .fill(DEFAULT_TILE)
+    .fill(tile)
     .map(t => Array(size).fill(t)) as Tile[][]
 }
 
-export function mapGraph<T, R>(
+export function mapTiles<T, R>(
   graph: T[][],
   callback: (item: T, coordinates: RawCoords) => R
 ) {

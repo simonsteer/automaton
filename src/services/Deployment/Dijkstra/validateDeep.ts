@@ -1,9 +1,9 @@
-import Terrain from '../../../entities/Terrain'
+import Tile from '../../../entities/Tile'
 
 /**
  * Validate a map to ensure all it's values are either a number or a map
  *
- * @param {Map} map - Map to valiadte
+ * @param {Map} map - Map to validate
  */
 export default function validateDeep<K, V>(map: Map<K, V>) {
   if (!(map instanceof Map)) {
@@ -16,9 +16,9 @@ export default function validateDeep<K, V>(map: Map<K, V>) {
       return
     }
 
-    if (!(value instanceof Terrain)) {
+    if (!(value instanceof Tile)) {
       throw new Error(
-        `Values must be Terrain instances. Found value ${value} at ${key}`
+        `Values must be Tile instances. Found value ${value} at ${key}`
       )
     }
   })

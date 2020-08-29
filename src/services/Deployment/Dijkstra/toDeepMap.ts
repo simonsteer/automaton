@@ -1,5 +1,5 @@
 import { DeepMap, GraphNodeMap, GraphNodeNeighbour } from './types'
-import Terrain from '../../../entities/Terrain'
+import { Tile } from '../../..'
 
 export default function toDeepMap(source: GraphNodeMap | GraphNodeNeighbour) {
   const map: DeepMap = new Map()
@@ -7,7 +7,7 @@ export default function toDeepMap(source: GraphNodeMap | GraphNodeNeighbour) {
 
   keys.forEach(key => {
     const val = source[key as keyof typeof source]
-    if (val instanceof Terrain) {
+    if (val instanceof Tile) {
       return map.set(key, val)
     }
     return map.set(key, toDeepMap(val))

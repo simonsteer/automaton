@@ -6,10 +6,10 @@ import Grid from '../../entities/Grid'
 
 describe('Battle', () => {
   const [team1, team2] = new Team()
-    .split({ branches: 2, siblingRelationship: 'hostile' })
+    .split({ splits: 2, siblingRelationship: 'hostile' })
     .getChildren()
 
-  const unit1 = new Unit({ team: team1, actions: 2 })
+  const unit1 = new Unit({ team: team1 })
   const unit2 = new Unit({ team: team2 })
 
   const grid = new Grid({ graph: createSimpleGraph(5) })

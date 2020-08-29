@@ -1,5 +1,5 @@
 import { GridGraph, GridVectorData, GridEvents, GridQuery } from './types'
-import { mapGraph } from '../../utils'
+import { mapTiles } from '../../utils'
 import Deployment from '../../services/Deployment'
 import Coords, { RawCoords } from '../../services/Coords'
 import { Unit, Tile, Team } from '..'
@@ -11,7 +11,7 @@ export default class Grid {
   timestamp = Date.now()
   events = new TypedEventEmitter<GridEvents>()
 
-  private graph: GridGraph
+  graph: GridGraph
   private deployments = new Map<Symbol, Deployment>()
   private coordinates = new Map<string, Symbol>()
 
@@ -22,7 +22,7 @@ export default class Grid {
     graph: Tile[][]
     units?: [Unit, RawCoords][]
   }) {
-    this.graph = mapGraph(graph, (tile, { x, y }) => ({
+    this.graph = mapTiles(graph, (tile, { x, y }) => ({
       coords: new Coords({ x, y }),
       tile,
     }))
@@ -168,7 +168,7 @@ export default class Grid {
    * */
 
   mapTiles<R>(callback: (item: GridVectorData, coordinates: RawCoords) => R) {
-    return mapGraph(this.graph, callback)
+    return mapTiles(this.graph, callback)
   }
 
   private createDeployment = (unit: Unit, coordinates: RawCoords) => {

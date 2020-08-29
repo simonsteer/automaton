@@ -1,7 +1,7 @@
 import RangeConstraint from '../../services/RangeConstraint'
 import { SIMPLE_ORTHOGONAL_CONSTRAINT } from '../../recipes/constraints'
 import { WeaponConfig } from './types'
-import { RangeConstraintConfig } from '../../services'
+import { RangeConstraintConfig, Deployment, RawCoords } from '../../services'
 
 const WEAPON_RANGE_CONSTRAINT_DEFAULTS: Partial<RangeConstraintConfig> = {
   constraints: [SIMPLE_ORTHOGONAL_CONSTRAINT],
@@ -18,4 +18,27 @@ export default class Weapon {
       ...range,
     })
   }
+
+  /**
+   * @function
+   * Returns an array of `Coords` which represent tiles housing `Deployment`s who's `Unit`
+   * can be targeted by the subject's Weapon from the subject's current coordinates.
+   * */
+  getTargetableCoords = ({
+    deployment,
+    fromCoords,
+  }: {
+    deployment: Deployment
+    fromCoords: RawCoords
+  }) =>
+    this.range
+      .getApplicableCoordinates(fromCoords, deployment.grid)
+      .filter(coords => {
+        const otherTeam = deployment.grid.getCoordinateData(coords)?.deployment
+          ?.unit?.team
+        return !!(
+          otherTeam?.is('hostile', deployment.unit.team) ||
+          otherTeam?.is('wildcard', deployment.unit.team)
+        )
+      }) || []
 }

@@ -5,7 +5,6 @@ import RangeConstraint from '../RangeConstraint'
 import { SIMPLE_DIAGONAL_CONSTRAINT } from '../../recipes/constraints'
 import Unit from '../../entities/Unit'
 import Grid from '../../entities/Grid'
-import Terrain from '../../entities/Terrain'
 import Tile from '../../entities/Tile'
 import Coords from '../Coords'
 
@@ -13,7 +12,7 @@ describe('Deployment', () => {
   const team = new Team()
 
   describe('getting reachable coordinates', () => {
-    it('can get reachable coordinates with default movement constraints and default terrain', () => {
+    it('can get reachable coordinates with default movement constraints and default tile costs', () => {
       const unit = new Unit({ team, movement: { steps: 3 } })
       const grid = new Grid({
         graph: createSimpleGraph(5),
@@ -29,7 +28,7 @@ describe('Deployment', () => {
 
       const deployment = grid.getDeployment(unit.id)!
 
-      const reachable = deployment.getReachable()
+      const reachable = deployment.getReachableCoords()
       const expected = [
         { x: 0, y: 0 },
         { x: 0, y: 1 },
@@ -51,15 +50,14 @@ describe('Deployment', () => {
       expect(sorted.reachable).toEqual(sorted.expected)
     })
 
-    it('can get reachable coordinates with default movement constraints and custom terrain', () => {
+    it('can get reachable coordinates with default movement constraints and custom tile costs', () => {
       const unit = new Unit({
         team,
         movement: { steps: 3 },
       })
-      const terrain = new Terrain({ cost: () => 3 })
       const graph = createSimpleGraph(5)
-      graph[1][1] = new Tile(terrain)
-      graph[2][1] = new Tile(terrain)
+      graph[1][1] = new Tile({ cost: () => 3 })
+      graph[2][1] = new Tile({ cost: () => 3 })
       const grid = new Grid({ graph })
       grid.deployUnit(unit, { x: 0, y: 0 })
 
@@ -72,7 +70,7 @@ describe('Deployment', () => {
 
       const deployment = grid.getDeployment(unit.id)!
 
-      const reachable = deployment.getReachable()
+      const reachable = deployment.getReachableCoords()
       const expected = [
         { x: 0, y: 0 },
         { x: 0, y: 1 },
@@ -92,7 +90,7 @@ describe('Deployment', () => {
       expect(sorted.reachable).toEqual(sorted.expected)
     })
 
-    it('can get reachable coordinates with custom movement constraints and default terrain', () => {
+    it('can get reachable coordinates with custom movement constraints and default tile costs', () => {
       const unit = new Unit({
         team,
         movement: {
@@ -113,7 +111,7 @@ describe('Deployment', () => {
 
       const deployment = grid.getDeployment(unit.id)!
 
-      const reachable = deployment.getReachable()
+      const reachable = deployment.getReachableCoords()
       const expected = [
         { x: 0, y: 0 },
         { x: 0, y: 2 },
@@ -133,7 +131,7 @@ describe('Deployment', () => {
       expect(sorted.reachable).toEqual(sorted.expected)
     })
 
-    it('can get reachable coordinates with custom movement constraints and custom terrain', () => {
+    it('can get reachable coordinates with custom movement constraints and custom tile costs', () => {
       const unit = new Unit({
         team,
         movement: {
@@ -141,11 +139,11 @@ describe('Deployment', () => {
           steps: 3,
         },
       })
-      const terrain = new Terrain({ cost: () => 3 })
+      const tile = new Tile({ cost: () => 3 })
       const graph = createSimpleGraph(5)
-      graph[1][3] = new Tile(terrain)
-      graph[3][1] = new Tile(terrain)
-      graph[4][4] = new Tile(terrain)
+      graph[1][3] = tile
+      graph[3][1] = tile
+      graph[4][4] = tile
       const grid = new Grid({ graph })
       grid.deployUnit(unit, { x: 1, y: 1 })
 
@@ -158,7 +156,7 @@ describe('Deployment', () => {
 
       const deployment = grid.getDeployment(unit.id)!
 
-      const reachable = deployment.getReachable()
+      const reachable = deployment.getReachableCoords()
       const expected = [
         { x: 0, y: 0 },
         { x: 0, y: 2 },
@@ -182,11 +180,11 @@ describe('Deployment', () => {
   describe('pathfinding for arbitrary coordinates', () => {
     it('can find paths with the default movement range', () => {
       const unit = new Unit({ team })
-      const terrain = new Terrain({ cost: () => 2 })
+      const tile = new Tile({ cost: () => 2 })
 
       const graph = createSimpleGraph(5)
-      graph[1][1] = new Tile(terrain)
-      graph[1][2] = new Tile(terrain)
+      graph[1][1] = tile
+      graph[1][2] = tile
       const grid = new Grid({ graph })
       grid.deployUnit(unit, { x: 0, y: 0 })
 
@@ -222,9 +220,9 @@ describe('Deployment', () => {
           constraints: [SIMPLE_DIAGONAL_CONSTRAINT],
         },
       })
-      const terrain = new Terrain({ cost: () => 2 })
+      const tile = new Tile({ cost: () => 2 })
       const graph = createSimpleGraph(5)
-      graph[1][3] = new Tile(terrain)
+      graph[1][3] = tile
       const grid = new Grid({ graph })
       grid.deployUnit(unit, { x: 0, y: 0 })
 

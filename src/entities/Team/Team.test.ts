@@ -14,22 +14,22 @@ describe('Team', () => {
   })
 
   it('by default is neutral to other teams', () => {
-    expect(team_1.isNeutral(team_2)).toBe(true)
+    expect(team_1.is('neutral', team_2)).toBe(true)
   })
 
   it("let's you define hostile relationships between other teams", () => {
     team_2.changeRelationship(team_1, 'hostile')
-    expect(team_1.isHostile(team_2)).toBe(true)
+    expect(team_1.is('hostile', team_2)).toBe(true)
   })
 
   it("let's you define friendly relationships between other teams", () => {
     team_2.changeRelationship(team_1, 'friendly')
-    expect(team_1.isFriendly(team_2)).toBe(true)
+    expect(team_1.is('friendly', team_2)).toBe(true)
   })
 
   it("let's you define wildcard relationships between other teams", () => {
     team_2.changeRelationship(team_1, 'wildcard')
-    expect(team_1.isWildcard(team_2)).toBe(true)
+    expect(team_1.is('wildcard', team_2)).toBe(true)
   })
 
   describe('declaratively creating teams within teams', () => {
@@ -43,24 +43,24 @@ describe('Team', () => {
 
     it('can define relationships between teams and their parent teams', () => {
       team_1.split({
-        branches: 2,
+        splits: 2,
         parentRelationship: 'wildcard',
       })
 
-      expect(team_1.getChildren()[0].isWildcard(team_1)).toBe(true)
-      expect(team_1.getChildren()[1].isWildcard(team_1)).toBe(true)
+      expect(team_1.getChildren()[0].is('wildcard', team_1)).toBe(true)
+      expect(team_1.getChildren()[1].is('wildcard', team_1)).toBe(true)
     })
 
     it('can define relationships between sibling teams', () => {
       team_1.split({
-        branches: 2,
+        splits: 2,
         siblingRelationship: 'hostile',
       })
 
       const [faction_1, faction_2] = team_1.getChildren()
 
-      expect(faction_1.isHostile(faction_2)).toBe(true)
-      expect(faction_2.isHostile(faction_1)).toBe(true)
+      expect(faction_1.is('hostile', faction_2)).toBe(true)
+      expect(faction_2.is('hostile', faction_1)).toBe(true)
     })
 
     it("can find a team's immediate parent", () => {
@@ -75,10 +75,10 @@ describe('Team', () => {
       const team_3 = new Team()
 
       team_3.split({
-        branches: [
+        splits: [
           'wildcard',
           {
-            branches: 2,
+            splits: 2,
             siblingRelationship: 'hostile',
           },
         ],
@@ -100,18 +100,18 @@ describe('Team', () => {
       })
 
       it('can recursively create parent-child relationships between team and their teams', () => {
-        expect(faction_1.isHostile(team_3)).toBe(true)
-        expect(faction_1.isWildcard(faction_1_sub_faction_1)).toBe(true)
-        expect(faction_2.isHostile(team_3)).toBe(true)
-        expect(faction_2.isFriendly(faction_2_sub_faction_1)).toBe(true)
-        expect(faction_2.isFriendly(faction_2_sub_faction_2)).toBe(true)
+        expect(faction_1.is('hostile', team_3)).toBe(true)
+        expect(faction_1.is('wildcard', faction_1_sub_faction_1)).toBe(true)
+        expect(faction_2.is('hostile', team_3)).toBe(true)
+        expect(faction_2.is('friendly', faction_2_sub_faction_1)).toBe(true)
+        expect(faction_2.is('friendly', faction_2_sub_faction_2)).toBe(true)
       })
 
       it('can recursively create sibling relationships between sub teams', () => {
-        expect(faction_1.isFriendly(faction_2)).toBe(true)
-        expect(faction_2_sub_faction_1.isHostile(faction_2_sub_faction_2)).toBe(
-          true
-        )
+        expect(faction_1.is('friendly', faction_2)).toBe(true)
+        expect(
+          faction_2_sub_faction_1.is('hostile', faction_2_sub_faction_2)
+        ).toBe(true)
       })
 
       it("can find a recursively created team's original parent", () => {

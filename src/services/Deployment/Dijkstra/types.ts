@@ -1,7 +1,7 @@
-import { Terrain } from '../../../entities'
+import { Tile } from '../../../entities'
 
-export type DeepMap = Map<string, Terrain | DeepMap>
+export type DeepMap = Map<string, Tile | DeepMap>
 
-export type GraphNodeNeighbour = { [neighbour: string]: Terrain }
+export type GraphNodeNeighbour = { [neighbour: string]: Tile }
 
 export type GraphNodeMap = { [node: string]: GraphNodeNeighbour }

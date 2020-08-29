@@ -2,13 +2,14 @@ import { Coords } from '..'
 import { Grid, Unit } from '../../entities'
 import { graphMergeStrategies, coordinatesHashesMergeStrategies } from './utils'
 import Graph from '../Deployment/Dijkstra/Graph'
-import { RangeConstraintConfig, ConstraintMergeStrategy } from './types'
+import { RangeConstraintConfig, ConstraintMergeStrategyType } from './types'
 import Constraint from './Constraint'
+import { RawCoords } from '../..'
 
 export default class RangeConstraint {
-  constraints: Constraint[]
-  mergeStrategy: ConstraintMergeStrategy
-  steps: number
+  private constraints: Constraint[]
+  private mergeStrategy: ConstraintMergeStrategyType
+  private steps: number
 
   constructor({
     constraints = [],
@@ -20,21 +21,26 @@ export default class RangeConstraint {
     this.steps = steps
   }
 
-  applies = (coordsA: Coords, coordsB: Coords) =>
+  /**
+   *
+   * @function
+   * Check to see if the deltas between coordsA and coordsB
+   */
+  applies = (coordsA: RawCoords, coordsB: RawCoords) =>
     this.constraints.every(constraint => {
       constraint.applies(coordsA, coordsB)
     })
 
-  buildDeploymentGraph = (grid: Grid) =>
+  private buildDeploymentGraph = (grid: Grid) =>
     new Graph(
       this.mergeGraph(
         ...this.constraints.map(constraint =>
-          constraint.buildDeploymentGraph(grid)
+          constraint['buildDeploymentGraph'](grid)
         )
       )
     )
 
-  getApplicableCoordinates = (fromCoords: Coords, grid: Grid, unit?: Unit) =>
+  getApplicableCoordinates = (fromCoords: RawCoords, grid: Grid, unit?: Unit) =>
     this.mergeReachableCoordinates(
       ...this.constraints.map(constraint =>
         this.getReachableCoordinatesForConstraint({
@@ -73,7 +79,7 @@ export default class RangeConstraint {
       unit?: Unit
       grid: Grid
       constraint: Constraint
-      fromCoords: Coords
+      fromCoords: RawCoords
       stepsLeft: number
     },
     accumulator = {
@@ -86,12 +92,12 @@ export default class RangeConstraint {
       .adjacent(fromCoords)
       .filter(grid.withinBounds)
       .reduce((acc, coordinates) => {
-        if (stepsLeft <= 0 || acc.inaccessible.has(fromCoords.hash)) {
+        if (stepsLeft <= 0 || acc.inaccessible.has(Coords.hash(fromCoords))) {
           return acc
         }
 
         const { deployment, tile } = grid.getCoordinateData(coordinates)!
-        const movementCost = unit ? tile.terrain.cost(unit) : 1
+        const movementCost = unit ? tile.cost(unit) : 1
 
         if (movementCost > stepsLeft) return acc
 

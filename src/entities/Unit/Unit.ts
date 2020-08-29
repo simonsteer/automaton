@@ -7,21 +7,19 @@ export default class Unit {
   readonly id = Symbol()
   _team!: Team
   movement: RangeConstraint
-  actions: number
   maxHealth: number
   currentHealth: number
   weapon?: Weapon
   extraMovementOptions: ExtraMovementOptions
 
   constructor({
-    actions = 2,
     movement: {
       constraints = [SIMPLE_ORTHOGONAL_CONSTRAINT],
       mergeStrategy = 'union',
       steps = 1,
       canPassThroughUnit = (deployment: Deployment) =>
-        deployment.unit.team.isFriendly(this.team) ||
-        deployment.unit.team.isNeutral(this.team),
+        deployment.unit.team.is('friendly', this.team) ||
+        deployment.unit.team.is('neutral', this.team),
       unitPassThroughLimit = Infinity,
       getSpecialCoordinates = () => [],
     } = {},
@@ -36,7 +34,6 @@ export default class Unit {
     }
 
     this.setTeam(team)
-    this.actions = actions
     this.extraMovementOptions = {
       canPassThroughUnit,
       unitPassThroughLimit,

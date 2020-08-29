@@ -15,6 +15,5 @@ export interface UnitConfig {
   team: Team
   movement?: Partial<RangeConstraintConfig & ExtraMovementOptions>
   health?: number
-  actions?: number
   weapon?: WeaponConfig
 }

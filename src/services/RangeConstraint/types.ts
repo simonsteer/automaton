@@ -10,11 +10,11 @@ export type ConstraintConfig = {
   exceptions?: RangeConstraintException[]
 }
 
-export type ConstraintMergeStrategy = 'union' | 'intersect' | 'difference'
+export type ConstraintMergeStrategyType = 'union' | 'intersect' | 'difference'
 
 export type RangeConstraintConfig = {
   constraints: ConstraintConfig[]
-  mergeStrategy: ConstraintMergeStrategy
+  mergeStrategy: ConstraintMergeStrategyType
   steps: number
 }
 

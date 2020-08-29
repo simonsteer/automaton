@@ -1,6 +1,6 @@
 import range from 'lodash/range'
 import { ConstraintConfig } from './types'
-import Coords from '../Coords'
+import Coords, { RawCoords } from '../Coords'
 import { GraphNodeNeighbour, GraphNodeMap } from '../Deployment/Dijkstra/types'
 import { Grid } from '../../entities'
 
@@ -17,8 +17,8 @@ export default class Constraint {
     this.offsets = this.buildOffsets()
   }
 
-  applies = (coordsA: Coords, coordsB: Coords) => {
-    const deltas = coordsA.deltas(coordsB)
+  applies = (coordsA: RawCoords, coordsB: RawCoords) => {
+    const deltas = Coords.deltas(coordsA, coordsB)
     return (
       !this.constraint.exceptions ||
       this.constraint.exceptions.every(exception => exception(deltas))
@@ -28,24 +28,26 @@ export default class Constraint {
   /**
    * get coordinates considered adjacent to the coordinates passed in
    */
-  adjacent = (coordsA: Coords) => {
-    if (!this.cache.adjacent[coordsA.hash]) {
-      const adjacent: Coords[] = []
+  adjacent = (coordsA: RawCoords) => {
+    if (!this.cache.adjacent[Coords.hash(coordsA)]) {
+      const adjacent: RawCoords[] = []
       for (const xOffset of this.offsets.x) {
         for (const yOffset of this.offsets.y) {
-          const coordsB = new Coords({
+          const coordsB = {
             x: coordsA.x + xOffset,
             y: coordsA.y + yOffset,
-          })
-          if (this.applies(coordsA, coordsB)) adjacent.push(new Coords(coordsB))
+          }
+          if (this.applies(coordsA, coordsB)) adjacent.push(coordsB)
         }
       }
-      this.cache.adjacent[coordsA.hash] = adjacent
+      this.cache.adjacent[Coords.hash(coordsA)] = adjacent.map(
+        c => new Coords(c)
+      )
     }
-    return this.cache.adjacent[coordsA.hash]
+    return this.cache.adjacent[Coords.hash(coordsA)]
   }
 
-  buildDeploymentGraph = (grid: Grid) => {
+  private buildDeploymentGraph = (grid: Grid) => {
     const graph: GraphNodeMap = {}
 
     grid.mapTiles(tile => {
@@ -53,7 +55,7 @@ export default class Constraint {
         if (coords.withinBounds(grid)) {
           if (!acc) acc = {}
           const neighbour = grid.graph[coords.y][coords.x]
-          acc[coords.hash] = neighbour.tile.terrain
+          acc[coords.hash] = neighbour.tile
         }
         return acc
       }, undefined as undefined | GraphNodeNeighbour)

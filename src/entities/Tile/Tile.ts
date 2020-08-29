@@ -1,23 +1,22 @@
-import { TileConfig, TileInteractionCallback, TileEvents } from './types'
-import { Terrain } from '..'
+import { TileConfig, TileEvents } from './types'
 import { TypedEventEmitter } from '../../services'
 
 export default class Tile {
   readonly id = Symbol()
 
   events = new TypedEventEmitter<TileEvents>()
-  shouldGuardEntry = (() => false) as TileInteractionCallback<boolean>
-  shouldGuardCrossover = (() => false) as TileInteractionCallback<boolean>
+  shouldGuardEntry: NonNullable<TileConfig['shouldGuardEntry']>
+  shouldGuardCrossover: NonNullable<TileConfig['shouldGuardCrossover']>
+  cost: NonNullable<TileConfig['cost']>
 
-  terrain: Terrain
   constructor(
-    terrain: Terrain,
     {
       shouldGuardEntry = () => false,
       shouldGuardCrossover = () => false,
+      cost = () => 1,
     } = {} as TileConfig
   ) {
-    this.terrain = terrain
+    this.cost = cost
     this.shouldGuardEntry = shouldGuardEntry
     this.shouldGuardCrossover = shouldGuardCrossover
   }

@@ -86,8 +86,8 @@ export default class Deployment {
 
     const toHash = this.coordinates.hash
     if (result.length) {
-      this.grid.coordinates.delete(fromHash)
-      this.grid.coordinates.set(toHash, this.unit.id)
+      this.grid['coordinates'].delete(fromHash)
+      this.grid['coordinates'].set(toHash, this.unit.id)
       this.grid.events.emit('unitMovement', this, result)
     }
     return result
@@ -104,7 +104,7 @@ export default class Deployment {
     return result.path?.map(Coords.parse).slice(1) || []
   }
 
-  getReachable = () =>
+  getReachableCoords = () =>
     this.unit.movement
       .getApplicableCoordinates(this.coordinates, this.grid, this.unit)
       .concat(
@@ -113,23 +113,7 @@ export default class Deployment {
           .map(c => new Coords(c))
       )
 
-  getTargetable = () => {
-    const result =
-      this.unit.weapon?.range
-        .getApplicableCoordinates(this.coordinates, this.grid)
-        .filter(coords => {
-          const otherTeam = this.grid.getCoordinateData(coords)?.deployment
-            ?.unit?.team
-          return !!(
-            otherTeam?.isHostile(this.unit.team) ||
-            otherTeam?.isWildcard(this.unit.team)
-          )
-        }) || []
-
-    return result
-  }
-
   private initGraph() {
-    this.graph = this.unit.movement.buildDeploymentGraph(this.grid)
+    this.graph = this.unit.movement['buildDeploymentGraph'](this.grid)
   }
 }

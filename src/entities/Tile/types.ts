@@ -1,5 +1,6 @@
 import { Tile } from '..'
-import { Deployment } from '../../services'
+import { Deployment, Coords } from '../../services'
+import { Unit, RawCoords } from '../..'
 
 export type TileInteractionCallback<D = void> = (
   deployment: Deployment,
@@ -7,6 +8,7 @@ export type TileInteractionCallback<D = void> = (
 ) => D
 
 export type TileConfig = Partial<{
+  cost: (unit: Unit) => number
   shouldGuardEntry: TileInteractionCallback<boolean>
   shouldGuardCrossover: TileInteractionCallback<boolean>
 }>

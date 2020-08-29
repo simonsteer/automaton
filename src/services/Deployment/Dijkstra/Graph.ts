@@ -3,7 +3,7 @@ import removeDeepFromMap from './removeDeepFromMap'
 import toDeepMap from './toDeepMap'
 import validateDeep from './validateDeep'
 import { DeepMap, GraphNodeNeighbour, GraphNodeMap } from './types'
-import { Unit, Terrain } from '../../../entities'
+import { Unit, Tile } from '../../../entities'
 
 /** Creates and manages a graph */
 export default class Graph {
@@ -100,9 +100,9 @@ export default class Graph {
       // Loop all the neighboring nodes
       const neighbors = (this.graph.get(node.key) || new Map()) as Map<
         string,
-        Terrain
+        Tile
       >
-      neighbors.forEach((terrain, nNode) => {
+      neighbors.forEach((tile, nNode) => {
         // If we already explored the node, or the node is to be avoided, skip it
         if (explored.has(nNode) || avoid.includes(nNode)) return null
 
@@ -110,11 +110,11 @@ export default class Graph {
         // the correct cost
         if (!frontier.has(nNode)) {
           previous.set(nNode, node.key)
-          return frontier.set(nNode, node.priority + terrain.cost(unit))
+          return frontier.set(nNode, node.priority + tile.cost(unit))
         }
 
         const frontierPriority = frontier.get(nNode)!.priority
-        const nodeCost = node.priority + terrain.cost(unit)
+        const nodeCost = node.priority + tile.cost(unit)
 
         // Otherwise we only update the cost of this node in the frontier when
         // it's below what's currently set

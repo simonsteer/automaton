@@ -1,53 +1,53 @@
 import { graphMergeStrategies, coordinatesHashesMergeStrategies } from './utils'
 import { GraphNodeMap } from '../Deployment/Dijkstra/types'
-import Terrain from '../../entities/Terrain'
 import { Coords } from '..'
+import { Tile } from '../..'
 
 describe('RangeConstraint/utils', () => {
   describe('GraphNodeMap merge strategies', () => {
-    const terrain = new Terrain()
+    const tile = new Tile()
     const map1: GraphNodeMap = {
-      a: { b: terrain },
-      b: { a: terrain },
+      a: { b: tile },
+      b: { a: tile },
     }
     const map2: GraphNodeMap = {
-      a: { b: terrain },
-      b: { a: terrain, c: terrain },
-      c: { a: terrain },
+      a: { b: tile },
+      b: { a: tile, c: tile },
+      c: { a: tile },
     }
     const map3: GraphNodeMap = {
-      a: { b: terrain, c: terrain },
-      b: { a: terrain, d: terrain },
-      c: { a: terrain },
-      d: { a: terrain },
-      e: { a: terrain },
+      a: { b: tile, c: tile },
+      b: { a: tile, d: tile },
+      c: { a: tile },
+      d: { a: tile },
+      e: { a: tile },
     }
 
     describe('difference', () => {
       it('can get the difference between two or more GraphNodeMaps', () => {
         expect(graphMergeStrategies.difference(map1)).toEqual(map1)
         expect(graphMergeStrategies.difference(map1, map2)).toEqual({
-          c: { a: terrain },
-          b: { c: terrain },
+          c: { a: tile },
+          b: { c: tile },
         })
         expect(graphMergeStrategies.difference(map1, map2, map3)).toEqual({
-          a: { c: terrain },
-          b: { c: terrain, d: terrain },
-          d: { a: terrain },
-          e: { a: terrain },
+          a: { c: tile },
+          b: { c: tile, d: tile },
+          d: { a: tile },
+          e: { a: tile },
         })
         expect(graphMergeStrategies.difference(map1, map3)).toEqual({
-          a: { c: terrain },
-          b: { d: terrain },
-          c: { a: terrain },
-          d: { a: terrain },
-          e: { a: terrain },
+          a: { c: tile },
+          b: { d: tile },
+          c: { a: tile },
+          d: { a: tile },
+          e: { a: tile },
         })
         expect(graphMergeStrategies.difference(map2, map3)).toEqual({
-          a: { c: terrain },
-          b: { c: terrain, d: terrain },
-          d: { a: terrain },
-          e: { a: terrain },
+          a: { c: tile },
+          b: { c: tile, d: tile },
+          d: { a: tile },
+          e: { a: tile },
         })
       })
     })
@@ -56,30 +56,30 @@ describe('RangeConstraint/utils', () => {
       it('can get the union between two or more GraphNodeMaps', () => {
         expect(graphMergeStrategies.union(map1)).toEqual(map1)
         expect(graphMergeStrategies.union(map1, map2)).toEqual({
-          a: { b: terrain },
-          b: { a: terrain, c: terrain },
-          c: { a: terrain },
+          a: { b: tile },
+          b: { a: tile, c: tile },
+          c: { a: tile },
         })
         expect(graphMergeStrategies.union(map1, map2, map3)).toEqual({
-          a: { b: terrain, c: terrain },
-          b: { a: terrain, c: terrain, d: terrain },
-          c: { a: terrain },
-          d: { a: terrain },
-          e: { a: terrain },
+          a: { b: tile, c: tile },
+          b: { a: tile, c: tile, d: tile },
+          c: { a: tile },
+          d: { a: tile },
+          e: { a: tile },
         })
         expect(graphMergeStrategies.union(map1, map3)).toEqual({
-          a: { b: terrain, c: terrain },
-          b: { a: terrain, d: terrain },
-          c: { a: terrain },
-          d: { a: terrain },
-          e: { a: terrain },
+          a: { b: tile, c: tile },
+          b: { a: tile, d: tile },
+          c: { a: tile },
+          d: { a: tile },
+          e: { a: tile },
         })
         expect(graphMergeStrategies.union(map2, map3)).toEqual({
-          a: { b: terrain, c: terrain },
-          b: { a: terrain, c: terrain, d: terrain },
-          c: { a: terrain },
-          d: { a: terrain },
-          e: { a: terrain },
+          a: { b: tile, c: tile },
+          b: { a: tile, c: tile, d: tile },
+          c: { a: tile },
+          d: { a: tile },
+          e: { a: tile },
         })
       })
     })
@@ -88,21 +88,21 @@ describe('RangeConstraint/utils', () => {
       it('can get the intersection between two or more GraphNodeMaps', () => {
         expect(graphMergeStrategies.intersect(map1)).toEqual(map1)
         expect(graphMergeStrategies.intersect(map1, map2)).toEqual({
-          a: { b: terrain },
-          b: { a: terrain },
+          a: { b: tile },
+          b: { a: tile },
         })
         expect(graphMergeStrategies.intersect(map1, map2, map3)).toEqual({
-          a: { b: terrain },
-          b: { a: terrain },
+          a: { b: tile },
+          b: { a: tile },
         })
         expect(graphMergeStrategies.intersect(map1, map3)).toEqual({
-          a: { b: terrain },
-          b: { a: terrain },
+          a: { b: tile },
+          b: { a: tile },
         })
         expect(graphMergeStrategies.intersect(map2, map3)).toEqual({
-          a: { b: terrain },
-          b: { a: terrain },
-          c: { a: terrain },
+          a: { b: tile },
+          b: { a: tile },
+          c: { a: tile },
         })
       })
     })
