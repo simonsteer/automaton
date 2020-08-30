@@ -1,5 +1,5 @@
 import { Coords } from '..'
-import { Grid, Unit } from '../../entities'
+import { Grid } from '../../entities'
 import { graphMergeStrategies, coordinatesHashesMergeStrategies } from './utils'
 import Graph from '../Deployment/Dijkstra/Graph'
 import { RangeConstraintConfig, ConstraintMergeStrategyType } from './types'
@@ -9,16 +9,13 @@ import { RawCoords } from '../..'
 export default class RangeConstraint {
   private constraints: Constraint[]
   private mergeStrategy: ConstraintMergeStrategyType
-  private steps: number
 
   constructor({
     constraints = [],
     mergeStrategy = 'union',
-    steps = 1,
   }: Partial<RangeConstraintConfig>) {
     this.constraints = constraints.map(config => new Constraint(config))
     this.mergeStrategy = mergeStrategy
-    this.steps = steps
   }
 
   /**
@@ -39,18 +36,15 @@ export default class RangeConstraint {
       )
     )
 
-  getApplicableCoordinates = (fromCoords: RawCoords, grid: Grid, unit?: Unit) =>
-    this.mergeReachableCoordinates(
-      ...this.constraints.map(constraint =>
-        this.getReachableCoordinatesForConstraint({
-          unit,
-          grid,
-          constraint,
-          fromCoords,
-          stepsLeft: this.steps,
-        })
-      )
-    )
+  getApplicableCoordinates = (
+    fromCoords: RawCoords,
+    grid: Grid,
+    getCoordinates = (constraint: Constraint) =>
+      constraint
+        .adjacent(fromCoords)
+        .filter(grid.withinBounds)
+        .map(c => c.hash)
+  ) => this.mergeHashSets(...this.constraints.map(getCoordinates))
 
   adjacent = (fromCoords: Coords) => [
     ...this.constraints.reduce((acc, constraint) => {
@@ -59,77 +53,11 @@ export default class RangeConstraint {
     }, [] as Coords[]),
   ]
 
-  private get mergeReachableCoordinates() {
+  private get mergeHashSets() {
     return coordinatesHashesMergeStrategies[this.mergeStrategy]
   }
 
   private get mergeGraph() {
     return graphMergeStrategies[this.mergeStrategy]
   }
-
-  private getReachableCoordinatesForConstraint = (
-    {
-      unit,
-      grid,
-      constraint,
-      fromCoords,
-      stepsLeft,
-    }: {
-      unit?: Unit
-      grid: Grid
-      constraint: Constraint
-      fromCoords: RawCoords
-      stepsLeft: number
-    },
-    accumulator = {
-      passThroughCount: 0,
-      accessible: new Set<string>(),
-      inaccessible: new Set<string>(),
-    }
-  ) => [
-    ...constraint
-      .adjacent(fromCoords)
-      .filter(grid.withinBounds)
-      .reduce((acc, coordinates) => {
-        if (stepsLeft <= 0 || acc.inaccessible.has(Coords.hash(fromCoords))) {
-          return acc
-        }
-
-        const { deployment, tile } = grid.getCoordinateData(coordinates)!
-        const movementCost = unit ? tile.cost(unit) : 1
-
-        if (movementCost > stepsLeft) return acc
-
-        let didPassThroughUnit = false
-        if (unit && deployment?.unit && deployment.unit.id !== unit.id) {
-          if (!unit.extraMovementOptions.canPassThroughUnit(deployment, tile)) {
-            acc.inaccessible.add(coordinates.hash)
-            return acc
-          }
-          didPassThroughUnit = true
-          acc.passThroughCount++
-        }
-
-        acc.accessible.add(coordinates.hash)
-        if (
-          stepsLeft - movementCost > 0 &&
-          (!didPassThroughUnit ||
-            acc.passThroughCount <
-              unit!.extraMovementOptions.unitPassThroughLimit)
-        ) {
-          this.getReachableCoordinatesForConstraint(
-            {
-              unit,
-              grid,
-              constraint,
-              fromCoords: coordinates,
-              stepsLeft: stepsLeft - movementCost,
-            },
-            acc
-          )
-        }
-
-        return acc
-      }, accumulator).accessible,
-  ]
 }

@@ -9,6 +9,7 @@ import { RawCoords } from '../..'
 
 export type ExtraMovementOptions = GetReachableCooordinatesOptions & {
   getSpecialCoordinates: (deployment: Deployment) => RawCoords[]
+  steps: number
 }
 
 export interface UnitConfig {

@@ -15,7 +15,6 @@ export type ConstraintMergeStrategyType = 'union' | 'intersect' | 'difference'
 export type RangeConstraintConfig = {
   constraints: ConstraintConfig[]
   mergeStrategy: ConstraintMergeStrategyType
-  steps: number
 }
 
 export type GetReachableCooordinatesOptions = {

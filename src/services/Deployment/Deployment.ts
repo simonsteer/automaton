@@ -1,6 +1,7 @@
 import Coords, { RawCoords } from '../Coords'
 import Graph from './Dijkstra/Graph'
 import { Grid, Unit } from '../../entities'
+import Constraint from '../RangeConstraint/Constraint'
 
 export default class Deployment {
   timestamp: number
@@ -153,7 +154,9 @@ export default class Deployment {
    */
   getReachableCoords = (fromCoords = this.coordinates.raw) =>
     this.unit.movement
-      .getApplicableCoordinates(fromCoords, this.grid, this.unit)
+      .getApplicableCoordinates(fromCoords, this.grid, constraint =>
+        this.applyExtraMovementOptions({ constraint, fromCoords })
+      )
       .concat(
         this.unit.extraMovementOptions
           .getSpecialCoordinates(this)
@@ -178,4 +181,63 @@ export default class Deployment {
   private initGraph() {
     this.graph = this.unit.movement['buildDeploymentGraph'](this.grid)
   }
+
+  private applyExtraMovementOptions = (
+    {
+      constraint,
+      fromCoords = this.coordinates,
+      stepsLeft = this.unit.extraMovementOptions.steps,
+    }: { constraint: Constraint; fromCoords?: RawCoords; stepsLeft?: number },
+    accumulator = {
+      passThroughCount: 0,
+      accessible: new Set<string>(),
+      inaccessible: new Set<string>(),
+    }
+  ) => [
+    ...constraint
+      .adjacent(fromCoords)
+      .filter(this.grid.withinBounds)
+      .reduce((acc, coordinates) => {
+        const {
+          canPassThroughUnit,
+          unitPassThroughLimit,
+        } = this.unit.extraMovementOptions
+
+        if (stepsLeft <= 0 || acc.inaccessible.has(Coords.hash(fromCoords))) {
+          return acc
+        }
+
+        const { deployment, tile } = this.grid.getCoordinateData(coordinates)!
+        const movementCost = tile.cost(this.unit)
+
+        if (movementCost > stepsLeft) return acc
+
+        let didPassThroughUnit = false
+        if (deployment?.unit && deployment.unit.id !== this.unit.id) {
+          if (!canPassThroughUnit(deployment, tile)) {
+            acc.inaccessible.add(coordinates.hash)
+            return acc
+          }
+          didPassThroughUnit = true
+          acc.passThroughCount++
+        }
+
+        acc.accessible.add(coordinates.hash)
+        if (
+          stepsLeft - movementCost > 0 &&
+          (!didPassThroughUnit || acc.passThroughCount < unitPassThroughLimit)
+        ) {
+          this.applyExtraMovementOptions(
+            {
+              constraint,
+              fromCoords: coordinates,
+              stepsLeft: stepsLeft - movementCost,
+            },
+            acc
+          )
+        }
+
+        return acc
+      }, accumulator).accessible,
+  ]
 }

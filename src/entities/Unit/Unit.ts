@@ -38,10 +38,10 @@ export default class Unit {
       canPassThroughUnit,
       unitPassThroughLimit,
       getSpecialCoordinates,
+      steps,
     }
     this.movement = new RangeConstraint({
       constraints,
-      steps,
       mergeStrategy,
     })
 
