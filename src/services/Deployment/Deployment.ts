@@ -1,7 +1,6 @@
 import Coords, { RawCoords } from '../Coords'
 import Graph from './Dijkstra/Graph'
 import { Grid, Unit } from '../../entities'
-import { Conflict } from '..'
 
 export default class Deployment {
   timestamp: number

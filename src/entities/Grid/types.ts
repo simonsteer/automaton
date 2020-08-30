@@ -1,4 +1,4 @@
-import { Coords, Deployment, RawCoords, Conflict } from '../../services'
+import { Coords, Deployment, RawCoords } from '../../services'
 import { Tile } from '..'
 
 export type GridVectorData = { coords: Coords; tile: Tile }
