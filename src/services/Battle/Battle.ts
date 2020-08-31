@@ -2,22 +2,22 @@ import { Grid, Team } from '../../entities'
 import { BattleEvents } from './types'
 import { TypedEventEmitter } from '..'
 
-type BattleCallback<T = void> = (battle: Battle) => T
+type BattleCallback<G extends Grid, T = void> = (battle: Battle<G>) => T
 
-const DEFAULT_END_CONDITION = (battle: Battle) =>
+const DEFAULT_END_CONDITION = <G extends Grid>(battle: Battle<G>) =>
   battle.grid.getTeams().length <= 1
 
-export default class Battle {
+export default class Battle<G extends Grid = Grid> {
   turnIndex = -1
-  grid: Grid
-  endCondition: BattleCallback<boolean>
+  grid: G
+  endCondition: BattleCallback<G, boolean>
   events = new TypedEventEmitter<BattleEvents>()
   private isDone = false
 
   constructor(
-    grid: Grid,
+    grid: G,
     { endCondition = DEFAULT_END_CONDITION } = {} as {
-      endCondition?: BattleCallback<boolean>
+      endCondition?: BattleCallback<G, boolean>
     }
   ) {
     this.grid = grid
@@ -27,9 +27,9 @@ export default class Battle {
   /**
    * Returns the active `Team` according to the `Battle`'s `turnIndex`.
    * */
-  getActiveTeam() {
+  getActiveTeam<T extends Team = Team>() {
     const teams = this.grid.getTeams()
-    return teams[this.turnIndex % teams.length] as Team | undefined
+    return teams[this.turnIndex % teams.length] as T | undefined
   }
 
   /**

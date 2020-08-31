@@ -3,10 +3,10 @@ import Graph from './Dijkstra/Graph'
 import { Grid, Unit } from '../../entities'
 import Constraint from '../RangeConstraint/Constraint'
 
-export default class Deployment {
+export default class Deployment<U extends Unit = Unit> {
   timestamp: number
   readonly grid: Grid
-  readonly unit: Unit
+  readonly unit: U
   graph!: Graph
   coordinates: Coords
 
@@ -16,7 +16,7 @@ export default class Deployment {
     coordinates,
   }: {
     grid: Grid
-    unit: Unit
+    unit: U
     coordinates: RawCoords
   }) {
     this.timestamp = grid.timestamp
@@ -40,7 +40,7 @@ export default class Deployment {
    *
    * Consider using in conjunction with `Deployment.getTargetableDeployments`.
    */
-  engage = (otherDeployment: Deployment) =>
+  engage = <U extends Unit>(otherDeployment: Deployment<U>): void =>
     this.grid.events.emit('unitsEngaged', this, otherDeployment)
 
   /**
@@ -172,11 +172,13 @@ export default class Deployment {
    *
    * Consider using in conjunction with `Deployment.engage`.
    */
-  getTargetableDeployments = (fromCoords = this.coordinates.raw) =>
+  getTargetableDeployments = <U extends Unit = Unit>(
+    fromCoords = this.coordinates.raw
+  ) =>
     (this.unit.weapon
       ?.getTargetableCoords(this, fromCoords)
       .map(this.grid.getDeployment)
-      .filter(Boolean) as Deployment[]) || []
+      .filter(Boolean) as Deployment<U>[]) || []
 
   private initGraph() {
     this.graph = this.unit.movement['buildDeploymentGraph'](this.grid)

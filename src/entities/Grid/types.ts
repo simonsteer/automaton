@@ -1,15 +1,15 @@
 import { Coords, Deployment, RawCoords } from '../../services'
-import { Tile } from '..'
+import { Tile, Unit } from '..'
 
 export type GridVectorData = { coords: Coords; tile: Tile }
 
 export type GridGraph = GridVectorData[][]
 
-export type GridEvents = {
-  unitsDeployed: (deployments: Deployment[]) => void
-  unitMovement: (deployment: Deployment, path: RawCoords[]) => void
+export type GridEvents<U extends Unit = Unit> = {
+  unitsDeployed: (deployments: Deployment<U>[]) => void
+  unitMovement: (deployment: Deployment<U>, path: RawCoords[]) => void
   unitsWithdrawn: (unitIds: Symbol[]) => void
-  unitsEngaged: (deploymentA: Deployment, deploymentB: Deployment) => void
+  unitsEngaged: (deploymentA: Deployment<U>, deploymentB: Deployment<U>) => void
 }
 
 export type GridQuery = RawCoords | Symbol

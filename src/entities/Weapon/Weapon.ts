@@ -2,6 +2,7 @@ import RangeConstraint from '../../services/RangeConstraint'
 import { SIMPLE_ORTHOGONAL_CONSTRAINT } from '../../recipes/constraints'
 import { WeaponConfig } from './types'
 import { RangeConstraintConfig, Deployment, RawCoords } from '../../services'
+import { Unit } from '..'
 
 const WEAPON_RANGE_CONSTRAINT_DEFAULTS: Partial<RangeConstraintConfig> = {
   constraints: [SIMPLE_ORTHOGONAL_CONSTRAINT],

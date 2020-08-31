@@ -46,12 +46,11 @@ export default class Grid {
   /**
    * Retrieve data relevant to a given set of `RawCoords`.
    *  */
-  getCoordinateData = (coordinates: RawCoords) => {
+  getCoordinateData = <U extends Unit = Unit>(coordinates: RawCoords) => {
     if (!this.withinBounds(coordinates)) return null
 
     const tile = this.graph[coordinates.y]?.[coordinates.x]?.tile
-    const unitId = this.coordinates.get(Coords.hash(coordinates))
-    const deployment = unitId && this.deployments.get(unitId)
+    const deployment = this.getDeployment<U>(coordinates)
 
     return { deployment, tile }
   }
@@ -62,13 +61,15 @@ export default class Grid {
    * @arguments
    * `GridQuery` – either a set of `RawCoords` or a `Unit.id`
    *  */
-  getDeployment = (query: GridQuery) => {
+  getDeployment = <U extends Unit = Unit>(query: GridQuery) => {
     const unitId =
       typeof query === 'symbol'
         ? query
         : this.coordinates.get(Coords.hash(query as RawCoords))
 
-    return unitId && this.deployments.get(unitId)
+    return (
+      unitId && ((this.deployments.get(unitId) as unknown) as Deployment<U>)
+    )
   }
 
   /**
@@ -77,19 +78,20 @@ export default class Grid {
    * @arguments
    * `GridQuery[]` – an array of `RawCoord`s and/or `Unit.id`s
    *  */
-  getDeployments = (queries = [...this.deployments.keys()] as GridQuery[]) =>
-    queries.map(this.getDeployment).filter(Boolean) as Deployment[]
+  getDeployments = <U extends Unit = Unit>(
+    queries = [...this.deployments.keys()] as GridQuery[]
+  ) => queries.map(this.getDeployment).filter(Boolean) as Deployment<U>[]
 
   /**
    * Returns an array of `Team`s with active `Deployment`s on the `Grid`.
    * */
-  getTeams = () => [
+  getTeams = <T extends Team = Team>() => [
     ...this.getDeployments().reduce((acc, deployment) => {
-      if (!acc.has(deployment.unit.team)) {
-        acc.add(deployment.unit.team)
+      if (!acc.has(deployment.unit.team as T)) {
+        acc.add(deployment.unit.team as T)
       }
       return acc
-    }, new Set<Team>()),
+    }, new Set<T>()),
   ]
 
   /**

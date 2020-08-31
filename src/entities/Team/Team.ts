@@ -141,7 +141,7 @@ export default class Team {
    * @returns
    * `Team` (self)
    */
-  addChildren = (teams: Team[]) => {
+  addChildren = <T extends Team = Team>(teams: T[]) => {
     teams.forEach(this.addChild)
     return this
   }
@@ -151,7 +151,7 @@ export default class Team {
    * @returns
    * `Team` (self)
    */
-  removeChild = (team: Team) => {
+  removeChild = <T extends Team = Team>(team: T) => {
     if (this.children.delete(team)) {
       team.parent = undefined
     }
@@ -174,8 +174,10 @@ export default class Team {
    * @returns
    * `Team`
    */
-  getParent = (recursive = false): Team =>
-    recursive ? this.parent?.getParent(true) || this : this.parent || this
+  getParent = <T extends Team = Team>(recursive = false): T =>
+    recursive
+      ? this.parent?.getParent<T>(true) || ((this as unknown) as T)
+      : (this.parent as T) || ((this as unknown) as T)
 
   /**
    * Returns an array of teams which are children of the team.
@@ -183,11 +185,13 @@ export default class Team {
    * @returns
    * `Team[]`
    */
-  getChildren = (recursive = false) =>
+  getChildren = <T extends Team = Team>(recursive = false) =>
     [...this.children.values()].reduce((acc, team) => {
-      recursive ? acc.push(team, ...team.getChildren(true)) : acc.push(team)
+      recursive
+        ? acc.push(team as T, ...team.getChildren<T>(true))
+        : acc.push(team as T)
       return acc
-    }, [] as Team[])
+    }, [] as T[])
 
   /**
    * Returns an array of units which belong to the team.
@@ -195,11 +199,11 @@ export default class Team {
    * @returns
    * `Unit[]`
    */
-  getUnits = (recursive = false) => {
-    const thisUnits = [...this.units.values()]
+  getUnits = <U extends Unit = Unit>(recursive = false) => {
+    const thisUnits = [...this.units.values()] as U[]
     return recursive
       ? [...this.getChildren(true)].reduce((units, team) => {
-          units.push(...team.getUnits())
+          units.push(...team.getUnits<U>())
           return units
         }, thisUnits)
       : thisUnits
@@ -211,7 +215,7 @@ export default class Team {
    * @returns
    * `Deployment[]`
    */
-  getDeployments = (grid: Grid, recursive = false) => {
+  getDeployments = <U extends Unit = Unit>(grid: Grid, recursive = false) => {
     let units = [...this.units]
     if (recursive) {
       units = [...this.getChildren(true)].reduce((acc, team) => {
@@ -221,7 +225,7 @@ export default class Team {
     }
     return units
       .map(unit => grid.getDeployment(unit.id))
-      .filter(Boolean) as Deployment[]
+      .filter(Boolean) as Deployment<U>[]
   }
 
   /**
@@ -229,7 +233,10 @@ export default class Team {
    * @returns
    * `Team` (self)
    */
-  changeRelationship = (team: Team, relationship: TeamRelationshipType) => {
+  changeRelationship = <T extends Team = Team>(
+    team: T,
+    relationship: TeamRelationshipType
+  ) => {
     switch (relationship) {
       case 'friendly':
         this.changeRelationship(team, 'neutral')
@@ -265,9 +272,9 @@ export default class Team {
    * @returns
    * `boolean`
    */
-  is = (
+  is = <T extends Team = Team>(
     relationshipType: TeamRelationshipType | 'parent' | 'child',
-    team: Team,
+    team: T,
     recursive?: boolean
   ): boolean => {
     switch (relationshipType) {
@@ -291,13 +298,13 @@ export default class Team {
    * @returns
    * `Team` (new)
    */
-  clone = (overrides = {} as TeamConfig) =>
+  clone = <T extends Team = Team>(overrides = {} as TeamConfig) =>
     new Team({
       parent: this.parent,
       hostile: [...this.hostile],
       friendly: [...this.friendly],
       ...overrides,
-    })
+    }) as T
 
   /*
   The methods below are intentionally and unused in this class
