@@ -1,10 +1,8 @@
-import { TileConfig, TileEvents } from './types'
-import { TypedEventEmitter } from '../../services'
+import { TileConfig } from './types'
 
 export default class Tile {
   readonly id = Symbol()
 
-  events = new TypedEventEmitter<TileEvents>()
   shouldGuardEntry: NonNullable<TileConfig['shouldGuardEntry']>
   shouldGuardCrossover: NonNullable<TileConfig['shouldGuardCrossover']>
   cost: NonNullable<TileConfig['cost']>

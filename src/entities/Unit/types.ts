@@ -1,17 +1,16 @@
-import {
-  RangeConstraintConfig,
-  GetReachableCooordinatesOptions,
-} from '../../services/RangeConstraint/types'
+import { RangeConstraintConfig } from '../../services/RangeConstraint/types'
 import { Team, Unit } from '..'
 import { WeaponConfig } from '../Weapon/types'
 import Deployment from '../../services/Deployment'
 import { RawCoords } from '../..'
 
-export type ExtraMovementOptions = GetReachableCooordinatesOptions & {
+export type ExtraMovementOptions = {
+  steps: number
   getSpecialCoordinates: <U extends Unit = Unit>(
     deployment: Deployment<U>
   ) => RawCoords[]
-  steps: number
+  canPassThroughUnit: <U extends Unit = Unit>(unit: U) => boolean
+  unitPassThroughLimit: number
 }
 
 export interface UnitConfig {

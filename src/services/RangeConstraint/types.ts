@@ -16,8 +16,3 @@ export type RangeConstraintConfig = {
   constraints: ConstraintConfig[]
   mergeStrategy: ConstraintMergeStrategyType
 }
-
-export type GetReachableCooordinatesOptions = {
-  canPassThroughUnit: TileInteractionCallback<boolean>
-  unitPassThroughLimit: number
-}

@@ -81,25 +81,22 @@ export default class Deployment<U extends Unit = Unit> {
 
         if (tile.shouldGuardEntry(this, tile)) {
           acc.abort = true
-          tile.events.emit('guardEntry', this, tile)
-          tile.events.emit('unitStop', this, tile)
+          this.grid.events.emit('guardTileEntry', this, tile)
+          this.grid.events.emit('unitStopTile', this, tile)
         } else {
           const prev = path[index - 1] as RawCoords | undefined
-          if (prev)
-            this.grid
-              .getCoordinateData(prev)
-              ?.tile.events.emit('unitExit', this, tile)
+          if (prev) this.grid.events.emit('unitExitTile', this, tile)
 
           acc.path.push(coordinates)
           this.updateCoordinates(coordinates)
-          tile.events.emit('unitEnter', this, tile)
+          this.grid.events.emit('unitEnterTile', this, tile)
 
           if (isLastStep) {
-            tile.events.emit('unitStop', this, tile)
+            this.grid.events.emit('unitStopTile', this, tile)
           } else if (!deployment && tile.shouldGuardCrossover(this, tile)) {
             acc.abort = true
-            tile.events.emit('guardCrossover', this, tile)
-            tile.events.emit('unitStop', this, tile)
+            this.grid.events.emit('guardTileCrossover', this, tile)
+            this.grid.events.emit('unitStopTile', this, tile)
           }
         }
 
@@ -216,7 +213,7 @@ export default class Deployment<U extends Unit = Unit> {
 
         let didPassThroughUnit = false
         if (deployment?.unit && deployment.unit.id !== this.unit.id) {
-          if (!canPassThroughUnit(deployment, tile)) {
+          if (!canPassThroughUnit(deployment.unit)) {
             acc.inaccessible.add(coordinates.hash)
             return acc
           }

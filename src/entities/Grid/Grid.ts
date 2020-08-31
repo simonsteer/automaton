@@ -1,5 +1,4 @@
 import { GridGraph, GridVectorData, GridEvents, GridQuery } from './types'
-import { mapTiles } from '../../utils'
 import Deployment from '../../services/Deployment'
 import Coords, { RawCoords } from '../../services/Coords'
 import { Unit, Tile, Team } from '..'
@@ -22,10 +21,9 @@ export default class Grid {
     graph: Tile[][]
     units?: [Unit, RawCoords][]
   }) {
-    this.graph = mapTiles(graph, (tile, { x, y }) => ({
-      coords: new Coords({ x, y }),
-      tile,
-    }))
+    this.graph = graph.map((row, y) =>
+      row.map((tile, x) => ({ coords: new Coords({ x, y }), tile }))
+    )
     if (units) this.deployUnits(units)
   }
 
@@ -158,9 +156,10 @@ export default class Grid {
    * Map over each column of each row of the `Grid`, optionally returning a value.
    * */
 
-  mapTiles<R>(callback: (item: GridVectorData, coordinates: RawCoords) => R) {
-    return mapTiles(this.graph, callback)
-  }
+  mapTiles = <R>(
+    callback: (item: GridVectorData, coordinates: RawCoords) => R
+  ) =>
+    this.graph.map((row, y) => row.map((item, x) => callback(item, { x, y })))
 
   private createDeployment = (unit: Unit, coordinates: RawCoords) => {
     if (this.deployments.get(unit.id)) {

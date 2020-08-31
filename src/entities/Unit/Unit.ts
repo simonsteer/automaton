@@ -1,7 +1,7 @@
 import { SIMPLE_ORTHOGONAL_CONSTRAINT } from '../../recipes/constraints'
 import { UnitConfig, ExtraMovementOptions } from './types'
-import { Team, Weapon, Grid } from '..'
-import { RangeConstraint, Deployment, RawCoords } from '../../services'
+import { Team, Weapon } from '..'
+import { RangeConstraint } from '../../services'
 
 export default class Unit {
   readonly id = Symbol()
@@ -17,9 +17,9 @@ export default class Unit {
       constraints = [SIMPLE_ORTHOGONAL_CONSTRAINT],
       mergeStrategy = 'union',
       steps = 1,
-      canPassThroughUnit = (deployment: Deployment) =>
-        deployment.unit.team.is('friendly', this.team) ||
-        deployment.unit.team.is('neutral', this.team),
+      canPassThroughUnit = (unit: Unit) =>
+        unit.team.is('friendly', this.team) ||
+        unit.team.is('neutral', this.team),
       unitPassThroughLimit = Infinity,
       getSpecialCoordinates = () => [],
     } = {},

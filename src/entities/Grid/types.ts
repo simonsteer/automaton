@@ -10,6 +10,11 @@ export type GridEvents<U extends Unit = Unit> = {
   unitMovement: (deployment: Deployment<U>, path: RawCoords[]) => void
   unitsWithdrawn: (unitIds: Symbol[]) => void
   unitsEngaged: (deploymentA: Deployment<U>, deploymentB: Deployment<U>) => void
+  unitEnterTile: (deployment: Deployment<U>, tile: Tile) => void
+  unitExitTile: (deployment: Deployment<U>, tile: Tile) => void
+  unitStopTile: (deployment: Deployment<U>, tile: Tile) => void
+  guardTileEntry: (deployment: Deployment<U>, tile: Tile) => void
+  guardTileCrossover: (deployment: Deployment<U>, tile: Tile) => void
 }
 
 export type GridQuery = RawCoords | Symbol
