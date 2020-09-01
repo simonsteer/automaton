@@ -198,7 +198,7 @@ export default class Deployment<U extends Unit = Unit> {
       .filter(this.grid.withinBounds)
       .reduce((acc, coordinates) => {
         const {
-          canPassThroughUnit,
+          canPassThroughOtherUnit,
           unitPassThroughLimit,
         } = this.unit.extraMovementOptions
 
@@ -213,7 +213,7 @@ export default class Deployment<U extends Unit = Unit> {
 
         let didPassThroughUnit = false
         if (deployment?.unit && deployment.unit.id !== this.unit.id) {
-          if (!canPassThroughUnit(deployment.unit)) {
+          if (!canPassThroughOtherUnit(deployment.unit)) {
             acc.inaccessible.add(coordinates.hash)
             return acc
           }

@@ -17,7 +17,7 @@ export default class Unit {
       constraints = [SIMPLE_ORTHOGONAL_CONSTRAINT],
       mergeStrategy = 'union',
       steps = 1,
-      canPassThroughUnit = (unit: Unit) =>
+      canPassThroughOtherUnit = (unit: Unit) =>
         unit.team.is('friendly', this.team) ||
         unit.team.is('neutral', this.team),
       unitPassThroughLimit = Infinity,
@@ -35,7 +35,7 @@ export default class Unit {
 
     this.setTeam(team)
     this.extraMovementOptions = {
-      canPassThroughUnit,
+      canPassThroughOtherUnit,
       unitPassThroughLimit,
       getSpecialCoordinates,
       steps,

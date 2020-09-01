@@ -9,7 +9,7 @@ export type ExtraMovementOptions = {
   getSpecialCoordinates: <U extends Unit = Unit>(
     deployment: Deployment<U>
   ) => RawCoords[]
-  canPassThroughUnit: <U extends Unit = Unit>(unit: U) => boolean
+  canPassThroughOtherUnit: <U extends Unit = Unit>(unit: U) => boolean
   unitPassThroughLimit: number
 }
 
