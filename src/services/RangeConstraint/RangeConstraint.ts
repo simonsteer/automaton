@@ -1,5 +1,5 @@
 import { Coords } from '..'
-import { Grid } from '../../entities'
+import { Grid, Unit } from '../../entities'
 import { graphMergeStrategies, coordinatesHashesMergeStrategies } from './utils'
 import Graph from '../Deployment/Dijkstra/Graph'
 import { RangeConstraintConfig, ConstraintMergeStrategyType } from './types'
@@ -27,7 +27,7 @@ export default class RangeConstraint {
       constraint.applies(coordsA, coordsB)
     })
 
-  private buildDeploymentGraph = (grid: Grid) =>
+  private buildDeploymentGraph = <U extends Unit = Unit>(grid: Grid<U>) =>
     new Graph(
       this.mergeGraph(
         ...this.constraints.map(constraint =>
@@ -36,9 +36,9 @@ export default class RangeConstraint {
       )
     )
 
-  getApplicableCoordinates = (
+  getApplicableCoordinates = <U extends Unit = Unit>(
     fromCoords: RawCoords,
-    grid: Grid,
+    grid: Grid<U>,
     getCoordinates = (constraint: Constraint) =>
       constraint
         .adjacent(fromCoords)

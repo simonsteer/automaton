@@ -1,28 +1,26 @@
+import compact from 'lodash/compact'
 import { GridGraph, GridVectorData, GridEvents, GridQuery } from './types'
 import Deployment from '../../services/Deployment'
 import Coords, { RawCoords } from '../../services/Coords'
 import { Unit, Tile, Team } from '..'
 import { TypedEventEmitter } from '../../services'
 
-export default class Grid {
+export default class Grid<U extends Unit = Unit> {
   readonly id = Symbol()
 
   timestamp = Date.now()
-  events = new TypedEventEmitter<GridEvents>()
+  events = new TypedEventEmitter<GridEvents<U>>()
 
   graph: GridGraph
-  private deployments = new Map<Symbol, Deployment>()
+  private deployments = new Map<Symbol, Deployment<U>>()
   private coordinates = new Map<string, Symbol>()
 
-  constructor({
-    graph,
-    units,
-  }: {
-    graph: Tile[][]
-    units?: [Unit, RawCoords][]
-  }) {
+  constructor({ graph, units }: { graph: Tile[][]; units?: [U, RawCoords][] }) {
     this.graph = graph.map((row, y) =>
-      row.map((tile, x) => ({ coords: new Coords({ x, y }), tile }))
+      row.map((tile, x) => ({
+        coords: new Coords({ x, y }),
+        tile,
+      }))
     )
     if (units) this.deployUnits(units)
   }
@@ -44,11 +42,11 @@ export default class Grid {
   /**
    * Retrieve data relevant to a given set of `RawCoords`.
    *  */
-  getCoordinateData = <U extends Unit = Unit>(coordinates: RawCoords) => {
+  getCoordinateData = (coordinates: RawCoords) => {
     if (!this.withinBounds(coordinates)) return null
 
     const tile = this.graph[coordinates.y]?.[coordinates.x]?.tile
-    const deployment = this.getDeployment<U>(coordinates)
+    const deployment = this.getDeployment(coordinates)
 
     return { deployment, tile }
   }
@@ -59,7 +57,7 @@ export default class Grid {
    * @arguments
    * `GridQuery` – either a set of `RawCoords` or a `Unit.id`
    *  */
-  getDeployment = <U extends Unit = Unit>(query: GridQuery) => {
+  getDeployment = (query: GridQuery) => {
     const unitId =
       typeof query === 'symbol'
         ? query
@@ -76,20 +74,23 @@ export default class Grid {
    * @arguments
    * `GridQuery[]` – an array of `RawCoord`s and/or `Unit.id`s
    *  */
-  getDeployments = <U extends Unit = Unit>(
+  getDeployments = (
     queries = [...this.deployments.keys()] as GridQuery[]
-  ) => queries.map(this.getDeployment).filter(Boolean) as Deployment<U>[]
+  ): Deployment<U>[] => compact(queries.map(this.getDeployment))
 
   /**
    * Returns an array of `Team`s with active `Deployment`s on the `Grid`.
    * */
-  getTeams = <T extends Team = Team>() => [
-    ...this.getDeployments().reduce((acc, deployment) => {
-      if (!acc.has(deployment.unit.team as T)) {
-        acc.add(deployment.unit.team as T)
-      }
-      return acc
-    }, new Set<T>()),
+  getTeams = <T extends Team = Team>(): T[] => [
+    ...this.getDeployments().reduce(
+      (acc: Set<T>, deployment: Deployment<U>) => {
+        if (!acc.has((deployment.unit.getTeam() as unknown) as T)) {
+          acc.add((deployment.unit.getTeam() as unknown) as T)
+        }
+        return acc
+      },
+      new Set()
+    ),
   ]
 
   /**
@@ -98,7 +99,7 @@ export default class Grid {
    * no `Deployment` will be created. Emits `GridEvents.unitsDeployed` if a `Deployment` is
    * successfully created.
    * */
-  deployUnit = (unit: Unit, coordinates: RawCoords) => {
+  deployUnit = (unit: U, coordinates: RawCoords) => {
     const deployment = this.createDeployment(unit, coordinates)
     if (deployment) this.events.emit('unitsDeployed', [deployment])
   }
@@ -109,10 +110,10 @@ export default class Grid {
    * no `Deployment` will be created. Emits `GridEvents.unitsDeployed` if at least one `Deployment` is
    * successfully created.
    * */
-  deployUnits = (unitData: [Unit, RawCoords][]) => {
+  deployUnits = (unitData: [U, RawCoords][]) => {
     const deployments = unitData
       .map(([unit, coordinates]) => this.createDeployment(unit, coordinates))
-      .filter(Boolean) as Deployment[]
+      .filter(Boolean) as Deployment<U>[]
 
     if (deployments.length) this.events.emit('unitsDeployed', deployments)
   }
@@ -137,7 +138,7 @@ export default class Grid {
   withdrawUnits = (queries: GridQuery[]) => {
     const withdrawals = queries
       .map(this.attemptWithdrawal)
-      .filter(Boolean) as Deployment[]
+      .filter(Boolean) as Deployment<U>[]
 
     if (withdrawals.length) {
       this.events.emit(
@@ -161,7 +162,10 @@ export default class Grid {
   ) =>
     this.graph.map((row, y) => row.map((item, x) => callback(item, { x, y })))
 
-  private createDeployment = (unit: Unit, coordinates: RawCoords) => {
+  private createDeployment = (
+    unit: U,
+    coordinates: RawCoords
+  ): Deployment<U> | undefined => {
     if (this.deployments.get(unit.id)) {
       return undefined
     }

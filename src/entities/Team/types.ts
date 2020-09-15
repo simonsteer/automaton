@@ -1,4 +1,4 @@
-import { Team } from '..'
+import { Team, Unit } from '..'
 
 export interface TeamConfig {
   hostile?: Team[]

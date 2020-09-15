@@ -1,23 +1,22 @@
-import { Grid, Team } from '../../entities'
+import { Grid, Team, Unit } from '../../entities'
 import { BattleEvents } from './types'
 import { TypedEventEmitter } from '..'
 
-type BattleCallback<G extends Grid, T = void> = (battle: Battle<G>) => T
+const DEFAULT_END_CONDITION = <U extends Unit, G extends Grid<U>>(
+  battle: Battle<U, G>
+) => battle.grid.getTeams().length <= 1
 
-const DEFAULT_END_CONDITION = <G extends Grid>(battle: Battle<G>) =>
-  battle.grid.getTeams().length <= 1
-
-export default class Battle<G extends Grid = Grid> {
+export default class Battle<U extends Unit, G extends Grid<U>> {
   turnIndex = -1
   grid: G
-  endCondition: BattleCallback<G, boolean>
+  endCondition: (battle: Battle<U, G>) => boolean
   events = new TypedEventEmitter<BattleEvents>()
   private isDone = false
 
   constructor(
     grid: G,
     { endCondition = DEFAULT_END_CONDITION } = {} as {
-      endCondition?: BattleCallback<G, boolean>
+      endCondition?: Battle<U, G>['endCondition']
     }
   ) {
     this.grid = grid

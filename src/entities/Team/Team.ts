@@ -1,3 +1,4 @@
+import compact from 'lodash/compact'
 import { TeamSplitConfig, TeamConfig, TeamRelationshipType } from './types'
 import { Unit, Grid } from '..'
 import { Deployment } from '../../services'
@@ -54,9 +55,9 @@ export default class Team {
             `Team Splits must have at least a single branch. Received value: ${params}`
           )
         for (let i = 0; i < params; i++) {
-          const newTeam = this.clone({
+          const newTeam = (this.clone({
             parent: this,
-          }).changeRelationship(this, 'friendly')
+          }).changeRelationship(this, 'friendly') as unknown) as Team
           if (i === params - 1)
             newTeams.forEach(team =>
               team.changeRelationship(newTeam, 'friendly')
@@ -141,7 +142,7 @@ export default class Team {
    * @returns
    * `Team` (self)
    */
-  addChildren = <T extends Team = Team>(teams: T[]) => {
+  addChildren = (teams: Team[]) => {
     teams.forEach(this.addChild)
     return this
   }
@@ -151,7 +152,7 @@ export default class Team {
    * @returns
    * `Team` (self)
    */
-  removeChild = <T extends Team = Team>(team: T) => {
+  removeChild = (team: Team) => {
     if (this.children.delete(team)) {
       team.parent = undefined
     }
@@ -174,10 +175,8 @@ export default class Team {
    * @returns
    * `Team`
    */
-  getParent = <T extends Team = Team>(recursive = false): T =>
-    recursive
-      ? this.parent?.getParent<T>(true) || ((this as unknown) as T)
-      : (this.parent as T) || ((this as unknown) as T)
+  getParent = (recursive = false): Team =>
+    recursive ? this.parent?.getParent(true) || this : this.parent || this
 
   /**
    * Returns an array of teams which are children of the team.
@@ -185,13 +184,11 @@ export default class Team {
    * @returns
    * `Team[]`
    */
-  getChildren = <T extends Team = Team>(recursive = false) =>
+  getChildren = (recursive = false): Team[] =>
     [...this.children.values()].reduce((acc, team) => {
-      recursive
-        ? acc.push(team as T, ...team.getChildren<T>(true))
-        : acc.push(team as T)
+      recursive ? acc.push(team, ...team.getChildren(true)) : acc.push(team)
       return acc
-    }, [] as T[])
+    }, [] as Team[])
 
   /**
    * Returns an array of units which belong to the team.
@@ -199,11 +196,11 @@ export default class Team {
    * @returns
    * `Unit[]`
    */
-  getUnits = <U extends Unit = Unit>(recursive = false) => {
-    const thisUnits = [...this.units.values()] as U[]
+  getUnits = (recursive = false) => {
+    const thisUnits = [...this.units.values()]
     return recursive
       ? [...this.getChildren(true)].reduce((units, team) => {
-          units.push(...team.getUnits<U>())
+          units.push(...team.getUnits())
           return units
         }, thisUnits)
       : thisUnits
@@ -215,7 +212,10 @@ export default class Team {
    * @returns
    * `Deployment[]`
    */
-  getDeployments = <U extends Unit = Unit>(grid: Grid, recursive = false) => {
+  getDeployments = <U extends Unit = Unit>(
+    grid: Grid<U>,
+    recursive = false
+  ) => {
     let units = [...this.units]
     if (recursive) {
       units = [...this.getChildren(true)].reduce((acc, team) => {
@@ -223,9 +223,9 @@ export default class Team {
         return acc
       }, units)
     }
-    return units
-      .map(unit => grid.getDeployment(unit.id))
-      .filter(Boolean) as Deployment<U>[]
+    return compact(
+      units.map(unit => grid.getDeployment(unit.id))
+    ) as Deployment<U>[]
   }
 
   /**
@@ -233,10 +233,7 @@ export default class Team {
    * @returns
    * `Team` (self)
    */
-  changeRelationship = <T extends Team = Team>(
-    team: T,
-    relationship: TeamRelationshipType
-  ) => {
+  changeRelationship = (team: Team, relationship: TeamRelationshipType) => {
     switch (relationship) {
       case 'friendly':
         this.changeRelationship(team, 'neutral')
@@ -272,9 +269,9 @@ export default class Team {
    * @returns
    * `boolean`
    */
-  is = <T extends Team = Team>(
+  is = (
     relationshipType: TeamRelationshipType | 'parent' | 'child',
-    team: T,
+    team: Team,
     recursive?: boolean
   ): boolean => {
     switch (relationshipType) {
@@ -298,13 +295,13 @@ export default class Team {
    * @returns
    * `Team` (new)
    */
-  clone = <T extends Team = Team>(overrides = {} as TeamConfig) =>
+  clone = (overrides = {} as TeamConfig) =>
     new Team({
       parent: this.parent,
       hostile: [...this.hostile],
       friendly: [...this.friendly],
       ...overrides,
-    }) as T
+    })
 
   /*
   The methods below are intentionally and unused in this class

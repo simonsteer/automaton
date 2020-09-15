@@ -3,19 +3,19 @@ import { RawCoords } from '../Coords'
 import { Deployment } from '..'
 import { GridModifications } from './types'
 
-export default class RevocableGridModification {
-  grid: Grid
-  private modifications: GridModifications
+export default class RevocableGridModification<U extends Unit = Unit> {
+  grid: Grid<U>
+  private modifications: GridModifications<U>
   private revocations: (
     | {
         type: 'moveUnit'
-        payload: [Deployment, RawCoords]
+        payload: [Deployment<U>, RawCoords]
       }
     | { type: 'deployUnit'; payload: Symbol }
-    | { type: 'withdrawUnit'; payload: [Unit, RawCoords] }
+    | { type: 'withdrawUnit'; payload: [U, RawCoords] }
   )[] = []
 
-  constructor(grid: Grid, modifications: GridModifications) {
+  constructor(grid: Grid<U>, modifications: GridModifications<U>) {
     this.modifications = modifications
     this.grid = grid
   }

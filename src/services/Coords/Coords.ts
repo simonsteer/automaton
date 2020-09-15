@@ -1,4 +1,4 @@
-import { Grid } from '../../entities'
+import { Grid, Unit } from '../../entities'
 
 export type RawCoords = { x: number; y: number }
 
@@ -88,14 +88,15 @@ export default class Coords {
    * Determines whether the `Coords` instance is considered outside the bounds of
    * the given `Grid`
    * */
-  outOfBounds = (grid: Grid) =>
+  outOfBounds = <U extends Unit = Unit>(grid: Grid<U>) =>
     this.x < 0 || this.y < 0 || this.x >= grid.size.x || this.y >= grid.size.y
 
   /**
    * Determines whether the `Coords` instance is considered within the bounds of
    * the given `Grid`
    * */
-  withinBounds = (grid: Grid) => !this.outOfBounds(grid)
+  withinBounds = <U extends Unit = Unit>(grid: Grid<U>) =>
+    !this.outOfBounds(grid)
 
   /**
    * Updates the x & y values of the `Coords` instance.

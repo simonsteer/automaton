@@ -2,7 +2,7 @@ import range from 'lodash/range'
 import { ConstraintConfig } from './types'
 import Coords, { RawCoords } from '../Coords'
 import { GraphNodeNeighbour, GraphNodeMap } from '../Deployment/Dijkstra/types'
-import { Grid } from '../../entities'
+import { Grid, Unit } from '../../entities'
 
 export default class Constraint {
   private cache: { adjacent: { [hash: string]: Coords[] } } = { adjacent: {} }
@@ -47,7 +47,7 @@ export default class Constraint {
     return this.cache.adjacent[Coords.hash(coordsA)]
   }
 
-  private buildDeploymentGraph = (grid: Grid) => {
+  private buildDeploymentGraph = <U extends Unit = Unit>(grid: Grid<U>) => {
     const graph: GraphNodeMap = {}
 
     grid.mapTiles(tile => {

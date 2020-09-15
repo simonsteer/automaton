@@ -5,17 +5,18 @@ import Constraint from '../RangeConstraint/Constraint'
 
 export default class Deployment<U extends Unit = Unit> {
   timestamp: number
-  readonly grid: Grid
+  readonly grid: Grid<U>
   readonly unit: U
   graph!: Graph
   coordinates: Coords
+  actionsTaken = 0
 
   constructor({
     grid,
     unit,
     coordinates,
   }: {
-    grid: Grid
+    grid: Grid<U>
     unit: U
     coordinates: RawCoords
   }) {
@@ -40,8 +41,10 @@ export default class Deployment<U extends Unit = Unit> {
    *
    * Consider using in conjunction with `Deployment.getTargetableDeployments`.
    */
-  engage = <U extends Unit>(otherDeployment: Deployment<U>): void =>
+  engage = (otherDeployment: Deployment<U>): void => {
     this.grid.events.emit('unitsEngaged', this, otherDeployment)
+    this.actionsTaken++
+  }
 
   /**
    * Move the `Deployment` along a given path - all `TileEvents` may be emitted
@@ -111,6 +114,7 @@ export default class Deployment<U extends Unit = Unit> {
       this.grid['coordinates'].set(toHash, this.unit.id)
       this.grid.events.emit('unitMovement', this, result)
     }
+    this.actionsTaken++
     return result
   }
 
@@ -152,7 +156,10 @@ export default class Deployment<U extends Unit = Unit> {
   getReachableCoords = (fromCoords = this.coordinates.raw) =>
     this.unit.movement
       .getApplicableCoordinates(fromCoords, this.grid, constraint =>
-        this.applyExtraMovementOptions({ constraint, fromCoords })
+        this.applyExtraMovementOptions({
+          constraint,
+          fromCoords,
+        })
       )
       .concat(
         this.unit.extraMovementOptions
@@ -169,13 +176,14 @@ export default class Deployment<U extends Unit = Unit> {
    *
    * Consider using in conjunction with `Deployment.engage`.
    */
-  getTargetableDeployments = <U extends Unit = Unit>(
-    fromCoords = this.coordinates.raw
-  ) =>
-    (this.unit.weapon
-      ?.getTargetableCoords(this, fromCoords)
+  getTargetableDeployments = (fromCoords = this.coordinates.raw) => {
+    if (!this.unit.weapon) return []
+
+    return (this.unit.weapon
+      .getTargetableCoords(this, fromCoords)
       .map(this.grid.getDeployment)
-      .filter(Boolean) as Deployment<U>[]) || []
+      .filter(Boolean) as unknown) as Deployment<U>[]
+  }
 
   private initGraph() {
     this.graph = this.unit.movement['buildDeploymentGraph'](this.grid)
@@ -186,7 +194,11 @@ export default class Deployment<U extends Unit = Unit> {
       constraint,
       fromCoords = this.coordinates,
       stepsLeft = this.unit.extraMovementOptions.steps,
-    }: { constraint: Constraint; fromCoords?: RawCoords; stepsLeft?: number },
+    }: {
+      constraint: Constraint
+      fromCoords?: RawCoords
+      stepsLeft?: number
+    },
     accumulator = {
       passThroughCount: 0,
       accessible: new Set<string>(),

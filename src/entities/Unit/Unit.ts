@@ -5,7 +5,9 @@ import { RangeConstraint } from '../../services'
 
 export default class Unit {
   readonly id = Symbol()
-  _team!: Team
+
+  private team!: Team
+
   movement: RangeConstraint
   maxHealth: number
   currentHealth: number
@@ -63,8 +65,8 @@ export default class Unit {
     return this.currentHealth <= 0
   }
 
-  get team() {
-    return this._team
+  getTeam<T = Team>() {
+    return (this.team as unknown) as T
   }
 
   /**
@@ -88,9 +90,8 @@ export default class Unit {
    * @returns `Unit` (itself)
    */
   setTeam = (team: Team) => {
-    this._team?.['__removeUnit'](this)
-    this._team = team
-    this._team['__addUnit'](this)
-    return this
+    this.team?.['__removeUnit'](this)
+    this.team = team
+    this.team['__addUnit'](this)
   }
 }
