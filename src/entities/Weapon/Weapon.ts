@@ -1,23 +1,21 @@
-import RangeConstraint from '../../services/RangeConstraint'
+import RangeConstraint from '../../services/DeltaConstraint'
 import { SIMPLE_ORTHOGONAL_CONSTRAINT } from '../../recipes/constraints'
 import { WeaponConfig } from './types'
-import { RangeConstraintConfig, Deployment, RawCoords } from '../../services'
+import { Deployment, RawCoords } from '../../services'
 import { Unit } from '..'
-
-const WEAPON_RANGE_CONSTRAINT_DEFAULTS: Partial<RangeConstraintConfig> = {
-  constraints: [SIMPLE_ORTHOGONAL_CONSTRAINT],
-}
+import DeltaConstraint from '../../services/DeltaConstraint'
 
 export default class Weapon {
   power: number
-  range: RangeConstraint
+  range: DeltaConstraint
 
-  constructor({ power = 1, range = {} } = {} as Partial<WeaponConfig>) {
+  constructor(
+    { power = 1, range = SIMPLE_ORTHOGONAL_CONSTRAINT } = {} as Partial<
+      WeaponConfig
+    >
+  ) {
     this.power = power
-    this.range = new RangeConstraint({
-      ...WEAPON_RANGE_CONSTRAINT_DEFAULTS,
-      ...range,
-    })
+    this.range = new DeltaConstraint(range)
   }
 
   /**

@@ -1,7 +1,8 @@
 import Coords, { RawCoords } from '../Coords'
 import Graph from './Dijkstra/Graph'
 import { Grid, Unit } from '../../entities'
-import Constraint from '../RangeConstraint/Constraint'
+import Constraint from '../DeltaConstraint/DeltaConstraint'
+import { GraphNodeMap, GraphNodeNeighbour } from './Dijkstra/types'
 
 export default class Deployment<U extends Unit = Unit> {
   timestamp: number
@@ -154,18 +155,7 @@ export default class Deployment<U extends Unit = Unit> {
    * Consider using in conjunction with `Deployment.move`.
    */
   getReachableCoords = (fromCoords = this.coordinates.raw) =>
-    this.unit.movement
-      .getApplicableCoordinates(fromCoords, this.grid, constraint =>
-        this.applyExtraMovementOptions({
-          constraint,
-          fromCoords,
-        })
-      )
-      .concat(
-        this.unit.extraMovementOptions
-          .getSpecialCoordinates(this)
-          .map(c => new Coords(c))
-      )
+    this.applyMovementOptions(fromCoords).map(Coords.parse)
 
   /**
    * Get all targetable hostile/wildcard `Deployment`s from a given pair of `RawCoords`,
@@ -186,33 +176,42 @@ export default class Deployment<U extends Unit = Unit> {
   }
 
   private initGraph() {
-    this.graph = this.unit.movement['buildDeploymentGraph'](this.grid)
+    const graph: GraphNodeMap = {}
+
+    this.grid.mapTiles(tile => {
+      const nodeNeighbour = this.unit.movement.constraint
+        .adjacent(tile.coords)
+        .reduce((acc, coords) => {
+          if (coords.withinBounds(this.grid)) {
+            if (!acc) acc = {}
+            const neighbour = this.grid.graph[coords.y][coords.x]
+            acc[coords.hash] = neighbour.tile
+          }
+          return acc
+        }, undefined as undefined | GraphNodeNeighbour)
+      if (nodeNeighbour) graph[tile.coords.hash] = nodeNeighbour
+    })
+
+    this.graph = new Graph(graph)
   }
 
-  private applyExtraMovementOptions = (
-    {
-      constraint,
-      fromCoords = this.coordinates,
-      stepsLeft = this.unit.extraMovementOptions.steps,
-    }: {
-      constraint: Constraint
-      fromCoords?: RawCoords
-      stepsLeft?: number
-    },
+  private applyMovementOptions = (
+    fromCoords = this.coordinates.raw,
+    stepsLeft = this.unit.movement.steps,
     accumulator = {
       passThroughCount: 0,
       accessible: new Set<string>(),
       inaccessible: new Set<string>(),
     }
   ) => [
-    ...constraint
+    ...this.unit.movement.constraint
       .adjacent(fromCoords)
       .filter(this.grid.withinBounds)
       .reduce((acc, coordinates) => {
         const {
           canPassThroughOtherUnit,
           unitPassThroughLimit,
-        } = this.unit.extraMovementOptions
+        } = this.unit.movement
 
         if (stepsLeft <= 0 || acc.inaccessible.has(Coords.hash(fromCoords))) {
           return acc
@@ -238,14 +237,7 @@ export default class Deployment<U extends Unit = Unit> {
           stepsLeft - movementCost > 0 &&
           (!didPassThroughUnit || acc.passThroughCount < unitPassThroughLimit)
         ) {
-          this.applyExtraMovementOptions(
-            {
-              constraint,
-              fromCoords: coordinates,
-              stepsLeft: stepsLeft - movementCost,
-            },
-            acc
-          )
+          this.applyMovementOptions(coordinates, stepsLeft - movementCost, acc)
         }
 
         return acc

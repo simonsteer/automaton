@@ -1,8 +1,10 @@
 import sortBy from 'lodash/sortBy'
 import { createSimpleGraph } from '../../utils'
 import Team from '../../entities/Team'
-import RangeConstraint from '../RangeConstraint'
-import { SIMPLE_DIAGONAL_CONSTRAINT } from '../../recipes/constraints'
+import {
+  SIMPLE_DIAGONAL_CONSTRAINT,
+  SIMPLE_ORTHOGONAL_CONSTRAINT,
+} from '../../recipes/constraints'
 import Unit from '../../entities/Unit'
 import Grid from '../../entities/Grid'
 import Tile from '../../entities/Tile'
@@ -13,7 +15,10 @@ describe('Deployment', () => {
 
   describe('getting reachable coordinates', () => {
     it('can get reachable coordinates with default movement constraints and default tile costs', () => {
-      const unit = new Unit({ team, movement: { steps: 3 } })
+      const unit = new Unit({
+        team,
+        movement: { steps: 3, deltas: SIMPLE_ORTHOGONAL_CONSTRAINT },
+      })
       const grid = new Grid({
         graph: createSimpleGraph(5),
       })
@@ -94,7 +99,7 @@ describe('Deployment', () => {
       const unit = new Unit({
         team,
         movement: {
-          constraints: [SIMPLE_DIAGONAL_CONSTRAINT],
+          deltas: SIMPLE_DIAGONAL_CONSTRAINT,
           steps: 2,
         },
       })
@@ -135,7 +140,7 @@ describe('Deployment', () => {
       const unit = new Unit({
         team,
         movement: {
-          constraints: [SIMPLE_DIAGONAL_CONSTRAINT],
+          deltas: SIMPLE_DIAGONAL_CONSTRAINT,
           steps: 3,
         },
       })
@@ -217,7 +222,7 @@ describe('Deployment', () => {
       const unit = new Unit({
         team,
         movement: {
-          constraints: [SIMPLE_DIAGONAL_CONSTRAINT],
+          deltas: SIMPLE_DIAGONAL_CONSTRAINT,
         },
       })
       const tile = new Tile({ cost: () => 2 })

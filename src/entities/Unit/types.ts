@@ -1,21 +1,17 @@
-import { RangeConstraintConfig } from '../../services/RangeConstraint/types'
-import { Team, Unit, Grid } from '..'
+import { Team, Unit } from '..'
 import { WeaponConfig } from '../Weapon/types'
-import { RawCoords } from '../..'
-import { Deployment } from '../../services'
+import { RawCoords } from '../../services'
 
-export type ExtraMovementOptions = {
+export type UnitMovementOptions = {
   steps: number
-  getSpecialCoordinates: <U extends Unit = Unit>(
-    grid: Deployment<U>
-  ) => RawCoords[]
   canPassThroughOtherUnit: (unit: Unit) => boolean
   unitPassThroughLimit: number
+  deltas: RawCoords[]
 }
 
 export interface UnitConfig {
   team: Team
-  movement?: Partial<RangeConstraintConfig & ExtraMovementOptions>
+  movement?: Partial<UnitMovementOptions>
   health?: number
   weapon?: WeaponConfig
 }

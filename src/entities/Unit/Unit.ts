@@ -1,29 +1,28 @@
 import { SIMPLE_ORTHOGONAL_CONSTRAINT } from '../../recipes/constraints'
-import { UnitConfig, ExtraMovementOptions } from './types'
+import { UnitConfig, UnitMovementOptions } from './types'
+import DeltaConstraint from '../../services/DeltaConstraint'
 import { Team, Weapon } from '..'
-import { RangeConstraint } from '../../services'
 
 export default class Unit {
   readonly id = Symbol()
 
   private team!: Team
 
-  movement: RangeConstraint
   maxHealth: number
   currentHealth: number
   weapon?: Weapon
-  extraMovementOptions: ExtraMovementOptions
+  movement: Omit<UnitMovementOptions, 'deltas'> & {
+    constraint: DeltaConstraint
+  }
 
   constructor({
     movement: {
-      constraints = [SIMPLE_ORTHOGONAL_CONSTRAINT],
-      mergeStrategy = 'union',
+      deltas = SIMPLE_ORTHOGONAL_CONSTRAINT,
       steps = 1,
       canPassThroughOtherUnit = (unit: Unit) =>
         unit.team.is('friendly', this.team) ||
         unit.team.is('neutral', this.team),
       unitPassThroughLimit = Infinity,
-      getSpecialCoordinates = () => [],
     } = {},
     health = 1,
     team,
@@ -36,17 +35,12 @@ export default class Unit {
     }
 
     this.setTeam(team)
-    this.extraMovementOptions = {
+    this.movement = {
       canPassThroughOtherUnit,
+      constraint: new DeltaConstraint(deltas),
       unitPassThroughLimit,
-      getSpecialCoordinates,
       steps,
     }
-    this.movement = new RangeConstraint({
-      constraints,
-      mergeStrategy,
-    })
-
     this.maxHealth = health
     this.currentHealth = this.maxHealth
 
