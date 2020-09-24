@@ -1,4 +1,4 @@
-export { default as RangeConstraint } from './DeltaConstraint'
+export { default as DeltaConstraint } from './DeltaConstraint'
 export { default as Coords, RawCoords } from './Coords'
 export { default as Battle } from './Battle'
 export * from './Battle/types'

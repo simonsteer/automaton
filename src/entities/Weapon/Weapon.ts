@@ -1,7 +1,6 @@
-import RangeConstraint from '../../services/DeltaConstraint'
 import { SIMPLE_ORTHOGONAL_CONSTRAINT } from '../../recipes/constraints'
 import { WeaponConfig } from './types'
-import { Deployment, RawCoords } from '../../services'
+import { Deployment } from '../../services'
 import { Unit } from '..'
 import DeltaConstraint from '../../services/DeltaConstraint'
 
@@ -26,15 +25,13 @@ export default class Weapon {
     deployment: Deployment<U>,
     fromCoords = deployment.coordinates.raw
   ) =>
-    this.range
-      .getApplicableCoordinates(fromCoords, deployment.grid)
-      .filter(coords => {
-        const otherTeam = deployment.grid
-          .getCoordinateData(coords)
-          ?.deployment?.unit?.getTeam()
-        return !!(
-          otherTeam?.is('hostile', deployment.unit.getTeam()) ||
-          otherTeam?.is('wildcard', deployment.unit.getTeam())
-        )
-      }) || []
+    this.range.adjacent(fromCoords).filter(coords => {
+      const otherTeam = deployment.grid
+        .getCoordinateData(coords)
+        ?.deployment?.unit?.getTeam()
+      return !!(
+        otherTeam?.is('hostile', deployment.unit.getTeam()) ||
+        otherTeam?.is('wildcard', deployment.unit.getTeam())
+      )
+    }) || []
 }
