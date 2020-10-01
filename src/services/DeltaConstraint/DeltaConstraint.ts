@@ -1,4 +1,5 @@
 import Coords, { RawCoords } from '../Coords'
+import { SimpleCache } from '../../utils'
 
 export default class DeltaConstraint {
   private deltaMap: { [x: string]: { [y: string]: true } } = {}
@@ -12,8 +13,13 @@ export default class DeltaConstraint {
     })
   }
 
-  adjacent = (coords: RawCoords) =>
-    this.deltas.map(d => new Coords({ x: coords.x + d.x, y: coords.y + d.y }))
+  adjacent = new SimpleCache(
+    (coords: RawCoords) =>
+      this.deltas.map(
+        d => new Coords({ x: coords.x + d.x, y: coords.y + d.y })
+      ),
+    Coords.hash
+  ).fn
 
   applies = (coordsA: RawCoords, coordsB: RawCoords) => {
     const { x, y } = Coords.deltas(coordsA, coordsB)

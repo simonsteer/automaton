@@ -38,8 +38,8 @@ export default class Unit {
     this.movement = {
       canPassThroughOtherUnit,
       constraint: new DeltaConstraint(deltas),
-      unitPassThroughLimit,
       steps,
+      unitPassThroughLimit,
     }
     this.maxHealth = health
     this.currentHealth = this.maxHealth

@@ -7,42 +7,47 @@ export function createSimpleGraph(size: number) {
     .map(t => Array(size).fill(t)) as Tile[][]
 }
 
-export function cache<F extends (...args: any) => any>(
-  target: F,
-  hashingMethod: (...args: Parameters<F>) => string,
-  cacheLimit = 10
-) {
-  const cache = new Map<string, ReturnType<F>>()
-  const relevancy: string[] = []
+export class SimpleCache<F extends (...args: any) => any> {
+  target: F
+  fn: F
+  cache = new Map<string, ReturnType<F>>()
+  relevancy: string[] = []
+  cacheSize: number
+  hashingMethod: (...args: Parameters<F>) => string
 
-  const proxy = (new Proxy(target, {
-    apply(target, thisArg, argumentsList) {
-      const hash = hashingMethod(...argumentsList)
+  constructor(
+    fn: F,
+    hashingMethod: (...args: Parameters<F>) => string,
+    cacheSize = 100
+  ) {
+    const self = this
 
-      let data = cache.get(hash)
-      if (data) {
-        const index = relevancy.indexOf(hash)
-        relevancy.splice(index, 1)
-      } else {
-        if (cache.size === cacheLimit) {
-          const leastRelevant = relevancy[relevancy.length - 1]
-          cache.delete(leastRelevant)
-          relevancy.splice(cacheLimit - 1)
+    this.cacheSize = cacheSize
+    this.hashingMethod = hashingMethod
+    this.target = fn
+    this.fn = new Proxy(fn, {
+      apply(target, thisArg, argumentsList) {
+        const hash = self.hashingMethod(...argumentsList)
+
+        let data = self.cache.get(hash)
+        if (data) {
+          const index = self.relevancy.indexOf(hash)
+          self.relevancy.splice(index, 1)
+        } else {
+          if (self.cache.size === self.cacheSize) {
+            const leastRelevant = self.relevancy[self.relevancy.length - 1]
+            self.cache.delete(leastRelevant)
+            self.relevancy.splice(self.cacheSize - 1)
+          }
+          data = target(...argumentsList)
+          self.cache.set(hash, data as ReturnType<F>)
         }
-        const value = target(...argumentsList)
-        cache.set(hash, value)
-      }
 
-      relevancy.unshift(hash)
-      return cache.get(hash)!
-    },
-  }) as unknown) as F & {
-    cache: Map<string, ReturnType<F>>
-    relevancy: string[]
+        self.relevancy.unshift(hash)
+        return data!
+      },
+    })
   }
-
-  proxy.cache = cache
-  proxy.relevancy = relevancy
-
-  return proxy
 }
+
+export * from './services/DeltaConstraint/utils'

@@ -1,14 +1,13 @@
 import Coords, { RawCoords } from '../Coords'
 import Graph from './Dijkstra/Graph'
 import { Grid, Unit } from '../../entities'
-import Constraint from '../DeltaConstraint/DeltaConstraint'
 import { GraphNodeMap, GraphNodeNeighbour } from './Dijkstra/types'
+import { SimpleCache } from '../../utils'
 
 export default class Deployment<U extends Unit = Unit> {
-  timestamp: number
   readonly grid: Grid<U>
   readonly unit: U
-  graph!: Graph
+  graph: Graph
   coordinates: Coords
   actionsTaken = 0
 
@@ -21,11 +20,10 @@ export default class Deployment<U extends Unit = Unit> {
     unit: U
     coordinates: RawCoords
   }) {
-    this.timestamp = grid.timestamp
     this.grid = grid
     this.unit = unit
     this.coordinates = new Coords(coordinates)
-    this.initGraph()
+    this.graph = this.createGraph()
   }
 
   private updateCoordinates = (val: Partial<RawCoords>) => {
@@ -128,22 +126,30 @@ export default class Deployment<U extends Unit = Unit> {
    *
    * Consider using in conjunction with `Deployment.move`.
    */
-  getRoute = ({
-    toCoords,
-    fromCoords = this.coordinates.raw,
-  }: {
-    toCoords: RawCoords
-    fromCoords?: RawCoords
-  }) => {
-    const result = this.graph.path(
-      this.unit,
-      Coords.hash(fromCoords),
-      Coords.hash(toCoords),
-      { cost: true }
-    ) as { path: null | string[]; cost: number }
+  getRoute = new SimpleCache(
+    ({
+      toCoords,
+      fromCoords = this.coordinates.raw,
+    }: {
+      toCoords: RawCoords
+      fromCoords?: RawCoords
+    }) => {
+      const result = this.graph.path(
+        this.unit,
+        Coords.hash(fromCoords),
+        Coords.hash(toCoords),
+        { cost: true }
+      ) as { path: null | string[]; cost: number }
 
-    return result.path?.map(Coords.parse).slice(1) || []
-  }
+      return result.path?.map(Coords.parse).slice(1) || []
+    },
+    ({ toCoords, fromCoords = this.coordinates.raw }) =>
+      [
+        Coords.hash(fromCoords),
+        Coords.hash(toCoords),
+        this.grid.timestamp,
+      ].join()
+  ).fn
 
   /**
    * Get all reachable coordinates from a given pair of `RawCoords`, based on
@@ -154,8 +160,12 @@ export default class Deployment<U extends Unit = Unit> {
    *
    * Consider using in conjunction with `Deployment.move`.
    */
-  getReachableCoords = (fromCoords = this.coordinates.raw) =>
-    this.applyMovementOptions(fromCoords).map(Coords.parse)
+  getReachableCoords = new SimpleCache(
+    (fromCoords = this.coordinates.raw) =>
+      this.applyMovementOptions(fromCoords).map(Coords.parse),
+    (fromCoords = this.coordinates.raw) =>
+      [Coords.hash(fromCoords), this.grid.timestamp].join()
+  ).fn
 
   /**
    * Get all targetable hostile/wildcard `Deployment`s from a given pair of `RawCoords`,
@@ -166,34 +176,18 @@ export default class Deployment<U extends Unit = Unit> {
    *
    * Consider using in conjunction with `Deployment.engage`.
    */
-  getTargetableDeployments = (fromCoords = this.coordinates.raw) => {
-    if (!this.unit.weapon) return []
+  getTargetableDeployments = new SimpleCache(
+    (fromCoords = this.coordinates.raw) => {
+      if (!this.unit.weapon) return []
 
-    return (this.unit.weapon
-      .getTargetableCoords(this, fromCoords)
-      .map(this.grid.getDeployment)
-      .filter(Boolean) as unknown) as Deployment<U>[]
-  }
-
-  private initGraph() {
-    const graph: GraphNodeMap = {}
-
-    this.grid.mapTiles(tile => {
-      const nodeNeighbour = this.unit.movement.constraint
-        .adjacent(tile.coords)
-        .reduce((acc, coords) => {
-          if (coords.withinBounds(this.grid)) {
-            if (!acc) acc = {}
-            const neighbour = this.grid.graph[coords.y][coords.x]
-            acc[coords.hash] = neighbour.tile
-          }
-          return acc
-        }, undefined as undefined | GraphNodeNeighbour)
-      if (nodeNeighbour) graph[tile.coords.hash] = nodeNeighbour
-    })
-
-    this.graph = new Graph(graph)
-  }
+      return (this.unit.weapon
+        .getTargetableCoords(this, fromCoords)
+        .map(this.grid.getDeployment)
+        .filter(Boolean) as unknown) as Deployment<U>[]
+    },
+    (fromCoords = this.coordinates.raw) =>
+      [Coords.hash(fromCoords), this.grid.timestamp].join()
+  )
 
   private applyMovementOptions = (
     fromCoords = this.coordinates.raw,
@@ -243,4 +237,24 @@ export default class Deployment<U extends Unit = Unit> {
         return acc
       }, accumulator).accessible,
   ]
+
+  private createGraph() {
+    const graph: GraphNodeMap = {}
+
+    this.grid.mapTiles(tile => {
+      const nodeNeighbour = this.unit.movement.constraint
+        .adjacent(tile.coords)
+        .reduce((acc, coords) => {
+          if (coords.withinBounds(this.grid)) {
+            if (!acc) acc = {}
+            const neighbour = this.grid.graph[coords.y][coords.x]
+            acc[coords.hash] = neighbour.tile
+          }
+          return acc
+        }, undefined as undefined | GraphNodeNeighbour)
+      if (nodeNeighbour) graph[tile.coords.hash] = nodeNeighbour
+    })
+
+    return new Graph(graph)
+  }
 }
