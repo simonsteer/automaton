@@ -1,24 +1,21 @@
-import { Unit } from '../..'
-import { RawCoords } from '../Coords'
+import Unit from '../../entities/Unit'
+import Deployment from '../../entities/Deployment'
 
-type GridModificationTypes<U extends Unit = Unit> = {
-  deployUnit: [U, RawCoords]
-  moveUnit: [Symbol, RawCoords[]]
-  withdrawUnit: Symbol
+type GridModificationTypes = {
+  deploy: [Unit, { x: number; y: number }]
+  move: [string, { x: number; y: number }[]]
+  withdraw: Deployment
 }
 
 export type GridModificationType = keyof GridModificationTypes
 
-export type GridModification<
-  Type extends GridModificationType,
-  U extends Unit = Unit
-> = {
+export type GridModification<Type extends GridModificationType> = {
   type: Type
-  payload: GridModificationTypes<U>[Type]
+  payload: GridModificationTypes[Type]
 }
 
-export type GridModifications<U extends Unit = Unit> = (
-  | GridModification<'deployUnit', U>
-  | GridModification<'withdrawUnit', U>
-  | GridModification<'moveUnit', U>
+export type GridModifications = (
+  | GridModification<'deploy'>
+  | GridModification<'withdraw'>
+  | GridModification<'move'>
 )[]

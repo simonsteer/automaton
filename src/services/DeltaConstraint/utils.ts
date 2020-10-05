@@ -1,117 +1,43 @@
-import { GraphNodeMap } from '../Deployment/Dijkstra/types'
-import { Coords } from '..'
-import { RawCoords } from '../Coords'
+import Coords from '../Coords'
 
-export function mergeGraphs(
+export function merge_deltas(
   strategy: 'difference' | 'intersect' | 'union',
-  ...graphs: GraphNodeMap[]
-) {
-  return GraphMergeStrategies[strategy](...graphs)
-}
-
-export function mergeCoordinates(
-  strategy: 'difference' | 'intersect' | 'union',
-  ...coords: RawCoords[][]
+  ...coords: { x: number; y: number }[][]
 ) {
   return CoordinatesMergeStrategies[strategy](...coords)
 }
 
-const GraphMergeStrategies = {
-  difference(...nodeMaps: GraphNodeMap[]) {
-    return nodeMaps.reduce((acc, nodeMap, index) => {
-      const otherNodeMaps = nodeMaps.filter((_, i) => i !== index)
-
-      for (const node in nodeMap) {
-        const neighbour = nodeMap[node]
-        const otherNeighbours = otherNodeMaps
-          .map(other => other[node])
-          .filter(Boolean)
-
-        for (const neighbourKey in neighbour) {
-          if (
-            !otherNeighbours.some(
-              otherNeighbour => neighbourKey in otherNeighbour
-            )
-          ) {
-            acc[node] = {
-              ...(acc[node] || {}),
-              [neighbourKey]: neighbour[neighbourKey],
-            }
-          }
-        }
-      }
-
-      return acc
-    }, {} as GraphNodeMap)
-  },
-  intersect(...[first, ...rest]: GraphNodeMap[]) {
-    if (!rest.length) {
-      return first || {}
-    }
-    const firstKeys = Object.keys(first)
-
-    return firstKeys.reduce((acc, node) => {
-      const neighbour = first[node]
-      if (rest.some(other => !(node in other))) {
-        return acc
-      } else {
-        const otherNeighbour = rest[0][node]
-        const otherKeys = Object.keys(otherNeighbour)
-        firstKeys.forEach(key => {
-          if (otherKeys.includes(key)) {
-            acc[node] = {
-              ...(acc[node] || {}),
-              [key]: neighbour[key],
-            }
-          }
-        })
-      }
-
-      return acc
-    }, {} as GraphNodeMap)
-  },
-  union(...nodeMaps: GraphNodeMap[]) {
-    return nodeMaps.reduce((acc, nodeMap) => {
-      for (const node in nodeMap) {
-        const neighbour = nodeMap[node]
-        acc[node] = { ...(acc[node] || {}), ...neighbour }
-      }
-      return acc
-    }, {} as GraphNodeMap)
-  },
-}
-
 const CoordinatesMergeStrategies = {
-  difference(...coordinatesSets: RawCoords[][]) {
+  difference(...delta_sets: { x: number; y: number }[][]) {
     const difference = new Set<string>()
-    const sets = coordinatesSets.map(
-      collection => new Set(Coords.hashMany(collection))
+    const sets = delta_sets.map(
+      collection => new Set(Coords.hash_many(collection))
     )
     sets.forEach((set, index) => {
-      const otherSets = sets.filter((_, otherIndex) => index !== otherIndex)
+      const other_sets = sets.filter((_, other_index) => index !== other_index)
       ;[...set]
-        .filter(value => !otherSets.some(otherSet => otherSet.has(value)))
+        .filter(value => !other_sets.some(other_set => other_set.has(value)))
         .forEach(value => difference.add(value))
     })
-    return Coords.parseMany([...difference])
+    return Coords.parse_many([...difference])
   },
-  intersect(...coordinatesSets: RawCoords[][]) {
-    const [firstCollection, ...restCollections] = coordinatesSets.map(
-      Coords.hashMany
+  intersect(...delta_sets: { x: number; y: number }[][]) {
+    const [first_collection, ...rest_collections] = delta_sets.map(
+      Coords.hash_many
     )
-    if (!restCollections.length) {
-      return Coords.parseMany(firstCollection) || []
+    if (!rest_collections.length) {
+      return Coords.parse_many(first_collection) || []
     }
 
-    const sets = restCollections.map(collection => new Set(collection))
-    return [...firstCollection]
+    const sets = rest_collections.map(collection => new Set(collection))
+    return [...first_collection]
       .filter(item => sets.every(set => set.has(item)))
       .map(hash => Coords.parse(hash))
   },
-  union(...coordinatesSets: RawCoords[][]) {
+  union(...delta_sets: { x: number; y: number }[][]) {
     const union = new Set<string>()
-    coordinatesSets.forEach(collection =>
-      Coords.hashMany(collection).forEach(item => union.add(item))
+    delta_sets.forEach(collection =>
+      Coords.hash_many(collection).forEach(item => union.add(item))
     )
     return [...union].map(hash => Coords.parse(hash))
   },

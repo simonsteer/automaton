@@ -1,53 +1,45 @@
-import { Tile } from './entities'
+import Tile from './entities/Tile'
 
-export function createSimpleGraph(size: number) {
-  const tile = new Tile()
-  return Array(size)
-    .fill(tile)
-    .map(t => Array(size).fill(t)) as Tile[][]
-}
+type Func = (...args: any) => any
 
-export class SimpleCache<F extends (...args: any) => any> {
-  target: F
-  fn: F
-  cache = new Map<string, ReturnType<F>>()
-  relevancy: string[] = []
-  cacheSize: number
-  hashingMethod: (...args: Parameters<F>) => string
+export function memoize<F extends Func>(
+  fn: F,
+  hashing_method: (...args: Parameters<F>) => string,
+  cache_size = 100
+) {
+  const relevancy: string[] = []
+  const cache = new Map<string, ReturnType<F>>()
 
-  constructor(
-    fn: F,
-    hashingMethod: (...args: Parameters<F>) => string,
-    cacheSize = 100
-  ) {
-    const self = this
+  return new Proxy(fn, {
+    apply(target, _, args) {
+      const hash = hashing_method(...args)
 
-    this.cacheSize = cacheSize
-    this.hashingMethod = hashingMethod
-    this.target = fn
-    this.fn = new Proxy(fn, {
-      apply(target, thisArg, argumentsList) {
-        const hash = self.hashingMethod(...argumentsList)
-
-        let data = self.cache.get(hash)
-        if (data) {
-          const index = self.relevancy.indexOf(hash)
-          self.relevancy.splice(index, 1)
-        } else {
-          if (self.cache.size === self.cacheSize) {
-            const leastRelevant = self.relevancy[self.relevancy.length - 1]
-            self.cache.delete(leastRelevant)
-            self.relevancy.splice(self.cacheSize - 1)
-          }
-          data = target(...argumentsList)
-          self.cache.set(hash, data as ReturnType<F>)
+      let data = cache.get(hash)
+      if (data) {
+        const index = relevancy.indexOf(hash)
+        relevancy.splice(index, 1)
+      } else {
+        if (cache.size === cache_size) {
+          const leastRelevant = relevancy[relevancy.length - 1]
+          cache.delete(leastRelevant)
+          relevancy.splice(cache_size - 1)
         }
+        data = target(...args)
+        cache.set(hash, data as ReturnType<F>)
+      }
 
-        self.relevancy.unshift(hash)
-        return data!
-      },
-    })
-  }
+      relevancy.unshift(hash)
+      return data
+    },
+  })
 }
 
-export * from './services/DeltaConstraint/utils'
+export function create_simple_tileset(size: number) {
+  return Array(size)
+    .fill(null)
+    .map(() =>
+      Array(size)
+        .fill(null)
+        .map(() => new Tile())
+    )
+}

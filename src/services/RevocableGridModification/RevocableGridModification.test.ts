@@ -1,7 +1,8 @@
+import Unit from '../../entities/Unit'
+import Team from '../../entities/Team'
+import Grid from '../../entities/Grid'
+import { create_simple_tileset } from '../../utils'
 import RevocableGridModification from './RevocableGridModification'
-import { Grid, Unit } from '../..'
-import { createSimpleGraph } from '../../utils'
-import { Team } from '../../entities'
 
 describe('RevocableGridModification', () => {
   const unit = new Unit({ team: new Team() })
@@ -10,7 +11,7 @@ describe('RevocableGridModification', () => {
   const toCoords = { x: 3, y: 7 }
 
   const grid = new Grid({
-    graph: createSimpleGraph(10),
+    tiles: create_simple_tileset(10),
     units: [[unit, fromCoords]],
   })
 
@@ -18,29 +19,27 @@ describe('RevocableGridModification', () => {
   const unitToAddCoords = { x: 0, y: 0 }
 
   const modification = new RevocableGridModification(grid, [
-    { type: 'moveUnit', payload: [unit.id, [toCoords]] },
-    { type: 'deployUnit', payload: [unitToAdd, unitToAddCoords] },
+    { type: 'move', payload: [unit.id, [toCoords]] },
+    { type: 'deploy', payload: [unitToAdd, unitToAddCoords] },
   ])
 
   it('can apply modifications to a grid', () => {
-    expect(grid.getCoordinateData(fromCoords)?.deployment).not.toBe(undefined)
-    expect(grid.getCoordinateData(toCoords)?.deployment).toBe(undefined)
-    expect(grid.getCoordinateData(unitToAddCoords)?.deployment).toBe(undefined)
+    expect(grid.tile_at(fromCoords)?.deployment).not.toBe(undefined)
+    expect(grid.tile_at(toCoords)?.deployment).toBe(undefined)
+    expect(grid.tile_at(unitToAddCoords)?.deployment).toBe(undefined)
 
     modification.apply()
 
-    expect(grid.getCoordinateData(fromCoords)?.deployment).toBe(undefined)
-    expect(grid.getCoordinateData(toCoords)?.deployment).not.toBe(undefined)
-    expect(grid.getCoordinateData(unitToAddCoords)?.deployment).not.toBe(
-      undefined
-    )
+    expect(grid.tile_at(fromCoords)?.deployment).toBe(undefined)
+    expect(grid.tile_at(toCoords)?.deployment).not.toBe(undefined)
+    expect(grid.tile_at(unitToAddCoords)?.deployment).not.toBe(undefined)
   })
 
   it('can revoke modifications from the grid', () => {
     modification.revoke()
 
-    expect(grid.getCoordinateData(fromCoords)?.deployment).not.toBe(undefined)
-    expect(grid.getCoordinateData(toCoords)?.deployment).toBe(undefined)
-    expect(grid.getCoordinateData(unitToAddCoords)?.deployment).toBe(undefined)
+    expect(grid.tile_at(fromCoords)?.deployment).not.toBe(undefined)
+    expect(grid.tile_at(toCoords)?.deployment).toBe(undefined)
+    expect(grid.tile_at(unitToAddCoords)?.deployment).toBe(undefined)
   })
 })

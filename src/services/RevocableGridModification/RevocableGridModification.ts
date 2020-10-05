@@ -1,21 +1,21 @@
-import { Grid, Unit } from '../../entities'
-import { RawCoords } from '../Coords'
-import { Deployment } from '..'
+import Unit from '../../entities/Unit'
+import Grid from '../../entities/Grid'
+import Deployment from '../../entities/Deployment'
 import { GridModifications } from './types'
 
-export default class RevocableGridModification<U extends Unit = Unit> {
-  grid: Grid<U>
-  private modifications: GridModifications<U>
+export default class RevocableGridModification {
+  grid: Grid
+  private modifications: GridModifications
   private revocations: (
     | {
-        type: 'moveUnit'
-        payload: [Deployment<U>, RawCoords]
+        type: 'move'
+        payload: [Deployment, { x: number; y: number }]
       }
-    | { type: 'deployUnit'; payload: Symbol }
-    | { type: 'withdrawUnit'; payload: [U, RawCoords] }
+    | { type: 'deploy'; payload: Unit }
+    | { type: 'withdraw'; payload: [Unit, { x: number; y: number }] }
   )[] = []
 
-  constructor(grid: Grid<U>, modifications: GridModifications<U>) {
+  constructor(grid: Grid, modifications: GridModifications) {
     this.modifications = modifications
     this.grid = grid
   }
@@ -25,17 +25,17 @@ export default class RevocableGridModification<U extends Unit = Unit> {
 
     this.modifications.forEach(modification => {
       switch (modification.type) {
-        case 'deployUnit':
+        case 'deploy':
           const [unit, coords] = modification.payload
           this.revocations.unshift({
             type: modification.type,
-            payload: unit.id,
+            payload: unit,
           })
-          this.grid.deployUnits([[unit, coords]])
+          this.grid.deploy_units([[unit, coords]])
           break
-        case 'moveUnit':
+        case 'move':
           const [id, path] = modification.payload
-          const deploymentToMove = this.grid.getDeployment(id)
+          const deploymentToMove = this.grid.find_deployment(id)
           if (deploymentToMove) {
             this.revocations.unshift({
               type: modification.type,
@@ -44,19 +44,16 @@ export default class RevocableGridModification<U extends Unit = Unit> {
             deploymentToMove.move(path)
           }
           break
-        case 'withdrawUnit':
-          const deploymentToRemove = this.grid.getDeployment(
-            modification.payload
+        case 'withdraw':
+          const to_remove = this.grid.find_deployment(
+            modification.payload.unit.id
           )
-          if (deploymentToRemove) {
+          if (to_remove) {
             this.revocations.unshift({
               type: modification.type,
-              payload: [
-                deploymentToRemove.unit,
-                deploymentToRemove.coordinates.raw,
-              ],
+              payload: [to_remove.unit, to_remove.coordinates.raw],
             })
-            this.grid.withdrawUnits([modification.payload])
+            this.grid.withdraw_deployments([modification.payload])
           }
           break
         default:
@@ -69,15 +66,16 @@ export default class RevocableGridModification<U extends Unit = Unit> {
     while (this.revocations.length) {
       const revocation = this.revocations[0]
       switch (revocation.type) {
-        case 'deployUnit':
-          this.grid.withdrawUnits([revocation.payload])
+        case 'deploy':
+          revocation.payload.deployment &&
+            this.grid.withdraw_deployment(revocation.payload.deployment)
           break
-        case 'moveUnit':
+        case 'move':
           const [deployment, originalCoords] = revocation.payload
           deployment.move([originalCoords])
           break
-        case 'withdrawUnit':
-          this.grid.deployUnits([revocation.payload])
+        case 'withdraw':
+          this.grid.deploy_units([revocation.payload])
           break
         default:
           break

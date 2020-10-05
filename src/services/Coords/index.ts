@@ -1,1 +1,1 @@
-export { default, RawCoords } from './Coords'
+export { default } from './Coords'
