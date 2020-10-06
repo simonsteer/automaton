@@ -1,6 +1,5 @@
 import DeltaConstraint from '../../services/DeltaConstraint'
 import Team from '../Team'
-import Weapon from '../Weapon'
 import Deployment from '../Deployment'
 
 type UnitMovement = {
@@ -11,22 +10,11 @@ type UnitMovement = {
 }
 
 export default class Unit {
-  constructor(config: {
-    movement?: Partial<UnitMovement>
-    health?: number
-    team: Team
-    weapon?: Weapon
-  })
+  constructor(config: { movement?: Partial<UnitMovement>; team: Team })
   id: string
   deployment: Deployment | undefined
-  max_health: number
   current_health: number
   movement: UnitMovement
   team: Team
   switch_team(team: Team): Unit
-  weapon: Weapon
-  equip(weapon: Weapon): Unit
-  disarm(): Unit
-  is_armed: boolean
-  is_dead: boolean
 }

@@ -1,1 +1,1 @@
-export * as constraints from './constraints'
+export * from './constraints'

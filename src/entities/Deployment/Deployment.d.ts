@@ -23,5 +23,4 @@ export default class Deployment {
   reachable_coords(from?: { x: number; y: number }): { x: number; y: number }[]
   move(path: { x: number; y: number }[]): { x: number; y: number }[]
   engage(deployment: Deployment): void
-  targetable_deployments(from: { x: number; y: number }): Deployment[]
 }

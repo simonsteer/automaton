@@ -2,12 +2,9 @@ import container, { Entity } from '../container'
 import { SIMPLE_ORTHOGONAL_CONSTRAINT } from '../../recipes/constraints'
 import DeltaConstraint from '../../services/DeltaConstraint'
 import Team from '../Team'
-import Weapon from '../Weapon'
 import Deployment from '../Deployment'
 
 class Unit extends Entity {
-  max_health
-  current_health
   movement
 
   constructor({
@@ -17,20 +14,10 @@ class Unit extends Entity {
       can_pass_through_other_unit,
       unit_pass_through_limit = Infinity,
     } = {},
-    health = 1,
     team,
-    weapon,
   }) {
-    super({ team: Team, weapon: Weapon, deployment: Deployment }, () => {
-      if (weapon) this.equip(weapon)
+    super({ team: Team, deployment: Deployment }, () => {
       this.switch_team(team)
-
-      if (health < 0) {
-        throw new Error(
-          `Unit health must be greater than 0. Received value: ${health}`
-        )
-      }
-
       this.movement = {
         can_pass_through_other_unit:
           can_pass_through_other_unit ||
@@ -41,8 +28,6 @@ class Unit extends Entity {
         steps,
         unit_pass_through_limit,
       }
-      this.max_health = health
-      this.current_health = this.max_health
     })
   }
 
@@ -52,23 +37,6 @@ class Unit extends Entity {
     team.link_units(this)
 
     return this
-  }
-
-  equip = weapon => {
-    this.link_weapon(weapon)
-    weapon.link_unit(this)
-
-    return this
-  }
-
-  disarm = () => {
-    this.unlink_weapon()
-    weapon.unlink_unit()
-    return this
-  }
-
-  get is_armed() {
-    return !!this.weapon
   }
 
   get is_dead() {

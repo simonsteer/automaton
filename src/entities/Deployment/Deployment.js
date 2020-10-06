@@ -113,19 +113,6 @@ class Deployment extends Entity {
     this.actions_taken++
   }
 
-  targetable_deployments = memoize(
-    (from_coords = this.coordinates.raw) => {
-      if (!this.unit.weapon) return []
-
-      return this.unit.weapon
-        .targetable_coords(this, from_coords)
-        .map(coordinates => this.grid.tile_at(coordinates).deployment)
-        .filter(Boolean)
-    },
-    (from_coords = this.coordinates.raw) =>
-      [Coords.hash(from_coords), this.grid.timestamp].join()
-  )
-
   create_graph() {
     const graph = {}
 
