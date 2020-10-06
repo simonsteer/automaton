@@ -1,4 +1,4 @@
-import Tile from 'entities/Tile'
+import Tile from '../entities/Tile'
 
 export function memoize<F extends (...args: any) => any>(
   fn: F,
