@@ -52,6 +52,18 @@ class Deployment extends Entity {
       [Coords.hash(from), this.grid.timestamp].join()
   )
 
+  footprint_within_bounds = coordinates => {
+    if (
+      !this.grid ||
+      !this.grid.within_bounds(coordinates)
+    )
+      return false
+
+    return this.unit.movement.footprint
+      .adjacent(coordinates)
+      .every(this.grid.within_bounds)
+  }
+
   move = path => {
     if (path.length < 1) {
       console.error(
@@ -88,7 +100,10 @@ class Deployment extends Entity {
           const is_last_step = index === path.length - 1
           if (is_last_step) {
             this.grid.events.emit('unitStopTile', this, tile)
-          } else if (!tile.deployment && tile.should_guard_crossover(this, tile)) {
+          } else if (
+            !tile.deployment &&
+            tile.should_guard_crossover(this, tile)
+          ) {
             acc.abort = true
             this.grid.events.emit('guardTileCrossover', this, tile)
             this.grid.events.emit('unitStopTile', this, tile)
@@ -146,7 +161,6 @@ class Deployment extends Entity {
         .adjacent(from)
         .filter(this.grid.within_bounds)
         .reduce((acc, coordinates) => {
-          console.log(coordinates)
           const {
             can_pass_through_other_unit,
             unit_pass_through_limit,

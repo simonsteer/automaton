@@ -10,6 +10,7 @@ class Unit extends Entity {
   constructor({
     movement: {
       constraint = new DeltaConstraint(SIMPLE_ORTHOGONAL_CONSTRAINT),
+      footprint = new DeltaConstraint([]),
       steps = 1,
       can_pass_through_other_unit,
       unit_pass_through_limit = Infinity,
@@ -25,6 +26,7 @@ class Unit extends Entity {
             unit.team.is(this.team, 'friendly') ||
             unit.team.is(this.team, 'neutral')),
         constraint,
+        footprint,
         steps,
         unit_pass_through_limit,
       }
@@ -32,10 +34,9 @@ class Unit extends Entity {
   }
 
   switch_team = team => {
-    if (this.team) this.team.unlink_units(this)
+    this.team?.unlink_units(this)
     this.link_team(team)
     team.link_units(this)
-
     return this
   }
 

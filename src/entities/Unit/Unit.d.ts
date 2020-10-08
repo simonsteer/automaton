@@ -4,6 +4,7 @@ import Deployment from '../Deployment'
 
 type UnitMovement = {
   constraint: DeltaConstraint
+  footprint: DeltaConstraint
   steps: number
   can_pass_through_other_unit: (unit: Unit) => boolean
   unit_pass_through_limit: number
