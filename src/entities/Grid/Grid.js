@@ -33,7 +33,7 @@ class Grid extends Entity {
       return acc
     }, new Set()).values()]
 
-  map_tiles = callback =>
+  map_tiles = (callback = t => t) =>
     this.tiles.map((row) => row.map((item) => callback(item)))
 
   within_bounds = ({ x, y }) =>
