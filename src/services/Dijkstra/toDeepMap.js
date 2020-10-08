@@ -6,7 +6,7 @@ export default function toDeepMap(source) {
 
   keys.forEach(key => {
     const val = source[key]
-    if (val instanceof Tile) {
+    if (Array.isArray(val)) {
       return map.set(key, val)
     }
     return map.set(key, toDeepMap(val))

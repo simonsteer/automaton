@@ -7,4 +7,5 @@ export default class DeltaConstraint {
     coords_a: { x: number; y: number },
     coords_b: { x: number; y: number }
   ): boolean
+  size: number
 }

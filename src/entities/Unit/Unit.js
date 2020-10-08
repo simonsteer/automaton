@@ -10,7 +10,7 @@ class Unit extends Entity {
   constructor({
     movement: {
       constraint = new DeltaConstraint(SIMPLE_ORTHOGONAL_CONSTRAINT),
-      footprint = new DeltaConstraint([]),
+      footprint = new DeltaConstraint([{ x: 0, y: 0 }]),
       steps = 1,
       can_pass_through_other_unit,
       unit_pass_through_limit = Infinity,

@@ -31,6 +31,10 @@ export default class Coords {
     return new Coords({ x, y })
   }
 
+  static match(coords_a, coords_b) {
+    return coords_a.x === coords_b.x && coords_a.y === coords_b.y
+  }
+
   static hash_many(coords) {
     return coords.map(Coords.hash)
   }
@@ -38,6 +42,8 @@ export default class Coords {
   static parse_many(hashes) {
     return hashes.map(Coords.parse)
   }
+
+  match = (other_coords) => Coords.match(this, other_coords)
 
   get raw() {
     return { x: this.x, y: this.y }

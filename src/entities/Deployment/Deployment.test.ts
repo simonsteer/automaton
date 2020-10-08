@@ -39,7 +39,6 @@ describe('Deployment', () => {
 
       const reachable = deployment.reachable_coords().map(c => new Coords(c))
       const expected = [
-        { x: 0, y: 0 },
         { x: 0, y: 1 },
         { x: 0, y: 2 },
         { x: 0, y: 3 },
@@ -81,7 +80,6 @@ describe('Deployment', () => {
 
       const reachable = deployment.reachable_coords().map(c => new Coords(c))
       const expected = [
-        { x: 0, y: 0 },
         { x: 0, y: 1 },
         { x: 0, y: 2 },
         { x: 0, y: 3 },
@@ -124,7 +122,6 @@ describe('Deployment', () => {
       const expected = [
         { x: 0, y: 0 },
         { x: 0, y: 2 },
-        { x: 1, y: 1 },
         { x: 2, y: 2 },
         { x: 2, y: 0 },
         { x: 1, y: 3 },
@@ -169,7 +166,6 @@ describe('Deployment', () => {
       const expected = [
         { x: 0, y: 0 },
         { x: 0, y: 2 },
-        { x: 1, y: 1 },
         { x: 2, y: 2 },
         { x: 2, y: 0 },
         { x: 3, y: 3 },
@@ -262,6 +258,50 @@ describe('Deployment', () => {
       }
 
       expect(sorted.path).toEqual(sorted.expected)
+    })
+  })
+
+  describe('pathfinding for units with custom footprints', () => {
+    it('can find reachable coordinates for units with custom footprints', () => {
+      const unit = new Unit({
+        team,
+        movement: {
+          constraint: new DeltaConstraint(SIMPLE_ORTHOGONAL_CONSTRAINT),
+          footprint: new DeltaConstraint([
+            { x: 0, y: 0 },
+            { x: 1, y: 0 },
+          ]),
+          steps: 2,
+        },
+      })
+
+      const tiles = create_simple_tileset(5)
+      const grid = new Grid({ tiles })
+      grid.deploy_unit(unit, { x: 0, y: 0 })
+
+      // o = origin of unit
+      // x = non-traversable
+      // √ = reachable
+      //  __ __ __ __ __
+      // |o_|√_|√_|__|__|
+      // |√_|√_|__|__|__|
+      // |√_|__|__|__|__|
+      // |__|__|__|__|__|
+      // |__|__|__|__|__|
+
+      const reachable = sortBy(unit.deployment?.reachable_coords(), ['x', 'y'])
+      const expected = sortBy(
+        [
+          { x: 1, y: 0 },
+          { x: 0, y: 1 },
+          { x: 1, y: 1 },
+          { x: 2, y: 0 },
+          { x: 0, y: 2 },
+        ],
+        ['x', 'y']
+      )
+
+      expect(reachable).toEqual(expected)
     })
   })
 })

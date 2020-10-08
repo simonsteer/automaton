@@ -21,6 +21,10 @@ class Deployment extends Entity {
     })
   }
 
+  get current_footprint() {
+    return this.unit.movement.footprint.adjacent(this.coordinates)
+  }
+
   set_coordinates = coordinates => {
     if (!this.coordinates) {
       this.coordinates = new Coords(coordinates)
@@ -42,27 +46,20 @@ class Deployment extends Entity {
         .path?.map(hash => Coords.parse(hash).raw)
         .slice(1) || [],
     ({ from = this.coordinates.raw, to }) =>
-      [Coords.hash(from), Coords.hash(to), this.grid.timestamp].join()
+      [
+        Coords.hash(from),
+        Coords.hash(to),
+        this.grid.id,
+        this.grid.timestamp,
+      ].join()
   )
 
   reachable_coords = memoize(
     (from = this.coordinates.raw) =>
       this.apply_movement_options(from).map(hash => Coords.parse(hash).raw),
     (from = this.coordinates.raw) =>
-      [Coords.hash(from), this.grid.timestamp].join()
+      [Coords.hash(from), this.grid.id, this.grid.timestamp].join()
   )
-
-  footprint_within_bounds = coordinates => {
-    if (
-      !this.grid ||
-      !this.grid.within_bounds(coordinates)
-    )
-      return false
-
-    return this.unit.movement.footprint
-      .adjacent(coordinates)
-      .every(this.grid.within_bounds)
-  }
 
   move = path => {
     if (path.length < 1) {
@@ -74,16 +71,18 @@ class Deployment extends Entity {
 
     const result = path.reduce(
       (acc, coordinates, index) => {
-        if (acc.abort || this.unit.is_dead) {
+        if (acc.abort || !this.unit || this.unit.is_dead) {
           return acc
         }
-        if (this.grid.out_of_bounds(coordinates)) {
-          throw new Error(
-            `No data was found at coordinates: { x: ${coordinates.x}; y: ${coordinates.y} }`
-          )
+        if (!this.footprint_difference(coordinates)) {
+          console.log({ no_footprint: coordinates })
+          acc.abort = true
+          return acc
         }
 
         const tile = this.grid.tile_at(coordinates)
+
+        const tiles = this.unit.movement.footprint.adjacent(coordinates)
 
         if (tile.should_guard_entry(this, tile)) {
           acc.abort = true
@@ -135,10 +134,10 @@ class Deployment extends Entity {
       const node_neighbour = this.unit.movement.constraint
         .adjacent(data.coords)
         .reduce((acc, coords) => {
-          if (coords.within_bounds(this.grid)) {
+          const footprint_difference = this.footprint_difference(coords)
+          if (footprint_difference) {
             if (!acc) acc = {}
-            const neighbour = this.grid.tiles[coords.y][coords.x]
-            acc[coords.hash] = neighbour.tile
+            acc[coords.hash] = footprint_difference.map(this.grid.tile_at)
           }
           return acc
         }, undefined)
@@ -148,10 +147,39 @@ class Deployment extends Entity {
     return new Graph(graph)
   }
 
+  footprint_difference = memoize(
+    coordinates => {
+      if (!this.grid || !this.grid.within_bounds(coordinates)) return null
+
+      const { footprint } = this.unit.movement
+      const footprint_adjacent = footprint
+        .adjacent(coordinates)
+        .filter(this.grid.within_bounds)
+
+      if (
+        footprint_adjacent.length !== footprint.size ||
+        footprint_adjacent.reduce(
+          (acc, coord) => acc + this.grid.tile_at(coord).cost(this.unit),
+          0
+        ) > footprint.size
+      ) {
+        return null
+      }
+
+      return footprint_adjacent.filter(
+        next_footprint_coord =>
+          !this.current_footprint.some(potential_overlap =>
+            next_footprint_coord.match(potential_overlap)
+          )
+      )
+    },
+    coordinates => [Coords.hash(coordinates), this.grid.id].join()
+  )
+
   apply_movement_options = (
-    from = this.coordinates.raw,
-    steps_left = this.unit.movement.steps,
-    accumulator = {
+    from = this.coordinates,
+    steps_left = this.unit.movement.steps * this.unit.movement.footprint.size,
+    metadata = {
       pass_through_count: 0,
       accessible: new Set(),
       inaccessible: new Set(),
@@ -159,50 +187,64 @@ class Deployment extends Entity {
   ) => [
       ...this.unit.movement.constraint
         .adjacent(from)
-        .filter(this.grid.within_bounds)
+        .filter(c => this.grid.within_bounds(c) && !this.coordinates.match(c))
         .reduce((acc, coordinates) => {
           const {
             can_pass_through_other_unit,
             unit_pass_through_limit,
           } = this.unit.movement
 
-          if (steps_left <= 0 || acc.inaccessible.has(Coords.hash(from))) {
+          const footprint_difference = this.footprint_difference(coordinates)
+          if (
+            !footprint_difference ||
+            steps_left <= 0 ||
+            acc.inaccessible.has(Coords.hash(from))
+          ) {
             return acc
           }
 
-          const tile = this.grid.tile_at(coordinates)
-          const deployment = tile.deployment
-          const movement_cost = tile.cost(this.unit)
+          const { movement_cost, deployments } = footprint_difference.reduce(
+            (acc, coordinates) => {
+              const tile = this.grid.tile_at(coordinates)
 
-          if (movement_cost > steps_left) {
-            return acc
-          }
-
-          let did_pass_through_unit = false
-          if (deployment?.unit && deployment.unit.id !== this.unit.id) {
-            if (!can_pass_through_other_unit(deployment.unit)) {
-              acc.inaccessible.add(coordinates.hash)
+              acc.movement_cost += tile.cost(this.unit)
+              if (tile.deployment) acc.deployments.push(tile.deployment)
               return acc
-            }
-            did_pass_through_unit = true
-            acc.pass_through_count++
+            },
+            { movement_cost: 0, deployments: [] }
+          )
+
+          const next_steps_left = steps_left - movement_cost
+
+          if (
+            next_steps_left < 0 ||
+            acc.pass_through_count + deployments.length > unit_pass_through_limit
+          ) {
+            return acc
+          }
+
+          const did_pass_through_units = deployments.reduce((acc, deployment) => {
+            if (acc === false) return false
+            const can_pass = can_pass_through_other_unit(deployment.unit)
+            if (!can_pass) acc.inaccessible.add(coordinates.hash)
+            return can_pass
+          }, undefined)
+
+          if (did_pass_through_units === true) {
+            acc.pass_through_count += deployments.length
           }
 
           acc.accessible.add(coordinates.hash)
           if (
-            steps_left - movement_cost > 0 &&
-            (!did_pass_through_unit ||
+            next_steps_left > 0 &&
+            (!did_pass_through_units ||
               acc.pass_through_count < unit_pass_through_limit)
           ) {
-            this.apply_movement_options(
-              coordinates,
-              steps_left - movement_cost,
-              acc
-            )
+            this.apply_movement_options(coordinates, next_steps_left, acc)
           }
 
           return acc
-        }, accumulator).accessible,
+        }, metadata).accessible,
     ]
 }
 

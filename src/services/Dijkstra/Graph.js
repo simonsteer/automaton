@@ -90,19 +90,22 @@ export default class Graph {
 
       // Loop all the neighboring nodes
       const neighbors = (this.graph.get(node.key) || new Map())
-      neighbors.forEach((tile, nNode) => {
+      neighbors.forEach((footprint, nNode) => {
         // If we already explored the node, or the node is to be avoided, skip it
         if (explored.has(nNode) || avoid.includes(nNode)) return null
 
         // If the neighboring node is not yet in the frontier, we add it with
         // the correct cost
+
+        const tileCost = footprint.reduce((acc, tile) => acc + tile.cost(unit), 0)
+
         if (!frontier.has(nNode)) {
           previous.set(nNode, node.key)
-          return frontier.set(nNode, node.priority + tile.cost(unit))
+          return frontier.set(nNode, node.priority + tileCost)
         }
 
         const frontierPriority = frontier.get(nNode).priority
-        const nodeCost = node.priority + tile.cost(unit)
+        const nodeCost = node.priority + tileCost
 
         // Otherwise we only update the cost of this node in the frontier when
         // it's below what's currently set

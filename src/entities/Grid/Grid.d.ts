@@ -17,7 +17,9 @@ export default class Grid {
   size: { width: number; height: number }
   teams(): Team[]
   tile_at(coordinates: { x: number; y: number }): Tile | undefined
-  map_tiles<C extends any = Tile>(callback?: (tile: Tile) => C): C[]
+  map_tiles<C extends any = Tile>(
+    callback?: (data: { tile: Tile; coords: Coords }) => C
+  ): C[][]
   out_of_bounds(coordinates: { x: number; y: number }): boolean
   within_bounds(coordinates: { x: number; y: number }): boolean
   deploy_unit(unit: Unit, coordinates: { x: number; y: number }): void

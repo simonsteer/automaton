@@ -1,5 +1,5 @@
 import Coords from '../../services/Coords'
-import { memoize } from "../../utils"
+import { memoize } from '../../utils'
 
 export default class DeltaConstraint {
   delta_map = {}
@@ -13,8 +13,12 @@ export default class DeltaConstraint {
     })
   }
 
+  get size() {
+    return this.deltas.length
+  }
+
   adjacent = memoize(
-    (coords) =>
+    coords =>
       this.deltas.map(
         d => new Coords({ x: coords.x + d.x, y: coords.y + d.y })
       ),
