@@ -3,9 +3,18 @@ import Team from '../../entities/Team'
 import Grid from '../../entities/Grid'
 import { create_simple_tileset } from '../../utils'
 import RevocableGridModification from './RevocableGridModification'
+import DeltaConstraint from '../DeltaConstraint'
 
 describe('RevocableGridModification', () => {
-  const unit = new Unit({ team: new Team() })
+  const unit = new Unit({
+    team: new Team(),
+    movement: {
+      footprint: new DeltaConstraint([
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+      ]),
+    },
+  })
 
   const fromCoords = { x: 1, y: 4 }
   const toCoords = { x: 3, y: 7 }
