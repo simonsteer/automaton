@@ -74,38 +74,68 @@ class Deployment extends Entity {
         if (acc.abort || !this.unit || this.unit.is_dead) {
           return acc
         }
-        if (!this.footprint_difference(coordinates)) {
-          console.log({ no_footprint: coordinates })
+
+        const footprint_adjacent = this.unit.movement.footprint
+          .adjacent(coordinates)
+          .filter(this.grid.within_bounds)
+
+        if (footprint_adjacent.length !== this.unit.movement.footprint.size) {
           acc.abort = true
           return acc
         }
 
-        const tile = this.grid.tile_at(coordinates)
+        const difference_tiles = footprint_adjacent
+          .filter(
+            next_footprint_coord =>
+              !this.current_footprint.some(potential_overlap =>
+                next_footprint_coord.match(potential_overlap)
+              )
+          )
+          .map(this.grid.tile_at)
 
-        const tiles = this.unit.movement.footprint.adjacent(coordinates)
+        const guarded_entrance_tiles = difference_tiles.filter(tile =>
+          tile.should_guard_entry(this, tile)
+        )
 
-        if (tile.should_guard_entry(this, tile)) {
+        const guarded_crossover_tiles = difference_tiles.some(tile =>
+          tile.should_guard_crossover(this, tile)
+        )
+
+        if (guarded_entrance_tiles.length > 0) {
           acc.abort = true
-          this.grid.events.emit('guardTileEntry', this, tile)
-          this.grid.events.emit('unitStopTile', this, tile)
+          this.grid.events.emit(
+            'tile_entrances_guarded',
+            this,
+            guarded_entrance_tiles
+          )
+          this.grid.events.emit('unit_movement_ended', this)
         } else {
-          const prev = path[index - 1]
-          if (prev) this.grid.events.emit('unitExitTile', this, tile)
+          const prev_coords = path[index - 1]
+          if (prev_coords) {
+            const previous_tiles = this.unit.movement.footprint
+              .difference(this.coordinates, prev_coords)
+              .map(this.grid.tile_at)
+            this.grid.events.emit('tiles_exited', this, previous_tiles)
+          }
 
           acc.path.push(coordinates)
           this.set_coordinates(coordinates)
-          this.grid.events.emit('unitEnterTile', this, tile)
+          this.grid.events.emit('tiles_entered', this, difference_tiles)
 
           const is_last_step = index === path.length - 1
           if (is_last_step) {
-            this.grid.events.emit('unitStopTile', this, tile)
+            this.grid.events.emit('unit_movement_ended', this)
           } else if (
-            !tile.deployment &&
-            tile.should_guard_crossover(this, tile)
+            !difference_tiles.some(tile => tile.deployment) &&
+            guarded_crossover_tiles.length > 0
           ) {
             acc.abort = true
-            this.grid.events.emit('guardTileCrossover', this, tile)
-            this.grid.events.emit('unitStopTile', this, tile)
+            this.grid.events.emit(
+              'tile_crossovers_guarded',
+              this,
+              guarded_crossover_tiles
+            )
+            this.grid.events.emit('unit_movement_ended', this)
           }
         }
 
@@ -114,28 +144,29 @@ class Deployment extends Entity {
       { path: [], abort: false }
     ).path
 
-    if (result.length) {
-      this.grid.events.emit('unitMovement', this, result)
-    }
     this.actions_taken++
-
     return result
   }
 
   engage = deployment => {
-    this.grid.events.emit('deploymentsEngaged', this, deployment)
+    this.grid.events.emit('deployments_engaged', this, deployment)
     this.actions_taken++
   }
 
   create_graph() {
     const graph = {}
 
+    const { footprint, constraint } = this.unit.movement
+
     this.grid.map_tiles(data => {
-      const node_neighbour = this.unit.movement.constraint
+      const node_neighbour = constraint
         .adjacent(data.coords)
         .reduce((acc, coords) => {
-          const footprint_difference = this.footprint_difference(coords)
-          if (footprint_difference) {
+          const footprint_difference = footprint.difference(
+            this.coordinates,
+            coords
+          )
+          if (footprint_difference.every(this.grid.within_bounds)) {
             if (!acc) acc = {}
             acc[coords.hash] = footprint_difference.map(this.grid.tile_at)
           }
@@ -146,35 +177,6 @@ class Deployment extends Entity {
 
     return new Graph(graph)
   }
-
-  footprint_difference = memoize(
-    coordinates => {
-      if (!this.grid || !this.grid.within_bounds(coordinates)) return null
-
-      const { footprint } = this.unit.movement
-      const footprint_adjacent = footprint
-        .adjacent(coordinates)
-        .filter(this.grid.within_bounds)
-
-      if (
-        footprint_adjacent.length !== footprint.size ||
-        footprint_adjacent.reduce(
-          (acc, coord) => acc + this.grid.tile_at(coord).cost(this.unit),
-          0
-        ) > footprint.size
-      ) {
-        return null
-      }
-
-      return footprint_adjacent.filter(
-        next_footprint_coord =>
-          !this.current_footprint.some(potential_overlap =>
-            next_footprint_coord.match(potential_overlap)
-          )
-      )
-    },
-    coordinates => [Coords.hash(coordinates), this.grid.id].join()
-  )
 
   apply_movement_options = (
     from = this.coordinates,
@@ -192,11 +194,21 @@ class Deployment extends Entity {
           const {
             can_pass_through_other_unit,
             unit_pass_through_limit,
+            footprint,
           } = this.unit.movement
 
-          const footprint_difference = this.footprint_difference(coordinates)
+          const footprint_difference = footprint.difference(this.coordinates, coordinates)
+          const footprint_out_of_bounds = footprint_difference.some(
+            this.grid.out_of_bounds
+          )
+          const footprint_difference_cost = footprint_difference.reduce(
+            (acc, coord) => acc + this.grid.tile_at(coord).cost(this.unit),
+            0
+          )
+
           if (
-            !footprint_difference ||
+            footprint_out_of_bounds ||
+            footprint_difference_cost > footprint.size ||
             steps_left <= 0 ||
             acc.inaccessible.has(Coords.hash(from))
           ) {

@@ -29,4 +29,19 @@ export default class DeltaConstraint {
     const { x, y } = Coords.deltas(coords_a, coords_b)
     return !!this.delta_map[x]?.[y]
   }
+
+  difference = memoize(
+    (coords_a, coords_b) => {
+      const adjacent_a = this.adjacent(coords_a)
+      const adjacent_b = this.adjacent(coords_b)
+
+      return adjacent_b.filter(
+        next_footprint_coord =>
+          !adjacent_a.some(potential_overlap =>
+            next_footprint_coord.match(potential_overlap)
+          )
+      )
+    },
+    (...args) => args.map(Coords.hash).join()
+  )
 }
