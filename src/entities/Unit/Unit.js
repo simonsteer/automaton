@@ -1,8 +1,6 @@
 import container, { Entity } from '../container'
 import { SIMPLE_ORTHOGONAL_CONSTRAINT } from '../../recipes/constraints'
 import DeltaConstraint from '../../services/DeltaConstraint'
-import Team from '../Team'
-import Deployment from '../Deployment'
 
 class Unit extends Entity {
   movement
@@ -17,7 +15,7 @@ class Unit extends Entity {
     } = {},
     team,
   }) {
-    super({ team: Team, deployment: Deployment }, () => {
+    super({ team: 'Team', deployment: 'Deployment' }, () => {
       this.switch_team(team)
       this.movement = {
         can_pass_through_other_unit:
@@ -45,4 +43,4 @@ class Unit extends Entity {
   }
 }
 
-export default container.register(Unit)
+export default container.register('Unit', Unit)

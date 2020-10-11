@@ -1,5 +1,4 @@
 import container, { Entity } from '../container'
-import Deployment from '../Deployment'
 
 class Tile extends Entity {
   should_guard_entry
@@ -13,11 +12,11 @@ class Tile extends Entity {
       cost = () => 1,
     } = {}
   ) {
-    super({ deployment: Deployment })
+    super({ deployment: 'Deployment' })
     this.cost = cost
     this.should_guard_entry = should_guard_entry
     this.should_guard_crossover = should_guard_crossover
   }
 }
 
-export default container.register(Tile)
+export default container.register('Tile', Tile)

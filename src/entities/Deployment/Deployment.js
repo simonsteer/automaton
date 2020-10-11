@@ -2,16 +2,12 @@ import Graph from '../../services/Dijkstra/Graph'
 import Coords from '../../services/Coords'
 import { memoize } from '../../utils'
 import container, { Entity } from '../container'
-import Unit from '../Unit'
-import Grid from '../Grid'
-import Tile from '../Tile'
-
 class Deployment extends Entity {
   coordinates
   actions_taken = 0
 
   constructor({ grid, unit, coordinates }) {
-    super({ unit: Unit, grid: Grid, tile: Tile }, () => {
+    super({ unit: 'Unit', grid: 'Grid', tile: 'Tile' }, () => {
       this.link_unit(unit)
       unit.link_deployment(this)
       this.link_grid(grid)
@@ -260,4 +256,4 @@ class Deployment extends Entity {
     ]
 }
 
-export default container.register(Deployment)
+export default container.register('Deployment', Deployment)

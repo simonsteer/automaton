@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events'
 import Coords from '../../services/Coords'
-import container, { Entity } from '../container'
 import Deployment from '../Deployment'
+import container, { Entity } from '../container'
 
 class Grid extends Entity {
   timestamp = Date.now()
@@ -10,7 +10,7 @@ class Grid extends Entity {
   tiles = {}
 
   constructor({ tiles, units }) {
-    super({ deployments: [Deployment] }, () => {
+    super({ deployments: ['Deployment'] }, () => {
       this.tiles = tiles.map((row, y) =>
         row.map((tile, x) => ({
           coords: new Coords({ x, y }),
@@ -109,4 +109,4 @@ class Grid extends Entity {
     queries.map(this.find_deployment).filter(Boolean)
 }
 
-export default container.register(Grid)
+export default container.register('Grid', Grid)

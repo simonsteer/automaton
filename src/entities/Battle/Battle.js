@@ -1,7 +1,6 @@
 import { EventEmitter } from 'events'
 import sortBy from 'lodash/sortBy'
 import container, { Entity } from '../container'
-import Grid from '../Grid'
 
 const DEFAULT_END_CONDITION = battle => battle.grid.teams().length <= 1
 
@@ -16,7 +15,7 @@ class Battle extends Entity {
     grid,
     { end_condition = DEFAULT_END_CONDITION, team_ordering } = {}
   ) {
-    super({ grid: Grid }, () => {
+    super({ grid: 'Grid' }, () => {
       this.link_grid(grid)
       this.end_condition = end_condition
       this.team_ordering = team_ordering || sortBy(this.grid.teams(), 'id')
@@ -62,4 +61,4 @@ class Battle extends Entity {
   }
 }
 
-export default container.register(Battle)
+export default container.register('Battle', Battle)

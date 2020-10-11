@@ -1,6 +1,5 @@
 
 import { v4 as uuid } from 'uuid'
-
 export class Entity {
   id = uuid()
   class_mappings = []
@@ -11,11 +10,11 @@ export class Entity {
     Object.keys(relationships).forEach(key => {
       const relationship = relationships[key]
       const many = Array.isArray(relationship)
-      const Model = many ? relationship[0] : relationship
+      const ModelName = many ? relationship[0] : relationship
 
       this.class_mappings.push({
         mapping: key,
-        name: Model.prototype.constructor.name,
+        name: ModelName
       })
       this.ids[key] = many ? new Set() : undefined
     })
@@ -28,9 +27,8 @@ class Container {
 
   get = (model, id) => this.entities[model]?.get(id)
 
-  register = Class => {
+  register = (class_name, Class) => {
     const self = this
-    const class_name = Class.prototype.constructor.name
 
     if (!self.entities[class_name]) {
       self.entities[class_name] = new Map()

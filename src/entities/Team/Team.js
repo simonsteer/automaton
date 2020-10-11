@@ -1,5 +1,4 @@
 import container, { Entity } from '../container'
-import Unit from '../Unit'
 
 class Team extends Entity {
   hostile = new Set()
@@ -13,9 +12,9 @@ class Team extends Entity {
     wildcard = [],
   } = {}) {
     super({
-      units: [Unit],
-      parent: Team,
-      children: [Team],
+      units: ['Unit'],
+      parent: 'Team',
+      children: ['Team'],
     }, () => {
       this.change_relationship(this, 'friendly')
 
@@ -107,4 +106,4 @@ class Team extends Entity {
     })
 }
 
-export default container.register(Team)
+export default container.register('Team', Team)
